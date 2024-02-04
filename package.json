@@ -2,7 +2,8 @@
   "name": "weird-prototype",
   "version": "0.0.1",
   "description": "fancy prototype for weird.inc",
-  "main": "index.js",
+  "main": "main.js",
+  "type": "module",
   "keywords": [],
   "author": "Weird.inc",
   "license": "Unlicensed"

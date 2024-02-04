@@ -4,12 +4,13 @@
   "description": "Prototype for weird.inc",
   "scripts": {
     "start": "node --watch --env-file=.env ./entrypoints/main.js",
-    "dev": "node --watch --env-file=.env ./entrypoints/dev.js"
+    "dev": "node --env-file=.env ./entrypoints/dev.js"
   },
   "type": "module",
   "author": "Weird.inc",
   "license": "Unlicensed",
   "devDependencies": {
-    "@babel/core": "^7.23.9"
+    "@babel/core": "^7.23.9",
+    "chokidar": "^3.5.3"
   }
 }

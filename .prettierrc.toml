@@ -1,4 +1,4 @@
-printWidth = 70
+printWidth = 50
 semi = false
 trailingComma = "none"
 singleQuote = true

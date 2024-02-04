@@ -2,7 +2,10 @@ import { liveReloadEmitter } from '../services/dev-server.js'
 
 const clients = []
 
-export default function liveReloadDevreq(req, res) {
+export default function liveReloadDevreq(
+  req,
+  res
+) {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

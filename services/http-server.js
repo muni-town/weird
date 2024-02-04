@@ -1,8 +1,11 @@
 import { createServer } from 'node:http'
+
 import { handleRequest } from './routing.js'
 
 export const httpServer = (() => {
-  const serverInstance = createServer(handleRequest)
+  const serverInstance = createServer(
+    handleRequest
+  )
 
   serverInstance.listen(3000)
 

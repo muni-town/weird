@@ -1,16 +1,11 @@
-import indexRoute from '../routes/index.js'
-import notFoundRoute from '../routes/404.js'
+import getRoute from '../pure/get-route.js'
+import getSubdomain from '../pure/get-subdomain.js'
 
-export function handleRequest(req, res) {
-  let route
+export async function handleRequest(req, res) {
+  const host = req.headers.host
+  const isSubdomain = host.split('.').length > 1
 
-  switch (req.url) {
-    case '/':
-      route = indexRoute
-      break
-    default:
-      route = notFoundRoute
-  }
+  const route = isSubdomain ? getSubdomain(host) : getRoute(req.url)
 
   route(req, res)
 }

@@ -1,9 +1,8 @@
 import { createServer } from 'node:http'
+import { handleRequest } from './routing.js'
 
 function startServer() {
-  const server = createServer((req, res) => {
-    res.end('Hello World')
-  })
+  const server = createServer(handleRequest)
 
   server.listen(3000, () => {
     console.log('Server is running on port 3000')

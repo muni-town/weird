@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "fancy prototype for weird.inc",
   "main": "main.js",
+  "scripts": {
+    "start": "node --watch main.js"
+  },
   "type": "module",
   "keywords": [],
   "author": "Weird.inc",

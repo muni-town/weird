@@ -1,13 +1,11 @@
 {
   "name": "weird-prototype",
   "version": "0.0.1",
-  "description": "fancy prototype for weird.inc",
-  "main": "main.js",
+  "description": "Prototype for weird.inc",
   "scripts": {
     "start": "node --watch main.js"
   },
   "type": "module",
-  "keywords": [],
   "author": "Weird.inc",
   "license": "Unlicensed"
 }

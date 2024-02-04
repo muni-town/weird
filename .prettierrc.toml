@@ -1,0 +1,9 @@
+printWidth = 70
+semi = false
+trailingComma = "none"
+singleQuote = true
+arrowParens = "avoid"
+experimentalTernaries = true
+jsxSingleQuote = true
+quoteProps = "consistent"
+singleAttributePerLine = true

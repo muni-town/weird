@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Prototype for weird.inc",
   "scripts": {
-    "start": "node --watch main.js",
-    "dev": "node --watch dev.js"
+    "start": "node --watch --env-file=.env main.js",
+    "dev": "node --watch --env-file=.env dev.js"
   },
   "type": "module",
   "author": "Weird.inc",

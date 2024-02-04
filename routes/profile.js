@@ -1,4 +1,4 @@
-export default function (req, res) {
+export default (req, res) => {
   const host = req.headers.host
   const [username] = host.split('.')
 

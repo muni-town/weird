@@ -1,4 +1,4 @@
-export default function indexRoute(req, res) {
+export default (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/html'
   })

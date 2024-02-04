@@ -1,4 +1,4 @@
-export default function notFoundRoute(req, res) {
+export default (req, res) => {
   res.writeHead(404, {
     'Content-Type': 'text/html'
   })

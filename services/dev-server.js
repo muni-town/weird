@@ -6,8 +6,7 @@ import env from '../consts/env.js'
 export const liveReloadEmitter =
   new EventEmitter()
 
-export const devServer = (() =>
-  createServer({
-    name: 'Dev',
-    port: env.DEV_SERVER_PORT
-  }))()
+export const devServer = createServer({
+  name: 'Dev',
+  port: env.DEV_SERVER_PORT
+})

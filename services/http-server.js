@@ -1,15 +1,8 @@
-import { createServer } from 'node:http'
+import createServer from '../pure/create-server.js'
+import env from '../consts/env.js'
 
-import { handleRequest } from './routing.js'
-
-export const httpServer = (() => {
-  const serverInstance = createServer(
-    handleRequest
-  )
-
-  serverInstance.listen(3000)
-
-  console.log('Server is listening on port 3000')
-
-  return serverInstance
-})()
+export const httpServer = (() =>
+  createServer({
+    name: 'HTTP',
+    port: env.HTTP_SERVER_PORT
+  }))()

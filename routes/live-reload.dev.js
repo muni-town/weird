@@ -19,11 +19,10 @@ export default function liveReloadDevreq(
     clients.splice(clients.indexOf(res), 1)
   })
 
+  // TODO: This is a memory leak
+  liveReloadEmitter.on('reload', () => {
+    res.write('data: Reload\n\n')
+  })
+
   clients.push(res)
 }
-
-liveReloadEmitter.on('reload', () => {
-  clients.forEach(client => {
-    client.write('data: Reload\n\n')
-  })
-})

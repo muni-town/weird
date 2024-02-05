@@ -6,9 +6,11 @@ export default fileContents => {
       [
         '@babel/plugin-transform-react-jsx',
         {
-          jsxImportSource: 'custom-jsx-runtime',
+          // jsxImportSource: 'custom-jsx-runtime',
           runtime: 'classic',
-          throwIfNamespace: false
+          throwIfNamespace: false,
+          pragma: 'JSXToString',
+          pragmaFrag: 'JSXFragmentToString'
         }
       ]
     ]

@@ -6,10 +6,14 @@ export default function transform(fileContents) {
       [
         '@babel/plugin-transform-react-jsx',
         {
-          pragma: 'JSXToString',
-          pragmaFrag: 'JSXFragmentToString',
+          jsxImportSource: 'custom-jsx-runtime',
+          runtime: 'classic',
           throwIfNamespace: false
         }
+        // {
+        //   runtime: 'automatic',
+        //   jsxImportSource: './pure'
+        // }
       ]
     ]
   })

@@ -4,7 +4,7 @@
   "description": "Prototype for weird.inc",
   "scripts": {
     "start": "node --watch --env-file=.env ./entrypoints/main.js",
-    "dev": "node --env-file=.env ./entrypoints/main.dev.js"
+    "dev": "node --env-file=.env ./dist/entrypoints/main.dev.js"
   },
   "type": "module",
   "author": "Weird.inc",

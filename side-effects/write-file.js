@@ -3,10 +3,7 @@ import {
   mkdir as _mkdir
 } from 'fs/promises'
 
-export default async function writeFile(
-  path,
-  data
-) {
+export default async (path, data) => {
   try {
     // ensure the directory exists
     await _mkdir(

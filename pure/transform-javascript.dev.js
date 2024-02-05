@@ -1,6 +1,6 @@
 import { transform as _transform } from '@babel/core'
 
-export default function transform(fileContents) {
+export default fileContents => {
   const { code } = _transform(fileContents, {
     plugins: [
       [
@@ -10,10 +10,6 @@ export default function transform(fileContents) {
           runtime: 'classic',
           throwIfNamespace: false
         }
-        // {
-        //   runtime: 'automatic',
-        //   jsxImportSource: './pure'
-        // }
       ]
     ]
   })

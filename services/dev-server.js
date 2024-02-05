@@ -11,7 +11,7 @@ import debounce from '../pure/debounce.js'
 import openFile from '../side-effects/open-file.js'
 import writeFile from '../side-effects/write-file.js'
 
-import { getFileExtention } from '../pure/get-file-extention.js'
+import getFileExtention from '../pure/get-file-extention.js'
 
 import { IGNORED_PATHS } from '../consts/file-watcher-ignored-paths.dev.js'
 import env from '../consts/env.js'

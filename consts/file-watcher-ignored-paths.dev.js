@@ -1,4 +1,4 @@
-export const IGNORED_PATHS = [
+export default [
   'node_modules',
   'dist',
   '.git',

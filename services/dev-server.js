@@ -5,17 +5,16 @@ import { watch } from 'chokidar'
 
 import createServer from '../pure/create-server.js'
 
-import transpileWithBabel from '../pure/transpile-with-babel.dev.js'
+import transform from '../pure/transform-javascript.dev.js'
 import debounce from '../pure/debounce.js'
-
-import env from '../consts/env.js'
 
 import openFile from '../side-effects/open-file.js'
 import writeFile from '../side-effects/write-file.js'
 
-import { extname } from 'node:path'
+import { getFileExtention } from '../pure/get-file-extention.js'
 
 import { IGNORED_PATHS } from '../consts/file-watcher-ignored-paths.dev.js'
+import env from '../consts/env.js'
 
 export const liveReloadEmitter =
   new EventEmitter()
@@ -34,17 +33,17 @@ watch('.', {
 }).on('all', async function (type, path, stats) {
   console.log('File change detected', path)
 
-  const extention = extname(path)
+  const extention = getFileExtention(path)
 
   if (extention === '.js') {
     const fileContent = await openFile(path)
 
-    const transpiledContent =
-      transpileWithBabel(fileContent)
+    const transformedContent =
+      transform(fileContent)
 
     const filePath = join('dist', path)
 
-    await writeFile(filePath, transpiledContent)
+    await writeFile(filePath, transformedContent)
   }
 
   debouncedReload()

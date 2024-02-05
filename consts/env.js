@@ -1,3 +1,5 @@
-import { env } from 'node:process'
+import { env as _env } from 'node:process'
 
-export default env
+export default {
+  ..._env
+}

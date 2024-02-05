@@ -1,9 +1,9 @@
-import { createServer } from 'node:http'
+import { createServer as _createServer } from 'node:http'
 
 import { handleRequest } from '../services/routing.js'
 
 export default ({ name, port }) => {
-  const server = createServer(handleRequest)
+  const server = _createServer(handleRequest)
 
   server.listen(port)
 

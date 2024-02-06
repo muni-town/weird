@@ -15,6 +15,24 @@ export default (req, res) => {
         src='https://placekitten.com/200/300'
         alt='A cute kitten'
       />
+      <form
+        action='/actions/create-account'
+        method='post'
+      >
+        <input
+          type='text'
+          name='email'
+          placeholder='email'
+        />
+        <input
+          type='password'
+          name='password'
+          placeholder='password'
+        />
+        <button type='submit'>
+          Create account
+        </button>
+      </form>
     </Document>
   )
 

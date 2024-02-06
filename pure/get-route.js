@@ -1,6 +1,5 @@
 import indexRoute from '../routes/index.js'
 import notFoundRoute from '../routes/404.js'
-import rpcRoute from '../routes/rpc.js'
 import liveReloadRoute from '../routes/live-reload.dev.js'
 
 export default url => {
@@ -8,7 +7,8 @@ export default url => {
 
   console.log(url)
 
-  // TODO urlpattern api + globbing so we can skip this manual stuff
+  // TODO urlpattern api + globbing so we can skip
+  // this manual stuff below and the imports above
 
   if (url === '/') {
     route = indexRoute

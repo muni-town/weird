@@ -1,19 +1,31 @@
 import indexRoute from '../routes/index.js'
 import notFoundRoute from '../routes/404.js'
+import rpcRoute from '../routes/rpc.js'
 import liveReloadRoute from '../routes/live-reload.dev.js'
 
 export default url => {
-  let route
+  let route = notFoundRoute
 
-  switch (url) {
-    case '/':
-      route = indexRoute
-      break
-    case '/live-reload':
-      route = liveReloadRoute
-      break
-    default:
-      route = notFoundRoute
+  console.log(url)
+
+  // TODO urlpattern api + globbing so we can skip this manual stuff
+
+  if (url === '/') {
+    route = indexRoute
+  } else if (url === '/live-reload') {
+    route = liveReloadRoute
+  } else if (url.startsWith('/actions/')) {
+    //
+    // TODO: clean this up
+    const action = url.split('/').pop()
+
+    return import(`../actions/${action}.js`).then(
+      ({ default: actionRoute }) => {
+        console.log('actionRoute', actionRoute)
+        return actionRoute
+      }
+    )
+    // TODO: glob actions on boot so we don't have to the promise dance
   }
 
   return route

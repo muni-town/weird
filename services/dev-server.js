@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events'
 import { join } from 'node:path'
 
 import { watch } from 'chokidar'
@@ -7,6 +6,7 @@ import IGNORED_PATHS from '../consts/file-watcher-ignored-paths.dev.js'
 import env from '../consts/env.js'
 
 import createServer from '../pure/create-server.js'
+import createEventEmitter from '../pure/create-event-emitter.js'
 import transform from '../pure/transform-javascript.dev.js'
 import debounce from '../pure/debounce.js'
 import getFileExtention from '../pure/get-file-extention.js'
@@ -15,7 +15,7 @@ import openFile from '../side-effects/open-file.js'
 import writeFile from '../side-effects/write-file.js'
 
 export const liveReloadEmitter =
-  new EventEmitter()
+  createEventEmitter()
 
 export const devServer = createServer({
   name: 'Dev',

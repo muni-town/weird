@@ -1,5 +1,13 @@
 import SELF_CLOSING_TAGS from './consts/self-closing-html-tags.js'
 
+globalThis.css = function (strings, ...values) {
+  return strings.reduce(
+    (acc, string, i) =>
+      acc + string + (values[i] || ''),
+    ''
+  )
+}
+
 globalThis.JSXToString = function (
   tag,
   props,

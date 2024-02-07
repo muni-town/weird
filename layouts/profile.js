@@ -1,4 +1,4 @@
-export default ({ username }, children) => (
+export default ({ username }) => (
   <main>
     <Style />
     <header>

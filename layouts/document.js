@@ -9,9 +9,41 @@ export default (props, children) => (
       <title>Weird.inc</title>
       <Style />
     </head>
-    <body>{children}</body>
+    <body>
+      <header>
+        <h1>Weird.inc</h1>
+        <nav>
+          <a href='http://localhost:3000'>Home</a>
+          <a
+            href={`http://${getRandomWord()}.localhost:3000`}
+          >
+            Profile
+          </a>
+        </nav>
+      </header>
+      {children}
+    </body>
   </html>
 )
+
+const words = [
+  'weird',
+  'strange',
+  'odd',
+  'peculiar',
+  'unusual',
+  'funny',
+  'curious',
+  'bizarre',
+  'weirdo',
+  'weirdie'
+]
+
+function getRandomWord() {
+  return words[
+    Math.floor(Math.random() * words.length)
+  ]
+}
 
 function Style() {
   return (
@@ -32,6 +64,8 @@ function Style() {
           font-weight: normal;
           box-sizing: border-box;
           scroll-behavior: smooth;
+          /*scroll gutter */
+          scrollbar-gutter: stable both-edges;
         }
 
         body {

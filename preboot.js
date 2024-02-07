@@ -8,6 +8,17 @@ globalThis.css = function (strings, ...values) {
   )
 }
 
+globalThis.javaScript = function (
+  strings,
+  ...values
+) {
+  return strings.reduce(
+    (acc, string, i) =>
+      acc + string + (values[i] || ''),
+    ''
+  )
+}
+
 globalThis.JSXToString = function (
   tag,
   props,

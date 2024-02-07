@@ -22,9 +22,9 @@ export const devServer = createServer({
   port: env.DEV_SERVER_PORT
 })
 
-const debouncedReload = debounce(() => {
+const debouncedReload = debounce(() =>
   liveReloadEmitter.emit('reload')
-})
+)
 
 watch('.', {
   ignored: IGNORED_PATHS

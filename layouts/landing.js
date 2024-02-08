@@ -17,6 +17,7 @@ export default () => (
           name='username'
         />
         {/*honeypot*/}
+        {/*TODO: generate a random name for the honeypot field on server start*/}
         <input
           type='hidden'
           name='honeypot'

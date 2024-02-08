@@ -10,11 +10,13 @@ export default () => (
     <form
       action='/actions/create-account'
       method='post'
+      enctype='application/x-www-form-urlencoded'
     >
       <div class='username-container'>
         <input
           placeholder='username'
           class='username-input'
+          name='username'
         />
         <p>.weird.one</p>
       </div>
@@ -28,10 +30,6 @@ export default () => (
 function Style() {
   return (
     <style>{css`
-      body {
-        background-color: red;
-      }
-
       .username-container {
         background: rgb(255, 255, 255);
         display: inline-grid;

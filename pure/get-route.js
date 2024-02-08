@@ -1,6 +1,7 @@
 import indexRoute from '../routes/index.js'
 import notFoundRoute from '../routes/404.js'
 import liveReloadRoute from '../routes/live-reload.dev.js'
+import emailFormRoute from '../routes/email-form.js'
 
 export default url => {
   let route = notFoundRoute
@@ -12,6 +13,8 @@ export default url => {
     route = indexRoute
   } else if (url === '/live-reload') {
     route = liveReloadRoute
+  } else if (url.startsWith('/email-form')) {
+    route = emailFormRoute
   } else if (url.startsWith('/actions/')) {
     //
     // TODO: clean this up

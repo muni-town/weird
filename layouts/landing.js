@@ -3,19 +3,17 @@ export default () => (
     <Style />
     <h1>Weird.inc index</h1>
     <p>Welcome to the index page</p>
-    <img
-      src='https://placekitten.com/200/300'
-      alt='A cute kitten'
-    />
+
     <form
       action='/actions/create-account'
       method='post'
       enctype='application/x-www-form-urlencoded'
+      class='create-account-form'
     >
-      <div class='username-container'>
+      <div class='container'>
         <input
           placeholder='username'
-          class='username-input'
+          class='input'
           name='username'
         />
         <p>.weird.one</p>
@@ -30,17 +28,19 @@ export default () => (
 function Style() {
   return (
     <style>{css`
-      .username-container {
-        background: rgb(255, 255, 255);
-        display: inline-grid;
-        grid-auto-flow: column;
-        place-items: start stretch;
-        grid-auto-columns: max-content;
-        grid-auto-rows: min-content;
-      }
+      .create-account-form {
+        .container {
+          background: rgb(255, 255, 255);
+          display: inline-grid;
+          grid-auto-flow: column;
+          place-items: start stretch;
+          grid-auto-columns: max-content;
+          grid-auto-rows: min-content;
+        }
 
-      .username-input {
-        border: 0px;
+        .input {
+          border: 0px;
+        }
       }
     `}</style>
   )

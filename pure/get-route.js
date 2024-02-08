@@ -5,8 +5,6 @@ import liveReloadRoute from '../routes/live-reload.dev.js'
 export default url => {
   let route = notFoundRoute
 
-  console.log(url)
-
   // TODO urlpattern api + globbing so we can skip
   // this manual stuff below and the imports above
 

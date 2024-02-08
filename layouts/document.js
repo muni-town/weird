@@ -11,7 +11,6 @@ export default (props, children) => (
     </head>
     <body>
       <header>
-        <h1>Weird.inc</h1>
         <nav>
           <a href='http://localhost:3000'>Home</a>
           <a

@@ -16,6 +16,12 @@ export default () => (
           class='input'
           name='username'
         />
+        {/*honeypot*/}
+        <input
+          type='hidden'
+          name='honeypot'
+          value=''
+        />
         <p>.weird.one</p>
       </div>
       <button type='submit'>

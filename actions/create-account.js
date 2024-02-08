@@ -14,9 +14,22 @@ export default async (req, res) => {
 
     // const { username } = formData
 
+    const { honeypot } = formData
+
+    if (honeypot) {
+      // it's a bot
+      res.writeHead(400, {
+        'Content-Type': 'text/plain'
+      })
+
+      return res.end('Bad Request')
+      // TODO: log the attempt
+    }
+
     res.writeHead(200, {
       'Content-Type': 'text/plain'
     })
+
     res.end(
       `Received form data: ${JSON.stringify(
         formData

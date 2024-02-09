@@ -45,15 +45,22 @@ export default async (req, res) => {
 
     //console.log('response', response)
 
-    res.writeHead(200, {
-      'Content-Type': 'text/plain'
+    // res.writeHead(200, {
+    //   'Content-Type': 'text/plain'
+    // })
+
+    // res.end(
+    //   `Received form data: ${JSON.stringify(
+    //     formData
+    //   )}`
+    // )
+
+    // redierct to account linking page
+    res.writeHead(302, {
+      Location: '/account-linking'
     })
 
-    res.end(
-      `Received form data: ${JSON.stringify(
-        formData
-      )}`
-    )
+    res.end()
   } catch (error) {
     console.error(
       'Error processing form data:',

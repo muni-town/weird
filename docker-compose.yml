@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15.5-bullseye
+    volumes:
+       - ./data/postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+
+  pgweb:
+    image: sosedoff/pgweb:0.14.1
+    restart: always
+    ports:
+      - '3006:8081'
+    environment:
+      - PGWEB_DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    depends_on:
+      - postgres
+
+  maildev:
+      image: maildev/maildev
+      ports:
+        - "1080:1080"
+        - "1025:1025"
+  
+      
+ #http://localhost:8080/auth/v1/oidc/authorize?client_id=rauthy&redirect_uri=http://localhost:8080/auth/v1/oidc/callback&response_type=code&code_challenge=7TyaMXTP9LEMUVlS-6B4AfqmyFcsaw0_u6qE07aGans&code_challenge_method=S256&scope=openid+profile+email&nonce=7gxwuxjKF3kRLHSiZHJucjM1&state=account
+  rauthy:
+    image: ghcr.io/sebadob/rauthy:0.20.2-20240119
+  #  network_mode: host
+    ports:
+       - '8080:8080'
+       - '9090:9090'
+    volumes:
+      - ./rauthy/data/:/app/data
+ #     - ./rauthy/rauthy.cfg:/app/rauthy.cfg
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      - SMTP_URL=maildev
+      - SMTP_DANGER_INSECURE=true
+    depends_on:
+      - postgres
+      - maildev

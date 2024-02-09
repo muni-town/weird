@@ -1,6 +1,26 @@
-import parseQueryString from '../pure/parse-query-string.js'
-
 import Document from '../layouts/document.js'
+
+const scriptText = provider => `
+// open a popup new window
+// with the url
+
+const url = '/auth/${provider}'
+const popup = window.open(url, 'OAuthPopup', 'width=600,height=400')
+
+// listen for messages from the popup
+window.addEventListener('message', function (event) {
+  if (event.origin !== window.location.origin) {
+    return
+  }
+
+  // close the popup
+  popup.close()
+
+  // the event.data is the token
+  // we can use it to make requests
+  console.log('event.data', event.data)
+})
+`
 
 export default (req, res) => {
   res.writeHead(200, {
@@ -13,9 +33,15 @@ export default (req, res) => {
         let's pretend you went through the email
         link stuff and land here
       </h2>
-      <button>link GitHub</button>
-      <button>link Google</button>
-      <button>link Discord</button>
+      <button onclick={scriptText('github')}>
+        link GitHub
+      </button>
+      <button onclick={scriptText('google')}>
+        link Google
+      </button>
+      <button onclick={scriptText('discord')}>
+        link Discord
+      </button>
     </Document>
   )
 }

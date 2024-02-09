@@ -3,6 +3,7 @@ import notFoundRoute from '../routes/404.js'
 import liveReloadRoute from '../routes/live-reload.dev.js'
 import emailFormRoute from '../routes/email-form.js'
 import accountLinkingRoute from '../routes/account-linking.js'
+import OAuthRoute from '../routes/external-oauth.js'
 
 export default url => {
   let route = notFoundRoute
@@ -10,12 +11,16 @@ export default url => {
   // TODO urlpattern api + globbing so we can skip
   // this manual stuff below and the imports above
 
+  // startsWith('/auth/')
+
   if (url === '/') {
     route = indexRoute
   } else if (url === '/live-reload') {
     route = liveReloadRoute
   } else if (url.startsWith('/email-form')) {
     route = emailFormRoute
+  } else if (url.startsWith('/auth/')) {
+    route = OAuthRoute
   } else if (url.startsWith('/account-linking')) {
     route = accountLinkingRoute
   } else if (url.startsWith('/actions/')) {

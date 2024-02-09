@@ -41,6 +41,11 @@ watch('.', {
 
     const filePath = join('dist', path)
 
+    if (transformedContent === '') {
+      console.log('transformedContent is empty')
+      return
+    }
+
     await writeFile(filePath, transformedContent)
   }
 

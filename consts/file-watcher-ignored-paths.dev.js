@@ -1,4 +1,5 @@
 export default [
+  'data',
   'node_modules',
   'dist',
   '.git',

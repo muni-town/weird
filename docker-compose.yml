@@ -35,7 +35,7 @@ services:
        - '8080:8080'
        - '9090:9090'
     volumes:
-      - ./rauthy/data/:/app/data
+      - ./data/rauthy/data/:/app/data
  #     - ./rauthy/rauthy.cfg:/app/rauthy.cfg
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable

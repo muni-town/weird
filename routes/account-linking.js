@@ -42,6 +42,9 @@ export default (req, res) => {
       <button onclick={scriptText('discord')}>
         link Discord
       </button>
+      <button onclick={scriptText('mastodon')}>
+        link Mastodon
+      </button>
     </Document>
   )
 }

@@ -8,7 +8,9 @@ const {
   GITHUB_OAUTH_CLIENT_ID,
   GITHUB_OAUTH_CLIENT_SECRET,
   DISCORD_OAUTH_CLIENT_ID,
-  DISCORD_OAUTH_CLIENT_SECRET
+  DISCORD_OAUTH_CLIENT_SECRET,
+  MASTODON_OAUTH_CLIENT_ID,
+  MASTODON_OAUTH_CLIENT_SECRET
 } = env
 
 const HOST = 'http://localhost:3000'
@@ -70,6 +72,22 @@ export default {
       'https://discord.com/api/oauth2/authorize',
     USER_URL: 'https://discord.com/api/users/@me',
     scope: ['identify', 'email'],
+    grant_type: GRANT_TYPE
+  },
+  mastodon: {
+    client_id: MASTODON_OAUTH_CLIENT_ID,
+    client_secret: MASTODON_OAUTH_CLIENT_SECRET,
+    // redirect_uri: `${HOST}/callbacks/mastodon`,
+    redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+    TOKEN_URL:
+      'https://mastodon.social/oauth/token',
+    TOKEN_REQUEST_ENCODING:
+      'application/x-www-form-urlencoded',
+    AUTHORIZE_URL:
+      'https://mastodon.social/oauth/authorize',
+    USER_URL:
+      'https://mastodon.social/api/v1/accounts/verify_credentials',
+    scope: ['read'],
     grant_type: GRANT_TYPE
   }
 }

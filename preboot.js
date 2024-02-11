@@ -32,6 +32,13 @@ globalThis.JSXToString = function (
     return tag(props, children)
   }
 
+  // handle forms
+  if (tag === 'form') {
+    if (props.action) {
+      props.action = `/actions/${props.action}`
+    }
+  }
+
   const attrs = props
     ? Object.entries(props)
         .map(

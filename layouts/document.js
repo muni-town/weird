@@ -1,3 +1,5 @@
+import Header from '../elements/header.js'
+
 export default (props, children) => (
   <html>
     <head>
@@ -10,16 +12,21 @@ export default (props, children) => (
       <Style />
     </head>
     <body>
-      <header>
-        <nav>
-          <a href='http://localhost:3000'>Home</a>
-          <a
-            href={`http://whatever.localhost:3000`}
-          >
-            Profile
-          </a>
-        </nav>
-      </header>
+      <form
+        action='create-account'
+        method='post'
+      >
+        <label for='username'>Username:</label>
+        <input
+          type='text'
+          id='username'
+          name='username'
+        />
+        <button type='submit'>
+          Create Account
+        </button>
+      </form>
+      <Header />
       {children}
     </body>
   </html>

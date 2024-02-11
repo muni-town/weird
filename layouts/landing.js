@@ -5,7 +5,7 @@ export default () => (
     <p>Welcome to the index page</p>
 
     <form
-      action='/actions/create-account'
+      action='create-account'
       method='post'
       enctype='application/x-www-form-urlencoded'
       class='create-account-form'

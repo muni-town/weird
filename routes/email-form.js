@@ -12,7 +12,7 @@ export default (req, res) => {
   res.end(
     <Document>
       <form
-        action='/actions/register-email'
+        action='register-email'
         method='post'
       >
         <input

@@ -2,13 +2,6 @@ import parseURLEncodedFormData from '../pure/parse-url-encoded-form-data.js'
 
 export default async (req, res) => {
   try {
-    if (req.method !== 'POST') {
-      res.writeHead(405, {
-        'Content-Type': 'text/plain'
-      })
-      return res.end('Method not allowed')
-    }
-
     const formData =
       await parseURLEncodedFormData(req)
 

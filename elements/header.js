@@ -1,4 +1,4 @@
-export default () => (
+export default (props, children) => (
   <header>
     <nav>
       <a href='http://localhost:3000'>Home</a>

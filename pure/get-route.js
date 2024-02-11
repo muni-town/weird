@@ -4,6 +4,7 @@ import liveReloadRoute from '../routes/live-reload.dev.js'
 import emailFormRoute from '../routes/email-form.js'
 import accountLinkingRoute from '../routes/account-linking.js'
 import OAuthRoute from '../routes/external-oauth.js'
+import serveFileRoute from '../routes/serve-file.js'
 
 export default url => {
   let route = notFoundRoute
@@ -23,6 +24,12 @@ export default url => {
     route = OAuthRoute
   } else if (url.startsWith('/account-linking')) {
     route = accountLinkingRoute
+  } else if (
+    url.endsWith('.js') ||
+    url.endsWith('.css')
+  ) {
+    // TODO: hack
+    route = serveFileRoute
   } else if (url.startsWith('/actions/')) {
     //
     // TODO: clean this up

@@ -14,6 +14,7 @@ export default (req, res) => {
 
   res.write(
     <Document>
+      <script src='/index.js' />
       <Landing />
     </Document>
   )

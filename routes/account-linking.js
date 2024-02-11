@@ -30,21 +30,20 @@ export default (req, res) => {
   res.end(
     <Document>
       <h2>
-        let's pretend you went through the email
-        link stuff and land here
+        you went through the email link stuff and
+        land here
       </h2>
-      <button onclick={scriptText('github')}>
-        link GitHub
-      </button>
-      <button onclick={scriptText('google')}>
-        link Google
-      </button>
-      <button onclick={scriptText('discord')}>
-        link Discord
-      </button>
-      <button onclick={scriptText('mastodon')}>
-        link Mastodon
-      </button>
+
+      {[
+        'github',
+        'google',
+        'discord',
+        'mastodon'
+      ].map(provider => (
+        <button onclick={scriptText(provider)}>
+          link {provider}
+        </button>
+      ))}
     </Document>
   )
 }

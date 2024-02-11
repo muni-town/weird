@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   postgres:
+    container_name: postgres
     image: postgres:15.5-bullseye
+    restart: always
     volumes:
        - ./data/postgres-data:/var/lib/postgresql/data
     environment:
@@ -10,7 +12,15 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
 
+  redis:
+    container_name: redis
+    image: redis:7.0.15-bookworm
+    restart: always
+    volumes:
+      - ./data/redis-data:/data
+
   pgweb:
+    container_name: pgweb
     image: sosedoff/pgweb:0.14.1
     restart: always
     ports:
@@ -21,7 +31,9 @@ services:
       - postgres
 
   maildev:
+      container_name: maildev
       image: maildev/maildev
+      restart: always
       ports:
         - "1080:1080"
         - "1025:1025"

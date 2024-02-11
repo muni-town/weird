@@ -1,81 +1,83 @@
 export default ({ username }) => (
-  <main>
+  <>
     <Style />
-    <header>
-      <img
-        src={`https://api.dicebear.com/7.x/croodles/svg?seed=${username}`}
-        alt='Linktree photo'
-      />
-      <h3>{username}</h3>
-      <span>Frontend software engineer</span>
-    </header>
-    <nav class='linktree-nav'>
-      <ul>
-        <li>
-          <a href='#'>
-            <div class='linktree-box'>
+    <main>
+      <header>
+        <img
+          src={`https://api.dicebear.com/7.x/croodles/svg?seed=${username}`}
+          alt='Linktree photo'
+        />
+        <h3>{username}</h3>
+        <span>Frontend software engineer</span>
+      </header>
+      <nav class='linktree-nav'>
+        <ul>
+          <li>
+            <a href='#'>
+              <div class='linktree-box'>
+                <div
+                  class='icon-box'
+                  style='--color: 195, 53%, 79%'
+                >
+                  🌐
+                </div>
+                <div>
+                  <h5>Portfolio</h5>
+                  <span>Find me on the web</span>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a href='#'>
+              <div class='linktree-box'>
+                <div
+                  class='icon-box'
+                  style='--color: 0, 100%, 50%'
+                >
+                  ❤
+                </div>
+                <div>
+                  <h5>Twitter</h5>
+                  <span>Connect with me</span>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a href='#'>
+              <div class='linktree-box'>
+                <div
+                  class='icon-box'
+                  style='--color: 44, 100%, 53%'
+                >
+                  ⚡
+                </div>
+                <div>
+                  <h5>Codepen</h5>
+                  <span>See my demos </span>
+                </div>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a href='#'>
               <div
-                class='icon-box'
-                style='--color: 195, 53%, 79%'
+                class='linktree-box'
+                style='--color: 110, 91%, 40%'
               >
-                🌐
+                <div class='icon-box'>👨🏾‍💻</div>
+                <div>
+                  <h5>LinkedIn</h5>
+                  <span>Let's work</span>
+                </div>
               </div>
-              <div>
-                <h5>Portfolio</h5>
-                <span>Find me on the web</span>
-              </div>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href='#'>
-            <div class='linktree-box'>
-              <div
-                class='icon-box'
-                style='--color: 0, 100%, 50%'
-              >
-                ❤
-              </div>
-              <div>
-                <h5>Twitter</h5>
-                <span>Connect with me</span>
-              </div>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href='#'>
-            <div class='linktree-box'>
-              <div
-                class='icon-box'
-                style='--color: 44, 100%, 53%'
-              >
-                ⚡
-              </div>
-              <div>
-                <h5>Codepen</h5>
-                <span>See my demos </span>
-              </div>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href='#'>
-            <div
-              class='linktree-box'
-              style='--color: 110, 91%, 40%'
-            >
-              <div class='icon-box'>👨🏾‍💻</div>
-              <div>
-                <h5>LinkedIn</h5>
-                <span>Let's work</span>
-              </div>
-            </div>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </main>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </main>
+  </>
 )
 
 function Style() {

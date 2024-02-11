@@ -1,14 +1,17 @@
 export default (props, children) => (
-  <head>
-    <meta charSet='utf-8' />
-    <meta
-      name='viewport'
-      content='width=device-width, initial-scale=1'
-    />
-    <title>Weird.inc</title>
+  <>
     <Style />
-    {children}
-  </head>
+    <head>
+      <meta charSet='utf-8' />
+      <meta
+        name='viewport'
+        content='width=device-width, initial-scale=1'
+      />
+      <title>Weird.inc</title>
+
+      {children}
+    </head>
+  </>
 )
 
 function Style() {

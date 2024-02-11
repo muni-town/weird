@@ -14,7 +14,7 @@ export default (props, children) => (
         <nav>
           <a href='http://localhost:3000'>Home</a>
           <a
-            href={`http://${getRandomWord()}.localhost:3000`}
+            href={`http://whatever.localhost:3000`}
           >
             Profile
           </a>
@@ -24,25 +24,6 @@ export default (props, children) => (
     </body>
   </html>
 )
-
-const words = [
-  'weird',
-  'strange',
-  'odd',
-  'peculiar',
-  'unusual',
-  'funny',
-  'curious',
-  'bizarre',
-  'weirdo',
-  'weirdie'
-]
-
-function getRandomWord() {
-  return words[
-    Math.floor(Math.random() * words.length)
-  ]
-}
 
 function Style() {
   return (

@@ -12,28 +12,14 @@ export default async (req, res) => {
     const formData =
       await parseURLEncodedFormData(req)
 
-    // const { username } = formData
+    //  const {  username } = formData
 
-    const { honeypot } = formData
-
-    if (honeypot) {
-      // it's a bot
-      res.writeHead(400, {
-        'Content-Type': 'text/plain'
-      })
-
-      return res.end('Bad Request')
-      // TODO: log the attempt
-    }
-
-    const redirectUrl =
-      '/email-form?username=' + formData.username
-
-    // redirect to the next form
-    res.writeHead(302, {
-      Location: redirectUrl
+    res.writeHead(200, {
+      'Content-Type': 'text/plain'
     })
-    res.end()
+    res.end(
+      `You submitted: ${JSON.stringify(formData)}`
+    )
   } catch (error) {
     console.error(
       'Error processing form data:',

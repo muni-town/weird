@@ -8,10 +8,6 @@ const redis = new Redis({
   port: REDIS_PORT
 })
 
-function formatKey(prefix, key) {
-  return `${prefix}:${key}`
-}
-
 export async function setKey({
   prefix,
   key,
@@ -19,7 +15,8 @@ export async function setKey({
 }) {
   try {
     const formattedKey = formatKey(prefix, key)
-    await redis.set(formattedKey, value)
+    const serializedValue = JSON.stringify(value)
+    await redis.set(formattedKey, serializedValue)
     return {
       code: 0,
       message: 'Operation successful'
@@ -134,9 +131,10 @@ export async function setKeyWithExpiration({
 }) {
   try {
     const formattedKey = formatKey(prefix, key)
+    const serializedValue = JSON.stringify(value)
     await redis.set(
       formattedKey,
-      value,
+      serializedValue,
       'EX',
       expirationSeconds
     )
@@ -178,4 +176,8 @@ export async function flushAll() {
   } catch (error) {
     return { code: 1, message: error.message }
   }
+}
+
+function formatKey(prefix, key) {
+  return `${prefix}:${key}`
 }

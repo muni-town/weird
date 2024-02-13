@@ -142,13 +142,7 @@ export async function ensureMigrationTableExists() {
       'Error creating schema_migration_details table:',
       results.message
     )
-
-    return
   }
-
-  console.log(
-    'schema_migration_details table ready!'
-  )
 }
 
 export async function runMigrations() {
@@ -158,21 +152,12 @@ export async function runMigrations() {
   }
 
   console.log('Running migrations...')
+
   for (const [name, migration] of Object.entries(
     migrations
   )) {
-    try {
-      console.log(`Applying migration: ${name}`)
-      await runMigration(migration)
-      console.log(
-        `Migration '${name}' applied successfully.`
-      )
-    } catch (error) {
-      console.error(
-        `Error applying migration '${name}':`,
-        error
-      )
-    }
+    await runMigration({ name, ...migration })
   }
+
   console.log('All migrations completed.')
 }

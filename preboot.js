@@ -1,11 +1,16 @@
 import SELF_CLOSING_TAGS from './consts/self-closing-html-tags.js'
 
 globalThis.css = function (strings, ...values) {
-  return strings.reduce(
-    (acc, string, i) =>
-      acc + string + (values[i] || ''),
-    ''
-  )
+  // return <style> tag with interpolated styles
+
+  const interpolated = strings
+    .map((string, i) => {
+      const value = values[i] || ''
+      return string + value
+    })
+    .join('')
+
+  return <style>{interpolated}</style>
 }
 
 globalThis.JSXToString = function (

@@ -1,6 +1,5 @@
 export default ({ username }) => (
   <>
-    <Style />
     <main>
       <header>
         <img
@@ -77,76 +76,67 @@ export default ({ username }) => (
         </ul>
       </nav>
     </main>
-  </>
-)
 
-function Style() {
-  return (
-    <style>
-      {css`
-        main {
-          padding: 12vh 0;
+    {css`
+      main {
+        padding: 12vh 0;
+      }
+
+      img[alt='Linktree photo'] {
+        --scale: 164px;
+        width: var(--scale);
+        height: var(--scale);
+        border-radius: 24px;
+
+        + h3 {
+          margin: 16px 0 0px;
+        }
+      }
+
+      .linktree-nav {
+        margin: 40px auto 0;
+        width: 95%;
+        max-width: 700px;
+
+        ul {
+          display: grid;
+          gap: 1rem;
+          list-style: none;
+
+          @media (min-width: 600px) {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
 
-        img[alt='Linktree photo'] {
-          --scale: 164px;
+        a {
+          text-decoration: none;
+          color: inherit;
+        }
+      }
+
+      .linktree-box {
+        display: flex;
+        align-items: center;
+        text-align: start;
+        padding: 12px 12px;
+        border: 1px solid #ebebeb;
+        border-radius: 8px;
+        background: #fff;
+
+        .icon-box {
+          --scale: 56px;
           width: var(--scale);
           height: var(--scale);
-          border-radius: 24px;
-
-          + h3 {
-            margin: 16px 0 0px;
-          }
-        }
-
-        .linktree-nav {
-          margin: 40px auto 0;
-          width: 95%;
-          max-width: 700px;
-
-          ul {
-            display: grid;
-            gap: 1rem;
-            list-style: none;
-
-            @media (min-width: 600px) {
-              grid-template-columns: repeat(
-                2,
-                1fr
-              );
-            }
-          }
-
-          a {
-            text-decoration: none;
-            color: inherit;
-          }
-        }
-
-        .linktree-box {
+          font-size: 1.25rem;
+          background: hsl(var(--color), 30%);
+          color: hsl(var(--color));
           display: flex;
           align-items: center;
-          text-align: start;
-          padding: 12px 12px;
-          border: 1px solid #ebebeb;
+          justify-content: center;
           border-radius: 8px;
-          background: #fff;
-
-          .icon-box {
-            --scale: 56px;
-            width: var(--scale);
-            height: var(--scale);
-            font-size: 1.25rem;
-            background: hsl(var(--color), 30%);
-            color: hsl(var(--color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            margin-right: 16px;
-          }
+          margin-right: 16px;
         }
-      `}
-    </style>
-  )
-}
+      }
+    `}
+  </>
+)

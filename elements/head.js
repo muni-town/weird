@@ -1,6 +1,5 @@
 export default (props, children) => (
   <>
-    <Style />
     <head>
       <meta charSet='utf-8' />
       <meta
@@ -11,37 +10,31 @@ export default (props, children) => (
 
       {children}
     </head>
+
+    {css`
+      *,
+      *::before,
+      ::after {
+        padding: 0;
+        margin: 0;
+      }
+
+      html {
+        font-size: 100%;
+        font-family: Avenir, Montserrat, Corbel,
+          'URW Gothic', source-sans-pro,
+          sans-serif;
+        font-weight: normal;
+        box-sizing: border-box;
+        scroll-behavior: smooth;
+        /*scroll gutter */
+        scrollbar-gutter: stable both-edges;
+      }
+
+      body {
+        text-align: center;
+        background: #f8f8f8;
+      }
+    `}
   </>
 )
-
-function Style() {
-  return (
-    <style>
-      {css`
-        *,
-        *::before,
-        ::after {
-          padding: 0;
-          margin: 0;
-        }
-
-        html {
-          font-size: 100%;
-          font-family: Avenir, Montserrat, Corbel,
-            'URW Gothic', source-sans-pro,
-            sans-serif;
-          font-weight: normal;
-          box-sizing: border-box;
-          scroll-behavior: smooth;
-          /*scroll gutter */
-          scrollbar-gutter: stable both-edges;
-        }
-
-        body {
-          text-align: center;
-          background: #f8f8f8;
-        }
-      `}
-    </style>
-  )
-}

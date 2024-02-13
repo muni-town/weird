@@ -60,6 +60,10 @@ globalThis.JSXFragmentToString = function (
   return children.filter(Boolean).join('')
 }
 
-import { runMigrations } from './services/migrations.js'
+import {
+  runMigrations,
+  ensureMigrationTableExists
+} from './services/migrations.js'
 
-runMigrations()
+await ensureMigrationTableExists()
+await runMigrations()

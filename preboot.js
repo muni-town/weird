@@ -8,17 +8,6 @@ globalThis.css = function (strings, ...values) {
   )
 }
 
-globalThis.javaScript = function (
-  strings,
-  ...values
-) {
-  return strings.reduce(
-    (acc, string, i) =>
-      acc + string + (values[i] || ''),
-    ''
-  )
-}
-
 globalThis.JSXToString = function (
   tag,
   props,
@@ -70,3 +59,7 @@ globalThis.JSXFragmentToString = function (
 ) {
   return children.filter(Boolean).join('')
 }
+
+import { runMigrations } from './services/migrations.js'
+
+runMigrations()

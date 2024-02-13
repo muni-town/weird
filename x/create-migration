@@ -7,7 +7,7 @@ MIGRATIONS_DIR="./migrations"
 TIMESTAMP=$(date +"%Y%m%d%H%M%S")
 
 # Define the template content
-TEMPLATE_CONTENT="import db from '../services/db.js'
+TEMPLATE_CONTENT="import db from '../services/db-main.js'
 
 export default {
   name: '',

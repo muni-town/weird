@@ -18,7 +18,10 @@ const sql = _postgres({
   port: POSTGRES_PORT
 })
 
-export async function db(query, ...values) {
+export default async function db(
+  query,
+  ...values
+) {
   try {
     const results = await sql(query, ...values)
     return {

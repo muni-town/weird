@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Define the directory path
+MIGRATIONS_DIR="./migrations"
+
+# Create a timestamp for the filename
+TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+
+# Define the template content
+TEMPLATE_CONTENT="import db from '../services/db.js'
+
+export default {
+  name: '',
+  description: '',
+
+  async up() {
+    await db\`
+    
+    \`
+  },
+
+  async down() {
+    await db\`
+    
+    \`
+  }
+}"
+
+# Create the migration file
+FILENAME="${MIGRATIONS_DIR}/${TIMESTAMP}.js"
+echo "$TEMPLATE_CONTENT" > "$FILENAME"
+
+echo "Migration file created: $FILENAME"

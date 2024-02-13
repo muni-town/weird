@@ -6,19 +6,35 @@ import {
   keyExists
 } from './db-mem.js'
 
+import generateUniqueId from '../pure/generate-unique-id.js'
+
 import { SESSION_PREFIX } from '../consts/db-mem-key-prefixes.js'
 import { SESSION_EXPIRATION } from '../consts/db-mem-key-expirations.js'
+const SESSION_UNIQUE_ID_PREFIX = 's'
 
 export async function createSession({
-  sessionId,
   sessionData
 }) {
-  return await setKeyWithExpiration({
+  const sessionId = generateUniqueId({
+    prefix: SESSION_UNIQUE_ID_PREFIX
+  })
+
+  const result = await setKeyWithExpiration({
     prefix: SESSION_PREFIX,
     key: sessionId,
     value: sessionData,
-    expiration: SESSION_EXPIRATION
+    expirationSeconds: SESSION_EXPIRATION
   })
+
+  if (result.code !== 0) {
+    console.error(
+      'Error creating session:',
+      result.message
+    )
+    return null
+  }
+
+  return sessionId
 }
 
 export async function getSession({ sessionId }) {

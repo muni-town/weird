@@ -1,11 +1,21 @@
-import postgres from 'postgres'
+import { default as _postgres } from 'postgres'
 
-const sql = postgres({
-  host: 'localhost',
-  username: 'postgres',
-  password: 'password',
-  database: 'postgres',
-  port: 5432
+import env from '../consts/env.js'
+
+const {
+  POSTGRES_HOST,
+  POSTGRES_PORT,
+  POSTGRES_USERNAME,
+  POSTGRES_PASSWORD,
+  POSTGRES_DATABASE
+} = env
+
+const sql = _postgres({
+  host: POSTGRES_HOST,
+  username: POSTGRES_USERNAME,
+  password: POSTGRES_PASSWORD,
+  database: POSTGRES_DATABASE,
+  port: POSTGRES_PORT
 })
 
 export async function db(query, ...values) {

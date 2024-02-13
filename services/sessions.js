@@ -6,8 +6,8 @@ import {
   keyExists
 } from './db-mem.js'
 
-const SESSION_EXPIRATION = 60 * 60 * 24 * 7
-const SESSION_PREFIX = 'session'
+import { SESSION_PREFIX } from '../consts/db-mem-key-prefixes.js'
+import { SESSION_EXPIRATION } from '../consts/db-mem-key-expirations.js'
 
 export async function createSession({
   sessionId,

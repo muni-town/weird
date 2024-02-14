@@ -17,12 +17,15 @@ export async function setKey({
     const formattedKey = formatKey(prefix, key)
     const serializedValue = JSON.stringify(value)
     await redis.set(formattedKey, serializedValue)
-    return {
-      code: 0,
-      message: 'Operation successful'
-    }
+    return [
+      0, // code
+      'Operation successful'
+    ]
   } catch (error) {
-    return { code: 1, message: error.message }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -30,17 +33,15 @@ export async function getKey({ prefix, key }) {
   try {
     const formattedKey = formatKey(prefix, key)
     const data = await redis.get(formattedKey)
-    return {
-      code: 0,
-      message: 'Operation successful',
+    return [
+      0, // code
       data
-    }
+    ]
   } catch (error) {
-    return {
-      code: 1,
-      message: error.message,
-      data: null
-    }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -48,12 +49,15 @@ export async function deleteKey({ prefix, key }) {
   try {
     const formattedKey = formatKey(prefix, key)
     await redis.del(formattedKey)
-    return {
-      code: 0,
-      message: 'Operation successful'
-    }
+    return [
+      0, // code
+      'Operation successful'
+    ]
   } catch (error) {
-    return { code: 1, message: error.message }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -63,17 +67,15 @@ export async function keyExists({ prefix, key }) {
     const exists = await redis.exists(
       formattedKey
     )
-    return {
-      code: 0,
-      message: 'Operation successful',
-      data: exists === 1
-    }
+    return [
+      0, // code
+      exists === 1
+    ]
   } catch (error) {
-    return {
-      code: 1,
-      message: error.message,
-      data: null
-    }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -86,17 +88,15 @@ export async function incrementValue({
     const newValue = await redis.incr(
       formattedKey
     )
-    return {
-      code: 0,
-      message: 'Operation successful',
-      data: newValue
-    }
+    return [
+      0, // code
+      newValue
+    ]
   } catch (error) {
-    return {
-      code: 1,
-      message: error.message,
-      data: null
-    }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -109,17 +109,15 @@ export async function decrementValue({
     const newValue = await redis.decr(
       formattedKey
     )
-    return {
-      code: 0,
-      message: 'Operation successful',
-      data: newValue
-    }
+    return [
+      0, // code
+      newValue
+    ]
   } catch (error) {
-    return {
-      code: 1,
-      message: error.message,
-      data: null
-    }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -138,12 +136,15 @@ export async function setKeyWithExpiration({
       'EX',
       expirationSeconds
     )
-    return {
-      code: 0,
-      message: 'Operation successful'
-    }
+    return [
+      0, // code
+      'Operation successful'
+    ]
   } catch (error) {
-    return { code: 1, message: error.message }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
@@ -152,29 +153,30 @@ export async function getKeysByPattern({
 }) {
   try {
     const keys = await redis.keys(pattern)
-    return {
-      code: 0,
-      message: 'Operation successful',
-      data: keys
-    }
+    return [
+      0, // code
+      keys
+    ]
   } catch (error) {
-    return {
-      code: 1,
-      message: error.message,
-      data: null
-    }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 
 export async function flushAll() {
   try {
     await redis.flushall()
-    return {
-      code: 0,
-      message: 'Operation successful'
-    }
+    return [
+      0, // code
+      'Operation successful'
+    ]
   } catch (error) {
-    return { code: 1, message: error.message }
+    return [
+      1, // code
+      error.message
+    ]
   }
 }
 

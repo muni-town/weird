@@ -9,11 +9,11 @@ const migrationFilePaths = globFolder([
 ])
 
 async function getAppliedMigrations() {
-  const results = await sql`
+  const [code, data] = await sql`
   SELECT * FROM schema_migration_details;
 `
 
-  if (results.code > 0) {
+  if (code > 0) {
     console.error(
       'Error getting applied migrations:',
       results.message
@@ -22,7 +22,7 @@ async function getAppliedMigrations() {
     return []
   }
 
-  return results.data
+  return data
 }
 
 async function runMigration({
@@ -126,7 +126,7 @@ for (const appliedMigration of appliedMigrations) {
 }
 
 export async function ensureMigrationTableExists() {
-  const results = await sql`
+  const [code, error] = await sql`
   CREATE TABLE IF NOT EXISTS schema_migration_details (
     version VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255),
@@ -137,10 +137,10 @@ export async function ensureMigrationTableExists() {
   );
 `
 
-  if (results.code > 0) {
+  if (code > 0) {
     console.error(
       'Error creating schema_migration_details table:',
-      results.message
+      error
     )
   }
 }

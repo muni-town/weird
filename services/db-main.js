@@ -24,17 +24,15 @@ export default async function db(
 ) {
   try {
     const results = await sql(query, ...values)
-    return {
-      code: 0,
-      message: 'Operation successful',
-      data: results
-    }
+    return [
+      0, // code
+      results
+    ]
   } catch (error) {
-    return {
-      code: 1,
-      message: error.message,
-      data: null
-    }
+    return [
+      1, //   code
+      error.message
+    ]
   }
 }
 

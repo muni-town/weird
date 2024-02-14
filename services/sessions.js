@@ -19,22 +19,15 @@ export async function createSession({
     prefix: SESSION_UNIQUE_ID_PREFIX
   })
 
-  const result = await setKeyWithExpiration({
-    prefix: SESSION_PREFIX,
-    key: sessionId,
-    value: sessionData,
-    expirationSeconds: SESSION_EXPIRATION
-  })
+  const [code, error] =
+    await setKeyWithExpiration({
+      prefix: SESSION_PREFIX,
+      key: sessionId,
+      value: sessionData,
+      expirationSeconds: SESSION_EXPIRATION
+    })
 
-  if (result.code !== 0) {
-    console.error(
-      'Error creating session:',
-      result.message
-    )
-    return null
-  }
-
-  return sessionId
+  return code > 0 ? [code, error] : [0, sessionId]
 }
 
 export async function getSession({ sessionId }) {

@@ -24,6 +24,7 @@ export async function handleRequest(req, res) {
     : getRoute(req.url)
 
   if (route instanceof Promise) {
+    // TODO: we really don't want unnecessary promises
     route = await route
     console.log('route', route)
   }

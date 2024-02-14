@@ -1,7 +1,13 @@
 import Redis from 'ioredis'
 import env from '../consts/env.js'
 
+const OK_MESSAGE = 'OK'
+
 const { REDIS_HOST, REDIS_PORT } = env
+
+function _formatKey(prefix, key) {
+  return `${prefix}:${key}`
+}
 
 const redis = new Redis({
   host: REDIS_HOST,
@@ -14,68 +20,44 @@ export async function setKey({
   value
 }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     const serializedValue = JSON.stringify(value)
     await redis.set(formattedKey, serializedValue)
-    return [
-      0, // code
-      'Operation successful'
-    ]
+    return [0, OK_MESSAGE]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
 export async function getKey({ prefix, key }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     const data = await redis.get(formattedKey)
-    return [
-      0, // code
-      data
-    ]
+    return [0, data]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
 export async function deleteKey({ prefix, key }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     await redis.del(formattedKey)
-    return [
-      0, // code
-      'Operation successful'
-    ]
+    return [0, OK_MESSAGE]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
 export async function keyExists({ prefix, key }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     const exists = await redis.exists(
       formattedKey
     )
-    return [
-      0, // code
-      exists === 1
-    ]
+    return [0, exists === 1]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
@@ -84,19 +66,13 @@ export async function incrementValue({
   key
 }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     const newValue = await redis.incr(
       formattedKey
     )
-    return [
-      0, // code
-      newValue
-    ]
+    return [0, newValue]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
@@ -105,19 +81,13 @@ export async function decrementValue({
   key
 }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     const newValue = await redis.decr(
       formattedKey
     )
-    return [
-      0, // code
-      newValue
-    ]
+    return [0, newValue]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
@@ -128,7 +98,7 @@ export async function setKeyWithExpiration({
   expirationSeconds
 }) {
   try {
-    const formattedKey = formatKey(prefix, key)
+    const formattedKey = _formatKey(prefix, key)
     const serializedValue = JSON.stringify(value)
     await redis.set(
       formattedKey,
@@ -136,15 +106,9 @@ export async function setKeyWithExpiration({
       'EX',
       expirationSeconds
     )
-    return [
-      0, // code
-      'Operation successful'
-    ]
+    return [0, OK_MESSAGE]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
@@ -153,33 +117,17 @@ export async function getKeysByPattern({
 }) {
   try {
     const keys = await redis.keys(pattern)
-    return [
-      0, // code
-      keys
-    ]
+    return [0, keys]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
 export async function flushAll() {
   try {
     await redis.flushall()
-    return [
-      0, // code
-      'Operation successful'
-    ]
+    return [0, OK_MESSAGE]
   } catch (error) {
-    return [
-      1, // code
-      error.message
-    ]
+    return [1, error.message]
   }
-}
-
-function formatKey(prefix, key) {
-  return `${prefix}:${key}`
 }

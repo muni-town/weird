@@ -65,6 +65,29 @@ globalThis.JSXFragmentToString = function (
   return children.filter(Boolean).join('')
 }
 
+globalThis.HttpResponse = (
+  { res, status, headers },
+  children
+) => {
+  if (res.headersSent) {
+    console.trace(
+      'Response headers already sent.'
+    )
+    // return
+  }
+
+  res.writeHead(status, headers)
+  const childrenString = children.map(child => {
+    if (typeof child === 'object') {
+      return JSON.stringify(child)
+    }
+
+    return child
+  })
+
+  res.end(childrenString.join(''))
+}
+
 import {
   runMigrations,
   ensureMigrationTableExists

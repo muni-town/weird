@@ -24,27 +24,21 @@ export default async function db(
 ) {
   try {
     const results = await sql(query, ...values)
-    return [
-      0, // code
-      results
-    ]
+    return [0, results]
   } catch (error) {
-    return [
-      1, //   code
-      error.message
-    ]
+    return [1, error.message]
   }
 }
 
 // usage:
-// import { db } from './services/db.js'
+// import { db } from './services/db-main.js'
 //
-// const results = await db`
+// const [thingCode, thingResult] = await db`
 //   SELECT * FROM users WHERE id = ${userId}
 // `
 //
-// if (results.code === 0) {
-//   console.log(results.data)
-// } else {
-//   console.error(results.message)
+// if (thingCode > 0) {
+//   throw new Error(thingResult)
 // }
+//
+// do stuff...

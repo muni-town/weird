@@ -1,21 +1,22 @@
 import Document from '../layouts/document.js'
 import Profile from '../layouts/profile.js'
 
-export default (req, res) => {
+export default context => {
+  const { req, res } = context
+
   const host = req.headers.host
   const [username] = host.split('.')
 
-  res.writeHead(200, {
-    'Content-Type': 'text/html'
-  })
-
-  res.write('<!DOCTYPE html>')
-
-  res.write(
-    <Document>
-      <Profile username={username} />
-    </Document>
+  return (
+    <HttpResponse
+      res={res}
+      status={200}
+      headers={{ 'Content-Type': 'text/html' }}
+    >
+      {`<!DOCTYPE html>`}
+      <Document>
+        <Profile username={username} />
+      </Document>
+    </HttpResponse>
   )
-
-  res.end()
 }

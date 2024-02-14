@@ -1,9 +1,11 @@
 import getRoute from '../pure/get-route.js'
 import getSubdomain from '../pure/get-subdomain.js'
 
-export function handleRequest(req, res) {
+export async function handleRequest(req, res) {
   const host = req.headers.host
   const isSubdomain = host.split('.').length > 1
+
+  const context = await createContext(req, res)
 
   // TODO: find a better place for this
   // we want to use forms for POST requests only
@@ -22,9 +24,31 @@ export function handleRequest(req, res) {
     : getRoute(req.url)
 
   if (route instanceof Promise) {
-    route.then(route => route(req, res))
-    return
+    route = await route
+    console.log('route', route)
   }
 
-  route(req, res)
+  route(context)
+}
+
+import parseURLEncodedFormData from '../pure/parse-url-encoded-form-data.js'
+
+// TODO: we really don't want unnecessary promises
+async function createContext(req, res) {
+  const context = {
+    req,
+    res
+  }
+
+  if (
+    req.headers['content-type'] ===
+    'application/x-www-form-urlencoded'
+  ) {
+    context.formData =
+      await parseURLEncodedFormData(req)
+  }
+
+  console.log('context', context.formData)
+
+  return context
 }

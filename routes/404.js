@@ -1,16 +1,18 @@
 import Document from '../layouts/document.js'
 
-export default (req, res) => {
-  res.writeHead(404, {
-    'Content-Type': 'text/html'
-  })
+export default context => {
+  const { res } = context
 
-  res.write(
-    <Document>
-      <h1>404</h1>
-      <p>Page not found</p>
-    </Document>
+  return (
+    <HttpResponse
+      res={res}
+      status={404}
+      headers={{ 'Content-Type': 'text/html' }}
+    >
+      <Document>
+        <h1>404</h1>
+        <p>Page not found</p>
+      </Document>
+    </HttpResponse>
   )
-
-  res.end()
 }

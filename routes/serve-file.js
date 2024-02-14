@@ -16,7 +16,9 @@ function getMimeType(url) {
   return mimeType
 }
 
-export default async (req, res) => {
+// TODO: streaming <HttpResponse>
+export default async context => {
+  const { req, res } = context
   const url = req.url
   const clientPath = process.cwd() + '/client'
   const filePath = clientPath + url

@@ -22,28 +22,32 @@ window.addEventListener('message', function (event) {
 })
 `
 
-export default (req, res) => {
-  res.writeHead(200, {
-    'Content-Type': 'text/html'
-  })
+export default context => {
+  const { res } = context
 
-  res.end(
-    <Document>
-      <h2>
-        you went through the email link stuff and
-        land here
-      </h2>
+  return (
+    <HttpResponse
+      res={res}
+      status={200}
+      headers={{ 'Content-Type': 'text/html' }}
+    >
+      <Document>
+        <h2>
+          you went through the email link stuff
+          and land here
+        </h2>
 
-      {[
-        'github',
-        'google',
-        'discord',
-        'mastodon'
-      ].map(provider => (
-        <button onclick={scriptText(provider)}>
-          link {provider}
-        </button>
-      ))}
-    </Document>
+        {[
+          'github',
+          'google',
+          'discord',
+          'mastodon'
+        ].map(provider => (
+          <button onclick={scriptText(provider)}>
+            link {provider}
+          </button>
+        ))}
+      </Document>
+    </HttpResponse>
   )
 }

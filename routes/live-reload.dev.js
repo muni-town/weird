@@ -2,7 +2,9 @@ import { liveReloadEmitter } from '../services/dev-server.js'
 
 const clients = []
 
-export default (req, res) => {
+// TODO: streaming <HttpResponse> with no .end()
+export default context => {
+  const { req, res } = context
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

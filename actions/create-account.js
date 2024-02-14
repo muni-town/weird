@@ -1,17 +1,13 @@
-import parseURLEncodedFormData from '../pure/parse-url-encoded-form-data.js'
-
 import {
   createSession,
   getSession
 } from '../services/sessions.js'
 
-export default async (req, res) => {
+export default async context => {
+  const { req, res, formData } = context
+  const { username, email, password } = formData
+
   try {
-    const formData =
-      await parseURLEncodedFormData(req)
-
-    const { username, email, password } = formData
-
     const [
       createSessionCode,
       createSessionResult

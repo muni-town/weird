@@ -8,18 +8,19 @@ import Landing from '../layouts/landing.js'
 
 // console.log(oAuthClients)
 
-export default (req, res) => {
-  res.writeHead(200, {
-    'Content-Type': 'text/html'
-  })
+export default context => {
+  const { res } = context
 
-  res.write('<!DOCTYPE html>')
-
-  res.write(
-    <Document>
-      <Landing />
-    </Document>
+  return (
+    <HttpResponse
+      res={res}
+      status={200}
+      headers={{ 'Content-Type': 'text/html' }}
+    >
+      {'<!DOCTYPE html>'}
+      <Document>
+        <Landing />
+      </Document>
+    </HttpResponse>
   )
-
-  res.end()
 }

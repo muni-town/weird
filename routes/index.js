@@ -17,7 +17,6 @@ export default context => {
       status={200}
       headers={{ 'Content-Type': 'text/html' }}
     >
-      {'<!DOCTYPE html>'}
       <Document>
         <Landing />
       </Document>

@@ -1,58 +1,51 @@
-import Redis from 'ioredis'
-import env from '../consts/env.js'
+import { createRedisClient } from '../side-effects/create-redis-client.js'
 
 const OK_MESSAGE = 'OK'
+const REDIS_SECONDS_TOKEN = 'EX'
 
-const { REDIS_HOST, REDIS_PORT } = env
+const _client = createRedisClient()
 
-function _formatKey(prefix, key) {
-  return `${prefix}:${key}`
-}
+const _formatKey = (prefix, key) =>
+  `${prefix}:${key}`
 
-const redis = new Redis({
-  host: REDIS_HOST,
-  port: REDIS_PORT
-})
-
-export async function setKey({
-  prefix,
-  key,
-  value
-}) {
+const setKey = async ({ prefix, key, value }) => {
   try {
     const formattedKey = _formatKey(prefix, key)
     const serializedValue = JSON.stringify(value)
-    await redis.set(formattedKey, serializedValue)
+    await _client.set(
+      formattedKey,
+      serializedValue
+    )
     return [0, OK_MESSAGE]
   } catch (error) {
     return [1, error.message]
   }
 }
 
-export async function getKey({ prefix, key }) {
+const getKey = async ({ prefix, key }) => {
   try {
     const formattedKey = _formatKey(prefix, key)
-    const data = await redis.get(formattedKey)
+    const data = await _client.get(formattedKey)
     return [0, data]
   } catch (error) {
     return [1, error.message]
   }
 }
 
-export async function deleteKey({ prefix, key }) {
+const deleteKey = async ({ prefix, key }) => {
   try {
     const formattedKey = _formatKey(prefix, key)
-    await redis.del(formattedKey)
+    await _client.del(formattedKey)
     return [0, OK_MESSAGE]
   } catch (error) {
     return [1, error.message]
   }
 }
 
-export async function keyExists({ prefix, key }) {
+const keyExists = async ({ prefix, key }) => {
   try {
     const formattedKey = _formatKey(prefix, key)
-    const exists = await redis.exists(
+    const exists = await _client.exists(
       formattedKey
     )
     return [0, exists === 1]
@@ -61,13 +54,13 @@ export async function keyExists({ prefix, key }) {
   }
 }
 
-export async function incrementValue({
+const incrementValue = async ({
   prefix,
   key
-}) {
+}) => {
   try {
     const formattedKey = _formatKey(prefix, key)
-    const newValue = await redis.incr(
+    const newValue = await _client.incr(
       formattedKey
     )
     return [0, newValue]
@@ -76,13 +69,13 @@ export async function incrementValue({
   }
 }
 
-export async function decrementValue({
+const decrementValue = async ({
   prefix,
   key
-}) {
+}) => {
   try {
     const formattedKey = _formatKey(prefix, key)
-    const newValue = await redis.decr(
+    const newValue = await _client.decr(
       formattedKey
     )
     return [0, newValue]
@@ -91,19 +84,19 @@ export async function decrementValue({
   }
 }
 
-export async function setKeyWithExpiration({
+const setKeyWithExpiration = async ({
   prefix,
   key,
   value,
   expirationSeconds
-}) {
+}) => {
   try {
     const formattedKey = _formatKey(prefix, key)
     const serializedValue = JSON.stringify(value)
-    await redis.set(
+    await _client.set(
       formattedKey,
       serializedValue,
-      'EX',
+      REDIS_SECONDS_TOKEN,
       expirationSeconds
     )
     return [0, OK_MESSAGE]
@@ -112,22 +105,32 @@ export async function setKeyWithExpiration({
   }
 }
 
-export async function getKeysByPattern({
-  pattern
-}) {
+const getKeysByPattern = async ({ pattern }) => {
   try {
-    const keys = await redis.keys(pattern)
+    const keys = await _client.keys(pattern)
     return [0, keys]
   } catch (error) {
     return [1, error.message]
   }
 }
 
-export async function flushAll() {
+const flushAll = async () => {
   try {
-    await redis.flushall()
+    await _client.flushall()
     return [0, OK_MESSAGE]
   } catch (error) {
     return [1, error.message]
   }
+}
+
+export {
+  setKey,
+  getKey,
+  deleteKey,
+  keyExists,
+  incrementValue,
+  decrementValue,
+  setKeyWithExpiration,
+  getKeysByPattern,
+  flushAll
 }

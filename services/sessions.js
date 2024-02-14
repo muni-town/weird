@@ -52,7 +52,7 @@ const getSessionsByPattern = ({ pattern }) =>
     pattern
   })
 
-export default {
+export {
   createSession,
   getSession,
   deleteSession,

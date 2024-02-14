@@ -4,10 +4,11 @@ import {
 } from '../services/sessions.js'
 
 export default async context => {
-  const { req, res, formData } = context
-  const { username, email, password } = formData
+  const { res, formData } = context
 
   try {
+    const { username, email, password } = formData
+
     const [
       createSessionCode,
       createSessionResult

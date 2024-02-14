@@ -12,7 +12,10 @@ export default async (req, res) => {
 
     const { username, email, password } = formData
 
-    const sessionId = await createSession({
+    const [
+      createSessionCode,
+      createSessionResult
+    ] = await createSession({
       sessionData: {
         username,
         email,
@@ -20,30 +23,57 @@ export default async (req, res) => {
       }
     })
 
-    const sessionData = await getSession({
-      sessionId
-    })
+    if (createSessionCode > 0) {
+      throw new Error(createSessionResult)
+    }
 
-    res.writeHead(200, {
-      'Content-Type': 'text/plain'
-    })
-    res.end(
-      `You submitted: ${JSON.stringify(
-        formData
-      )} and your session ID is: ${sessionId}
-      
-      Your session data is: ${JSON.stringify(
-        sessionData
-      )}`
+    const sessionId = createSessionResult
+
+    const [getSessionCode, getSessionResult] =
+      await getSession({
+        sessionId
+      })
+
+    if (getSessionCode > 0) {
+      throw new Error(getSessionResult)
+    }
+
+    const sessionData = getSessionResult
+
+    return (
+      <HttpResponse
+        res={res}
+        status={200}
+        headers={{ 'Content-Type': 'text/html' }}
+      >
+        <div>
+          <h1>Account Created</h1>
+          <p>
+            You submitted:
+            {JSON.stringify(formData)}
+          </p>
+          <p>Your session ID is: {sessionId}</p>
+          <p>
+            Your session data is:
+            {JSON.stringify(sessionData)}
+          </p>
+        </div>
+
+        {css`
+          h1 {
+            color: green;
+          }
+        `}
+      </HttpResponse>
     )
   } catch (error) {
-    console.error(
-      'Error processing form data:',
-      error
+    return (
+      <HttpResponse
+        res={res}
+        error={error}
+        status={500}
+        message={`error parsing form data: ${error.message}`}
+      />
     )
-    res.writeHead(500, {
-      'Content-Type': 'text/plain'
-    })
-    res.end('Internal Server Error')
   }
 }

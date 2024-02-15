@@ -2,6 +2,7 @@ import globFolder from '../side-effects/glob-folder.js'
 
 const routes = {}
 
+// TODO: why dist? bleeeh
 const routeFilePaths = globFolder([
   'dist',
   'routes',
@@ -16,7 +17,9 @@ await Promise.all(
 
     const routeName = fileName.split('.').shift()
 
-    const route = await import(routeFilePath)
+    const { default: route } = await import(
+      routeFilePath
+    )
 
     routes[routeName] = route
   })

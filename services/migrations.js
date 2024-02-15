@@ -4,6 +4,7 @@ import { default as sql } from './db-main.js'
 let migrations = {}
 
 const migrationFilePaths = globFolder([
+  'dist',
   'migrations',
   '/*.js'
 ])

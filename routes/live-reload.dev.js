@@ -1,4 +1,4 @@
-import { liveReloadEmitter } from '../services/dev-server.js'
+//import { liveReloadEmitter } from '../services/dev-server.js'
 
 const clients = []
 
@@ -22,11 +22,11 @@ export default context => {
 }
 
 // TODO: huh, why nextTick?
-process.nextTick(() => {
-  liveReloadEmitter.on('reload', () => {
-    console.log('Reloading')
-    clients.forEach(client => {
-      client.write('data: Reload\n\n')
-    })
-  })
-})
+// process.nextTick(() => {
+//   liveReloadEmitter.on('reload', () => {
+//     console.log('Reloading')
+//     clients.forEach(client => {
+//       client.write('data: Reload\n\n')
+//     })
+//   })
+// })

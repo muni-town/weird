@@ -14,6 +14,8 @@ import createEventEmitter from '../pure/create-event-emitter.js'
 // import openFile from '../side-effects/open-file.js'
 // import writeFile from '../side-effects/write-file.js'
 
+import './initializers.js'
+
 console.log(
   'env.DEV_SERVER_PORT',
   env.DEV_SERVER_PORT
@@ -22,10 +24,10 @@ console.log(
 export const liveReloadEmitter =
   createEventEmitter()
 
-export const devServer = createServer({
-  name: 'Dev',
-  port: env.DEV_SERVER_PORT
-})
+// export const devServer = createServer({
+//   name: 'Dev',
+//   port: env.DEV_SERVER_PORT
+// })
 
 // const debouncedReload = debounce(() =>
 //   liveReloadEmitter.emit('reload')

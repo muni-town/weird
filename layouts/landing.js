@@ -1,4 +1,4 @@
-import CreateAccountForm from '../elements/create-account-form.js'
+import { Form as CreateAccountForm } from '../actions/create-account.js'
 
 export default () => (
   <main>

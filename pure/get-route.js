@@ -1,13 +1,8 @@
-import indexRoute from '../routes/index.js'
-import notFoundRoute from '../routes/404.js'
-import liveReloadRoute from '../routes/live-reload.dev.js'
-import emailFormRoute from '../routes/email-form.js'
-import accountLinkingRoute from '../routes/account-linking.js'
-import OAuthRoute from '../routes/external-oauth.js'
-import serveFileRoute from '../routes/serve-file.js'
+import { forms } from '../services/forms.js'
+import { routes } from '../services/routes.js'
 
 export default url => {
-  let route = notFoundRoute
+  let route = routes['404']
 
   // TODO urlpattern api + globbing so we can skip
   // this manual stuff below and the imports above
@@ -15,32 +10,21 @@ export default url => {
   // startsWith('/auth/')
 
   if (url === '/') {
-    route = indexRoute
-  } else if (url === '/live-reload') {
-    route = liveReloadRoute
-  } else if (url.startsWith('/email-form')) {
-    route = emailFormRoute
-  } else if (url.startsWith('/auth/')) {
-    route = OAuthRoute
-  } else if (url.startsWith('/account-linking')) {
-    route = accountLinkingRoute
+    route = routes.index
   } else if (
     url.endsWith('.js') ||
     url.endsWith('.css')
   ) {
     // TODO: hack
-    route = serveFileRoute
+    route = routes['serve-file']
   } else if (url.startsWith('/actions/')) {
     //
     // TODO: clean this up
     const action = url.split('/').pop()
 
-    return import(`../actions/${action}.js`).then(
-      ({ default: actionRoute }) => {
-        console.log('actionRoute', actionRoute)
-        return actionRoute
-      }
-    )
+    if (forms[action]) {
+      route = forms[action].handler
+    }
     // TODO: glob actions on boot so we don't have to the promise dance
   }
 

@@ -49,7 +49,5 @@ async function createContext(req, res) {
       await parseURLEncodedFormData(req)
   }
 
-  console.log('context', context.formData)
-
   return context
 }

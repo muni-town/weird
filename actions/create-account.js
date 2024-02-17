@@ -5,21 +5,24 @@ import {
 
 import { default as sql } from '../services/db-main.js'
 
-let id = 10
+import { hash } from '../pure/hash-and-verify-with-salt.js'
+import generateUniqueId from '../pure/generate-unique-id.js'
 
 const _createUser = async ({
   username,
   email,
-  password
+  hashedPassword
 }) => {
+  const _userId = generateUniqueId({
+    prefix: 'u'
+  })
+
   const [createUserCode, createUserResult] =
     await sql`
       INSERT INTO weird_users
       (username, email, password, id, weird_id)
       VALUES
-      (${username}, ${email}, ${password}, ${id++}, ${
-      id++ + 1
-    })
+      (${username}, ${email}, ${hashedPassword}, ${_userId}, ${_userId})
       RETURNING id
     `
   if (createUserCode > 0) {
@@ -72,10 +75,12 @@ const handler = async context => {
   try {
     const { username, email, password } = formData
 
+    const hashedPassword = await hash(password)
+
     const userId = await _createUser({
       username,
       email,
-      password
+      hashedPassword
     })
 
     const sessionId = await _createSession({

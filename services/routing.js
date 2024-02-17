@@ -1,6 +1,8 @@
 import getRoute from '../pure/get-route.js'
 import getSubdomain from '../pure/get-subdomain.js'
 
+import { middleware } from './middleware.js'
+
 export async function handleRequest(req, res) {
   const host = req.headers.host
   const isSubdomain = host.split('.').length > 1
@@ -28,6 +30,10 @@ export async function handleRequest(req, res) {
     route = await route
     console.log('route', route)
   }
+
+  Object.values(middleware).forEach(({ run }) =>
+    run(context)
+  )
 
   route(context)
 }

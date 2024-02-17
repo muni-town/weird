@@ -96,7 +96,10 @@ const handler = async context => {
       <HttpResponse
         res={res}
         status={200}
-        headers={{ 'Content-Type': 'text/html' }}
+        headers={{
+          'Content-Type': 'text/html',
+          'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`
+        }}
       >
         <div>
           <h1>Account Created</h1>

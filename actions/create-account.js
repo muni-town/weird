@@ -1,6 +1,6 @@
 import {
-  createSession,
-  getSession
+  createSession
+  // getSession
 } from '../services/sessions.js'
 
 import { default as sql } from '../services/db-main.js'
@@ -29,11 +29,6 @@ const _createUser = async ({
     throw new Error(createUserResult)
   }
 
-  console.log(
-    'createUserResult',
-    createUserResult
-  )
-
   const userId = createUserResult[0].id
 
   return userId
@@ -52,21 +47,6 @@ const _createSession = async sessionData => {
   const sessionId = createSessionResult
 
   return sessionId
-}
-
-const _getSession = async ({ sessionId }) => {
-  const [getSessionCode, getSessionResult] =
-    await getSession({
-      sessionId
-    })
-
-  if (getSessionCode > 0) {
-    throw new Error(getSessionResult)
-  }
-
-  const sessionData = getSessionResult
-
-  return sessionData
 }
 
 const handler = async context => {
@@ -88,38 +68,16 @@ const handler = async context => {
       userId
     })
 
-    const sessionData = await _getSession({
-      sessionId
-    })
-
     return (
       <HttpResponse
         res={res}
-        status={200}
+        status={302}
         headers={{
+          'Location': '/',
           'Content-Type': 'text/html',
           'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`
         }}
-      >
-        <div>
-          <h1>Account Created</h1>
-          <p>
-            You submitted:
-            {JSON.stringify(formData)}
-          </p>
-          <p>Your session ID is: {sessionId}</p>
-          <p>
-            Your session data is:
-            {JSON.stringify(sessionData)}
-          </p>
-        </div>
-
-        {css`
-          h1 {
-            color: green;
-          }
-        `}
-      </HttpResponse>
+      />
     )
   } catch (error) {
     throw new Error(error)
@@ -134,7 +92,6 @@ const Form = () => (
     method='post'
     class='create-account-form'
   >
-    <div>lol</div>
     <label for='username'>Username</label>
     <input
       type='text'
@@ -186,3 +143,18 @@ const Form = () => (
 )
 
 export { handler, Form }
+
+// const _getSession = async ({ sessionId }) => {
+//   const [getSessionCode, getSessionResult] =
+//     await getSession({
+//       sessionId
+//     })
+
+//   if (getSessionCode > 0) {
+//     throw new Error(getSessionResult)
+//   }
+
+//   const sessionData = getSessionResult
+
+//   return sessionData
+// }

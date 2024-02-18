@@ -82,9 +82,21 @@ export async function handleRequest(req, res) {
     console.log('route', route)
   }
 
-  Object.values(globalMiddleware).forEach(
-    ({ run }) => run(context)
-  )
+  // Object.values(globalMiddleware).forEach(
+  //   ({ run }) => run(context)
+  // )
+
+  // // with for of we can use async/await
+  // for (const middlewareName of route.middleware) {
+  //   const { run } = middleware[middlewareName]
+  //   await run(context)
+  // }
+
+  // same with global middleware
+  for (const middlewareName of globalMiddleware) {
+    const { run } = middlewareName
+    await run(context)
+  }
 
   console.log(globalMiddleware)
 
@@ -107,6 +119,17 @@ async function createContext(req, res) {
     context.formData =
       await parseURLEncodedFormData(req)
   }
+
+  // get cookies
+  context.cookies = req.headers.cookie
+    ? req.headers.cookie
+        .split(';')
+        .reduce((cookies, cookie) => {
+          const [name, value] = cookie.split('=')
+          cookies[name.trim()] = value
+          return cookies
+        }, {})
+    : {}
 
   return context
 }

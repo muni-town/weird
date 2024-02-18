@@ -10,6 +10,7 @@ import Landing from '../layouts/landing.js'
 
 export default context => {
   const { res } = context
+  const { session } = context
 
   return (
     <HttpResponse
@@ -18,6 +19,12 @@ export default context => {
       headers={{ 'Content-Type': 'text/html' }}
     >
       <Document>
+        <div>
+          <h1>Session</h1>
+          <pre>
+            {JSON.stringify(session, null, 2)}
+          </pre>
+        </div>
         <Landing />
       </Document>
     </HttpResponse>

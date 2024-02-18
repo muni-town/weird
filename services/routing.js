@@ -4,7 +4,10 @@
 import { forms } from './forms.js'
 import { routes } from './routes.js'
 
-import { middleware } from './middleware.js'
+import {
+  middleware,
+  globalMiddleware
+} from './middleware.js'
 
 import profileRoute from '../routes/profile.js'
 
@@ -79,9 +82,11 @@ export async function handleRequest(req, res) {
     console.log('route', route)
   }
 
-  Object.values(middleware).forEach(({ run }) =>
-    run(context)
+  Object.values(globalMiddleware).forEach(
+    ({ run }) => run(context)
   )
+
+  console.log(globalMiddleware)
 
   route(context)
 }

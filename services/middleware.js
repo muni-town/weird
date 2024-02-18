@@ -30,4 +30,12 @@ await Promise.all(
   )
 )
 
-export { middleware }
+const globalMiddleware = Object.keys(middleware)
+  .map(middlewareName => {
+    if (middlewareName === 'session') {
+      return middleware[middlewareName]
+    }
+  })
+  .filter(Boolean)
+
+export { middleware, globalMiddleware }

@@ -1,7 +1,55 @@
-import getRoute from '../pure/get-route.js'
-import getSubdomain from '../pure/get-subdomain.js'
+//import getRoute from '../pure/get-route.js'
+//import getSubdomain from '../pure/get-subdomain.js'
+
+import { forms } from './forms.js'
+import { routes } from './routes.js'
 
 import { middleware } from './middleware.js'
+
+import profileRoute from '../routes/profile.js'
+
+const getSubdomain = host => {
+  // TODO: subdomain matching beyond user profiles
+  // for stuff like CDN and email
+
+  let route
+
+  route = profileRoute
+
+  return route
+}
+
+//import { routes } from './routes.js'
+
+const getRoute = url => {
+  let route = routes['404']
+
+  // TODO urlpattern api + globbing so we can skip
+  // this manual stuff below and the imports above
+
+  // startsWith('/auth/')
+
+  if (url === '/') {
+    route = routes.index
+  } else if (
+    url.endsWith('.js') ||
+    url.endsWith('.css')
+  ) {
+    // TODO: hack
+    route = routes['serve-file']
+  } else if (url.startsWith('/actions/')) {
+    //
+    // TODO: clean this up
+    const action = url.split('/').pop()
+
+    if (forms[action]) {
+      route = forms[action].handler
+    }
+    // TODO: glob actions on boot so we don't have to the promise dance
+  }
+
+  return route
+}
 
 export async function handleRequest(req, res) {
   const host = req.headers.host

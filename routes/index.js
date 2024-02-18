@@ -20,10 +20,16 @@ export default context => {
     >
       <Document>
         <div>
-          <h1>Session</h1>
-          <pre>
-            {JSON.stringify(session, null, 2)}
-          </pre>
+          {session ? (
+            <>
+              <h1>Session</h1>
+              <pre>
+                {JSON.stringify(session, null, 2)}
+              </pre>
+            </>
+          ) : (
+            ''
+          )}
         </div>
         <Landing />
       </Document>

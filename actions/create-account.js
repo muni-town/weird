@@ -73,7 +73,7 @@ const handler = async context => {
         res={res}
         status={302}
         headers={{
-          'Location': '/',
+          'Location': '/account-linking/',
           'Content-Type': 'text/html',
           'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`
         }}

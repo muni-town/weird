@@ -49,6 +49,14 @@ const getRoute = url => {
       route = forms[action].handler
     }
     // TODO: glob actions on boot so we don't have to the promise dance
+  } else if (url.startsWith('/callbacks/')) {
+    route = routes['ouath-callbacks']
+  } else if (
+    url.startsWith('/account-linking/')
+  ) {
+    route = routes['account-linking']
+  } else if (url.startsWith('/auth/')) {
+    route = routes['external-oauth']
   }
 
   return route
@@ -131,5 +139,25 @@ async function createContext(req, res) {
         }, {})
     : {}
 
+  // if query params
+  context.queryParams = parseQueryParams(req)
+
   return context
+}
+
+import { URL as _URL } from 'node:url'
+
+function parseQueryParams(req) {
+  // Parse the request URL
+  const parsedUrl = new _URL(
+    req.url,
+    `http://${req.headers.host}`
+  )
+
+  // Access the query parameters as an object
+  const queryParams = Object.fromEntries(
+    parsedUrl.searchParams.entries()
+  )
+
+  return queryParams
 }

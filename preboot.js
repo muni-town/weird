@@ -77,6 +77,13 @@ globalThis.HttpResponse = (
   }
 
   res.writeHead(status, headers)
+
+  // if 302
+  if (status === 302) {
+    res.end()
+    return
+  }
+
   const childrenString = children.map(child => {
     if (typeof child === 'object') {
       return JSON.stringify(child)

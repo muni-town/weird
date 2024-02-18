@@ -43,7 +43,10 @@ export default context => {
           'discord',
           'mastodon'
         ].map(provider => (
-          <button onclick={scriptText(provider)}>
+          <button
+            class='provider-auth-button'
+            onclick={scriptText(provider)}
+          >
             link {provider}
           </button>
         ))}

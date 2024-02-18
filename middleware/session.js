@@ -7,12 +7,22 @@ const run = async context => {
 
   const sessionId = cookies[SESSION_COOKIE_NAME]
 
-  console.log('sessionId', sessionId)
-
   if (sessionId) {
-    context.session = await getSession({
-      sessionId
-    })
+    const [getSessionCode, getSessionResult] =
+      await getSession({
+        sessionId
+      })
+
+    if (getSessionCode > 0) {
+      console.error(getSessionResult)
+      return
+    }
+
+    const session = getSessionResult
+
+    if (session !== null) {
+      context.session = session
+    }
   }
 }
 

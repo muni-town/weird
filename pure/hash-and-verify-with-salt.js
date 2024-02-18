@@ -1,6 +1,7 @@
 import { default as _bcrypt } from 'bcrypt'
 
 const SALT_ROUNDS = 12
+const PEPPER = 'le_pepper'
 
 const randomDelay = () =>
   new Promise(resolve =>
@@ -9,8 +10,9 @@ const randomDelay = () =>
 
 const hash = async password => {
   await randomDelay()
+  const pepperedPassword = password + PEPPER
   const hashedPassword = await _bcrypt.hash(
-    password,
+    pepperedPassword,
     SALT_ROUNDS
   )
 
@@ -22,8 +24,9 @@ const verify = async (
   hashedPassword
 ) => {
   await randomDelay()
+  const pepperedPassword = password + PEPPER
   const isMatch = await _bcrypt.compare(
-    password,
+    pepperedPassword,
     hashedPassword
   )
 

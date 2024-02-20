@@ -19,6 +19,7 @@ export default context => {
       headers={{ 'Content-Type': 'text/html' }}
     >
       <Document>
+        <script src='/index.js'></script>
         <div>
           {session ? (
             <>

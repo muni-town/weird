@@ -128,6 +128,15 @@ async function createContext(req, res) {
       await parseURLEncodedFormData(req)
   }
 
+  // form data
+  if (
+    req.headers['content-type'] ===
+    'multipart/form-data'
+  ) {
+    context.formData =
+      await parseMultipartFormData(req)
+  }
+
   // get cookies
   context.cookies = req.headers.cookie
     ? req.headers.cookie
@@ -160,4 +169,32 @@ function parseQueryParams(req) {
   )
 
   return queryParams
+}
+
+async function parseMultipartFormData(req) {
+  let formData = ''
+  for await (const chunk of req) {
+    formData += chunk
+  }
+
+  const boundary = formData.split('\r\n')[0] // Extract the boundary from the first line
+  const parts = formData.split(boundary) // Split the formData using the boundary
+  const parsedData = {}
+
+  for (let part of parts) {
+    if (part.trim().length === 0) continue // Skip empty parts
+
+    const nameMatch = part.match(/name="(.+?)"/) // Extract the name attribute
+    const dataMatch = part.match(
+      /\r\n\r\n([\s\S]*)\r\n/
+    ) // Extract the data between \r\n\r\n and \r\n
+
+    if (nameMatch && dataMatch) {
+      const name = nameMatch[1]
+      const value = dataMatch[1]
+      parsedData[name] = value
+    }
+  }
+
+  return parsedData
 }

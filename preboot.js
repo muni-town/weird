@@ -19,11 +19,15 @@ globalThis.JSXToString = function (
   ...children
 ) {
   if (tag === 'JSXFragmentToString') {
-    return children.join('')
+    return children.filter(Boolean).join('')
   }
 
   if (typeof tag === 'function') {
-    return tag(props, children)
+    const result = tag(props, children)
+
+    return Array.isArray(result)
+      ? result.filter(Boolean).join('')
+      : result
   }
 
   // handle forms
@@ -49,7 +53,7 @@ globalThis.JSXToString = function (
         return child
       }
     })
-
+    .filter(Boolean)
     .join('')
 
   if (SELF_CLOSING_TAGS.has(tag)) {

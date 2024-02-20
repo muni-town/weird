@@ -1,5 +1,6 @@
 import Document from '../layouts/document.js'
 import Landing from '../layouts/landing.js'
+import Header from '../elements/header.js'
 
 // import { oAuthClients } from '../services/oauth-clients.js'
 // import redisClient from '../services/redis.js'
@@ -20,7 +21,15 @@ export default context => {
     >
       <Document>
         <script src='/index.js'></script>
-        <div>
+
+        <Landing />
+      </Document>
+    </HttpResponse>
+  )
+}
+
+{
+  /* <div>
           {session ? (
             <>
               <h1>Session</h1>
@@ -31,9 +40,5 @@ export default context => {
           ) : (
             ''
           )}
-        </div>
-        <Landing />
-      </Document>
-    </HttpResponse>
-  )
+        </div> */
 }

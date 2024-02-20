@@ -31,6 +31,14 @@ async function runMigration({
   description,
   up
 }) {
+  console.log(
+    'name',
+    name,
+    'description',
+    description,
+    'up',
+    up
+  )
   try {
     console.log(`Applying migration: ${name}`)
     const start = Date.now()
@@ -56,9 +64,8 @@ async function runMigration({
       `Migration '${name}' applied successfully.`
     )
   } catch (error) {
-    console.error(
-      `Error applying migration '${name}':`,
-      error
+    throw new Error(
+      `Error applying migration '${name}': ${error}`
     )
   }
 }

@@ -20,16 +20,17 @@ const _createUser = async ({
   const [createUserCode, createUserResult] =
     await sql`
       INSERT INTO weird_users
-      (username, email, password, id, weird_id)
+      (username, email, password, weird_user_id)
       VALUES
-      (${username}, ${email}, ${hashedPassword}, ${_userId}, ${_userId})
-      RETURNING id
+      (${username}, ${email}, ${hashedPassword}, ${_userId})
+      RETURNING weird_user_id
     `
+
   if (createUserCode > 0) {
     throw new Error(createUserResult)
   }
 
-  const userId = createUserResult[0].id
+  const userId = createUserResult[0].weird_user_id
 
   return userId
 }

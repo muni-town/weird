@@ -21,7 +21,7 @@ const run = async context => {
     const session = getSessionResult
 
     if (session !== null) {
-      context.session = session
+      context.session = JSON.parse(session)
     }
   }
 }

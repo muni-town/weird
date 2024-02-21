@@ -73,7 +73,7 @@ globalThis.JSXFragmentToString = function (
 }
 
 globalThis.HttpResponse = (
-  { res, status, headers },
+  { res, status, headers = {} },
   children
 ) => {
   if (res.headersSent) {
@@ -81,6 +81,11 @@ globalThis.HttpResponse = (
       'Response headers already sent.'
     )
     // return
+  }
+
+  // if it has children, we should assume it's HTML so set the content type
+  if (children.length) {
+    headers['Content-Type'] = 'text/html'
   }
 
   res.writeHead(status, headers)

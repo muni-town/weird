@@ -14,7 +14,6 @@ const handler = context => {
     <HttpResponse
       res={res}
       status={200}
-      headers={{ 'Content-Type': 'text/html' }}
     >
       <Document>
         <Profile username={username} />

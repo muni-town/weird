@@ -7,7 +7,6 @@ const handler = context => {
     <HttpResponse
       res={res}
       status={404}
-      headers={{ 'Content-Type': 'text/html' }}
     >
       <Document>
         <h1>404</h1>

@@ -45,9 +45,6 @@ const handler = async context => {
     <HttpResponse
       res={res}
       status={200}
-      headers={{
-        'Content-Type': 'text/html'
-      }}
     >
       {/* {JSON.stringify(user)} */}
       <script>

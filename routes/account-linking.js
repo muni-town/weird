@@ -7,7 +7,6 @@ const handler = context => {
     <HttpResponse
       res={res}
       status={200}
-      headers={{ 'Content-Type': 'text/html' }}
     >
       <Document>
         <script src='/account-linking.js'></script>

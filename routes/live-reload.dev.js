@@ -1,6 +1,8 @@
 //import { liveReloadEmitter } from '../services/dev-server.js'
 
-const matches = ['/live-reload']
+const pattern = new URLPattern({
+  pathname: '/live-reload'
+})
 
 const clients = []
 
@@ -23,7 +25,7 @@ const handler = context => {
   clients.push(res)
 }
 
-export { handler, matches }
+export { handler, pattern }
 
 // TODO: huh, why nextTick?
 // process.nextTick(() => {

@@ -1,7 +1,10 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 import db from '../services/db-main.js'
 
-const matches = ['/callbacks/:provider']
+// TODO: per callback function in a separate file
+const pattern = new URLPattern({
+  pathname: '/callbacks/:provider'
+})
 
 const handler = async context => {
   const { req, res, queryParams, session } =
@@ -276,4 +279,29 @@ INSERT INTO github_user_data (
   }
 }
 
-export { handler, matches }
+export { handler, pattern }
+
+// async function addGithubUserData({ weirdUserId, user }) {
+//   // Ensure no null values in user object
+//   const sanitizedUser = Object.fromEntries(
+//     Object.entries(user).map(([key, value]) => [key, value ?? ''])
+//   );
+
+//   // Insert data into the database
+//   const [code, data] = await db`
+//     INSERT INTO github_user_data (
+//       weird_user_id,
+//       ${Object.keys(sanitizedUser).join(', ')}
+//     ) VALUES (
+//       ${weirdUserId},
+//       ${Object.values(sanitizedUser).map(value => `${value}`)}
+//     )
+//   `;
+
+//   // Handle insertion error
+//   if (code > 0) {
+//     const errorMessage = `Error adding github user data: ${data}`;
+//     console.error(errorMessage);
+//     throw new Error(errorMessage);
+//   }
+// }

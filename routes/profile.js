@@ -1,8 +1,9 @@
 import Document from '../layouts/document.js'
 import Profile from '../layouts/profile.js'
 
-// all subdomains are profile pages for now
-const matches = ['{.*}.example.com']
+const pattern = new URLPattern({
+  hostname: '{username}.example.com'
+})
 
 const handler = context => {
   const { req, res } = context
@@ -19,4 +20,4 @@ const handler = context => {
   )
 }
 
-export { handler, matches }
+export { handler, pattern }

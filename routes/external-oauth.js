@@ -1,6 +1,8 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 
-const matches = ['/auth/:provider']
+const pattern = new URLPattern({
+  pathname: '/auth/:provider'
+})
 
 const handler = context => {
   const { req, res } = context
@@ -32,4 +34,4 @@ const handler = context => {
   )
 }
 
-export { handler, matches }
+export { handler, pattern }

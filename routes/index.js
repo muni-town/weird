@@ -1,17 +1,15 @@
 import Document from '../layouts/document.js'
 import Landing from '../layouts/landing.js'
 
-const matches = ['/']
+const pattern = new URLPattern({
+  pathname: '/'
+})
 
 const handler = context => {
   const { res, session } = context
 
   return (
-    <HttpResponse
-      res={res}
-      status={200}
-      headers={{ 'Content-Type': 'text/html' }}
-    >
+    <HttpResponse res={res}>
       <Document>
         <script src='/index.js'></script>
         <Landing />
@@ -20,19 +18,4 @@ const handler = context => {
   )
 }
 
-export { handler, matches }
-
-{
-  /* <div>
-          {session ? (
-            <>
-              <h1>Session</h1>
-              <pre>
-                {JSON.stringify(session, null, 2)}
-              </pre>
-            </>
-          ) : (
-            ''
-          )}
-        </div> */
-}
+export { handler, pattern }

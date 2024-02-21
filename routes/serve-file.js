@@ -1,8 +1,21 @@
 import openFile from '../side-effects/open-file.js'
 import { getMimeType } from '../pure/get-mime-type.js'
 
-// TODO needs a matcher
-const matches = ['']
+const allowedFileTypes = [
+  'js',
+  'css',
+  'html',
+  'jpg',
+  'png'
+]
+
+// TODO: ooof
+const pattern = new URLPattern({
+  pathname:
+    '/*.:filetype(' +
+    allowedFileTypes.join('|') +
+    ')'
+})
 
 // TODO: streaming <HttpResponse>
 const handler = async context => {
@@ -27,4 +40,4 @@ const handler = async context => {
   }
 }
 
-export { handler, matches }
+export { handler, pattern }

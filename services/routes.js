@@ -19,9 +19,14 @@ await Promise.all(
 
     // TODO: default routes based on route file names unless
     // file exports a `matches` array
-    const { handler, matches } = await import(
-      routeFilePath
-    )
+    const {
+      method = 'GET',
+      matches = new URLPattern({
+        pathname: `/${routeName}`
+      }),
+      middleware = [],
+      handler
+    } = await import(routeFilePath)
 
     routes[routeName] = handler
   })

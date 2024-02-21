@@ -1,6 +1,9 @@
 import Document from '../layouts/document.js'
 import Profile from '../layouts/profile.js'
 
+// all subdomains are profile pages for now
+const matches = ['{.*}.example.com']
+
 const handler = context => {
   const { req, res } = context
 
@@ -20,4 +23,4 @@ const handler = context => {
   )
 }
 
-export { handler }
+export { handler, matches }

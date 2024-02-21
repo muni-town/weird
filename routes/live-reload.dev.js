@@ -1,5 +1,7 @@
 //import { liveReloadEmitter } from '../services/dev-server.js'
 
+const matches = ['/live-reload']
+
 const clients = []
 
 // TODO: streaming <HttpResponse> with no .end()
@@ -21,7 +23,7 @@ const handler = context => {
   clients.push(res)
 }
 
-export { handler }
+export { handler, matches }
 
 // TODO: huh, why nextTick?
 // process.nextTick(() => {

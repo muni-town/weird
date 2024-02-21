@@ -1,5 +1,7 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 
+const matches = ['/auth/:provider']
+
 const handler = context => {
   const { req, res } = context
 
@@ -30,4 +32,4 @@ const handler = context => {
   )
 }
 
-export { handler }
+export { handler, matches }

@@ -1,6 +1,8 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 import db from '../services/db-main.js'
 
+const matches = ['/callbacks/:provider']
+
 const handler = async context => {
   const { req, res, queryParams, session } =
     context
@@ -280,4 +282,4 @@ INSERT INTO github_user_data (
   }
 }
 
-export { handler }
+export { handler, matches }

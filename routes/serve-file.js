@@ -1,6 +1,9 @@
 import openFile from '../side-effects/open-file.js'
 import { getMimeType } from '../pure/get-mime-type.js'
 
+// TODO needs a matcher
+const matches = ['']
+
 // TODO: streaming <HttpResponse>
 const handler = async context => {
   const { req, res } = context
@@ -24,4 +27,4 @@ const handler = async context => {
   }
 }
 
-export { handler }
+export { handler, matches }

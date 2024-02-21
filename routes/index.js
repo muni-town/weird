@@ -1,13 +1,7 @@
 import Document from '../layouts/document.js'
 import Landing from '../layouts/landing.js'
-import Header from '../elements/header.js'
 
-// import { oAuthClients } from '../services/oauth-clients.js'
-// import redisClient from '../services/redis.js'
-
-// console.log(redisClient)
-
-// console.log(oAuthClients)
+const matches = ['/']
 
 const handler = context => {
   const { res } = context
@@ -28,7 +22,7 @@ const handler = context => {
   )
 }
 
-export { handler }
+export { handler, matches }
 
 {
   /* <div>

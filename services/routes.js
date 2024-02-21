@@ -17,7 +17,7 @@ await Promise.all(
 
     const routeName = fileName.split('.').shift()
 
-    const { handler } = await import(
+    const { handler, matches } = await import(
       routeFilePath
     )
 

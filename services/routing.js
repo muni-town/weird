@@ -9,7 +9,9 @@ import {
   globalMiddleware
 } from './middleware.js'
 
-import profileRoute from '../routes/profile.js'
+const { handler: profileHandler } = await import(
+  '../routes/profile.js'
+)
 
 const getSubdomain = host => {
   // TODO: subdomain matching beyond user profiles
@@ -17,7 +19,7 @@ const getSubdomain = host => {
 
   let route
 
-  route = profileRoute
+  route = profileHandler
 
   return route
 }

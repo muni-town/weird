@@ -1,6 +1,6 @@
 import Document from '../layouts/document.js'
 
-export default context => {
+const handler = context => {
   const { res } = context
 
   return (
@@ -16,3 +16,5 @@ export default context => {
     </HttpResponse>
   )
 }
+
+export { handler }

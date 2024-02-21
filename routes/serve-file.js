@@ -2,7 +2,7 @@ import openFile from '../side-effects/open-file.js'
 import { getMimeType } from '../pure/get-mime-type.js'
 
 // TODO: streaming <HttpResponse>
-export default async context => {
+const handler = async context => {
   const { req, res } = context
   const url = req.url
   const clientPath = process.cwd() + '/client'
@@ -23,3 +23,5 @@ export default async context => {
     res.write('404 Not Found')
   }
 }
+
+export { handler }

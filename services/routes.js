@@ -17,11 +17,11 @@ await Promise.all(
 
     const routeName = fileName.split('.').shift()
 
-    const { default: route } = await import(
+    const { handler } = await import(
       routeFilePath
     )
 
-    routes[routeName] = route
+    routes[routeName] = handler
   })
 )
 

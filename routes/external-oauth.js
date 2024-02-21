@@ -1,6 +1,6 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 
-export default context => {
+const handler = context => {
   const { req, res } = context
 
   const { url } = req
@@ -29,3 +29,5 @@ export default context => {
     </HttpResponse>
   )
 }
+
+export { handler }

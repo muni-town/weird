@@ -2,7 +2,7 @@ import parseQueryString from '../pure/parse-query-string.js'
 
 import Document from '../layouts/document.js'
 
-export default context => {
+const handler = context => {
   const { req, res } = context
 
   return (
@@ -43,3 +43,5 @@ export default context => {
     </HttpResponse>
   )
 }
+
+export { handler }

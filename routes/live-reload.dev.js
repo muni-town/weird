@@ -3,7 +3,7 @@
 const clients = []
 
 // TODO: streaming <HttpResponse> with no .end()
-export default context => {
+const handler = context => {
   const { req, res } = context
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -20,6 +20,8 @@ export default context => {
 
   clients.push(res)
 }
+
+export { handler }
 
 // TODO: huh, why nextTick?
 // process.nextTick(() => {

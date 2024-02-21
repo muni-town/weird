@@ -1,7 +1,7 @@
 import Document from '../layouts/document.js'
 import Profile from '../layouts/profile.js'
 
-export default context => {
+const handler = context => {
   const { req, res } = context
 
   const host = req.headers.host
@@ -19,3 +19,5 @@ export default context => {
     </HttpResponse>
   )
 }
+
+export { handler }

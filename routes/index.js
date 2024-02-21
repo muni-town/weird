@@ -9,7 +9,7 @@ import Header from '../elements/header.js'
 
 // console.log(oAuthClients)
 
-export default context => {
+const handler = context => {
   const { res } = context
   const { session } = context
 
@@ -27,6 +27,8 @@ export default context => {
     </HttpResponse>
   )
 }
+
+export { handler }
 
 {
   /* <div>

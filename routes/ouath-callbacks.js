@@ -1,7 +1,7 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 import db from '../services/db-main.js'
 
-export default async context => {
+const handler = async context => {
   const { req, res, queryParams, session } =
     context
   const { code } = queryParams
@@ -279,3 +279,5 @@ INSERT INTO github_user_data (
     )
   }
 }
+
+export { handler }

@@ -73,7 +73,7 @@ globalThis.JSXFragmentToString = function (
 }
 
 globalThis.HttpResponse = (
-  { res, status, headers = {} },
+  { res, status = 200, headers = {} },
   children
 ) => {
   if (res.headersSent) {

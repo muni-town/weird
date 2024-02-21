@@ -11,10 +11,7 @@ const handler = context => {
   const [username] = host.split('.')
 
   return (
-    <HttpResponse
-      res={res}
-      status={200}
-    >
+    <HttpResponse res={res}>
       <Document>
         <Profile username={username} />
       </Document>

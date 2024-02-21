@@ -4,10 +4,7 @@ const handler = context => {
   const { res } = context
 
   return (
-    <HttpResponse
-      res={res}
-      status={200}
-    >
+    <HttpResponse res={res}>
       <Document>
         <script src='/account-linking.js'></script>
         <h2>

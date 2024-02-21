@@ -42,10 +42,7 @@ const handler = async context => {
   }
 
   return client ? (
-    <HttpResponse
-      res={res}
-      status={200}
-    >
+    <HttpResponse res={res}>
       {/* {JSON.stringify(user)} */}
       <script>
         {`

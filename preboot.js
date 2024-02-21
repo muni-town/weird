@@ -1,5 +1,8 @@
 import SELF_CLOSING_TAGS from './consts/self-closing-html-tags.js'
 
+import { URLPattern } from 'urlpattern-polyfill'
+globalThis.URLPattern = URLPattern
+
 globalThis.css = function (strings, ...values) {
   // return <style> tag with interpolated styles
 

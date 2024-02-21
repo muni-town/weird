@@ -4,8 +4,7 @@ import Landing from '../layouts/landing.js'
 const matches = ['/']
 
 const handler = context => {
-  const { res } = context
-  const { session } = context
+  const { res, session } = context
 
   return (
     <HttpResponse
@@ -15,7 +14,6 @@ const handler = context => {
     >
       <Document>
         <script src='/index.js'></script>
-
         <Landing />
       </Document>
     </HttpResponse>

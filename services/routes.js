@@ -17,6 +17,8 @@ await Promise.all(
 
     const routeName = fileName.split('.').shift()
 
+    // TODO: default routes based on route file names unless
+    // file exports a `matches` array
     const { handler, matches } = await import(
       routeFilePath
     )

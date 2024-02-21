@@ -10,7 +10,7 @@ const allowedFileTypes = [
 ]
 
 // TODO: ooof
-const pattern = new URLPattern({
+export const pattern = new URLPattern({
   pathname:
     '/*.:filetype(' +
     allowedFileTypes.join('|') +
@@ -18,7 +18,7 @@ const pattern = new URLPattern({
 })
 
 // TODO: streaming <HttpResponse>
-const handler = async context => {
+export const handler = async context => {
   const { req, res } = context
   const url = req.url
   const clientPath = process.cwd() + '/client'
@@ -39,5 +39,3 @@ const handler = async context => {
     res.write('404 Not Found')
   }
 }
-
-export { handler, pattern }

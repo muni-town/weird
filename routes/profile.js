@@ -1,11 +1,11 @@
 import Document from '../layouts/document.js'
 import Profile from '../layouts/profile.js'
 
-const pattern = new URLPattern({
+export const pattern = new URLPattern({
   hostname: '{username}.example.com'
 })
 
-const handler = context => {
+export const handler = context => {
   const { req, res } = context
 
   const host = req.headers.host
@@ -19,5 +19,3 @@ const handler = context => {
     </HttpResponse>
   )
 }
-
-export { handler, pattern }

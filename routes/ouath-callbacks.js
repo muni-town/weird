@@ -2,11 +2,11 @@ import { oAuthClients } from '../services/oauth-clients.js'
 import db from '../services/db-main.js'
 
 // TODO: per callback function in a separate file
-const pattern = new URLPattern({
+export const pattern = new URLPattern({
   pathname: '/callbacks/:provider'
 })
 
-const handler = async context => {
+export const handler = async context => {
   const { req, res, queryParams, session } =
     context
   const { code } = queryParams
@@ -278,8 +278,6 @@ INSERT INTO github_user_data (
     )
   }
 }
-
-export { handler, pattern }
 
 // async function addGithubUserData({ weirdUserId, user }) {
 //   // Ensure no null values in user object

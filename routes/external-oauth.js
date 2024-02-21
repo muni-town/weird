@@ -1,10 +1,10 @@
 import { oAuthClients } from '../services/oauth-clients.js'
 
-const pattern = new URLPattern({
+export const pattern = new URLPattern({
   pathname: '/auth/:provider'
 })
 
-const handler = context => {
+export const handler = context => {
   const { req, res } = context
 
   const { url } = req
@@ -33,5 +33,3 @@ const handler = context => {
     </HttpResponse>
   )
 }
-
-export { handler, pattern }

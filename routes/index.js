@@ -1,11 +1,11 @@
 import Document from '../layouts/document.js'
 import Landing from '../layouts/landing.js'
 
-const pattern = new URLPattern({
+export const pattern = new URLPattern({
   pathname: '/'
 })
 
-const handler = context => {
+export const handler = context => {
   const { res, session } = context
 
   return (
@@ -17,5 +17,3 @@ const handler = context => {
     </HttpResponse>
   )
 }
-
-export { handler, pattern }

@@ -1,13 +1,13 @@
 //import { liveReloadEmitter } from '../services/dev-server.js'
 
-const pattern = new URLPattern({
+export const pattern = new URLPattern({
   pathname: '/live-reload'
 })
 
 const clients = []
 
 // TODO: streaming <HttpResponse> with no .end()
-const handler = context => {
+export const handler = context => {
   const { req, res } = context
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -24,8 +24,6 @@ const handler = context => {
 
   clients.push(res)
 }
-
-export { handler, pattern }
 
 // TODO: huh, why nextTick?
 // process.nextTick(() => {

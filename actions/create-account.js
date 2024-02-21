@@ -75,7 +75,6 @@ const handler = async context => {
         status={302}
         headers={{
           'Location': '/account-linking/',
-          'Content-Type': 'text/html',
           'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`
         }}
       />
@@ -144,18 +143,3 @@ const Form = () => (
 )
 
 export { handler, Form }
-
-// const _getSession = async ({ sessionId }) => {
-//   const [getSessionCode, getSessionResult] =
-//     await getSession({
-//       sessionId
-//     })
-
-//   if (getSessionCode > 0) {
-//     throw new Error(getSessionResult)
-//   }
-
-//   const sessionData = getSessionResult
-
-//   return sessionData
-// }

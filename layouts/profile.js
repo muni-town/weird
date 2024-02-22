@@ -1,4 +1,4 @@
-export default ({ username }) => (
+export const Profile = ({ username }) => (
   <>
     <main>
       <header>

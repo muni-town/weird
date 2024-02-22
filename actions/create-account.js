@@ -50,7 +50,7 @@ const _createSession = async sessionData => {
   return sessionId
 }
 
-const handler = async context => {
+export const handler = async context => {
   const { res, formData } = context
 
   try {
@@ -86,7 +86,7 @@ const handler = async context => {
 
 // TODO: this runs on every call. Should it? as a non-function it
 // needs JSX to be imported and not a global, but we want that anyway
-const Form = () => (
+export const Form = () => (
   <form
     action='create-account'
     method='post'
@@ -141,5 +141,3 @@ const Form = () => (
     `}
   </form>
 )
-
-export { handler, Form }

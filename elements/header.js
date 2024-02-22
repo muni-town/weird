@@ -1,4 +1,4 @@
-export default (props, children) => (
+export const Header = (props, children) => (
   <header>
     <nav>
       <a href='http://localhost:3000'>Home</a>

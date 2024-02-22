@@ -1,7 +1,7 @@
-import Head from '../elements/head.js'
-import Header from '../elements/header.js'
+import { Head } from '../elements/head.js'
+import { Header } from '../elements/header.js'
 
-export default (props, children) =>
+export const Document = (props, children) =>
   [
     '<!DOCTYPE html>',
     <html>

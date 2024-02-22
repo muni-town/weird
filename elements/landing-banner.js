@@ -1,4 +1,7 @@
-export default (props, children) => (
+export const LandingBanner = (
+  props,
+  children
+) => (
   <>
     <div class='landing-form'>
       <div>

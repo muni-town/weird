@@ -1,5 +1,5 @@
-import Document from '../layouts/document.js'
-import Landing from '../layouts/landing.js'
+import { Document } from '../layouts/document.js'
+import { Landing } from '../layouts/landing.js'
 
 export const pattern = new URLPattern({
   pathname: '/'

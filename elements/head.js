@@ -1,4 +1,4 @@
-export default (props, children) => (
+export const Head = (props, children) => (
   <>
     <head>
       <meta charSet='utf-8' />

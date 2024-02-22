@@ -1,4 +1,4 @@
-import Document from '../layouts/document.js'
+import { Document } from '../layouts/document.js'
 
 export const handler = context => {
   const { res } = context

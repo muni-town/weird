@@ -1,6 +1,7 @@
 import { Form as CreateAccountForm } from '../actions/create-account.js'
-import LandingBanner from '../elements/landing-banner.js'
-export default () => (
+import { LandingBanner } from '../elements/landing-banner.js'
+
+export const Landing = () => (
   <>
     <main>
       <LandingBanner />

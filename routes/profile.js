@@ -1,5 +1,5 @@
-import Document from '../layouts/document.js'
-import Profile from '../layouts/profile.js'
+import { Document } from '../layouts/document.js'
+import { Profile } from '../layouts/profile.js'
 
 export const pattern = new URLPattern({
   hostname: '{username}.example.com'

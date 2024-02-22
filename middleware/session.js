@@ -2,7 +2,7 @@ import { getSession } from '../services/sessions.js'
 
 const SESSION_COOKIE_NAME = 'sessionId'
 
-const run = async context => {
+export const run = async context => {
   const { cookies } = context
 
   const sessionId = cookies[SESSION_COOKIE_NAME]
@@ -25,5 +25,3 @@ const run = async context => {
     }
   }
 }
-
-export { run }

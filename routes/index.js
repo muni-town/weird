@@ -11,7 +11,10 @@ export const handler = context => {
   return (
     <HttpResponse res={res}>
       <Document>
-        <script src='/index.js'></script>
+        <Script
+          res={res}
+          src='/index.js'
+        />
         <Landing />
       </Document>
     </HttpResponse>

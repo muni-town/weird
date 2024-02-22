@@ -72,10 +72,27 @@ globalThis.JSXFragmentToString = function (
   return children.filter(Boolean).join('')
 }
 
+// TODO: CSP?
+globalThis.Script = ({ src, res }) => {
+  // add preload link to head
+  res.setHeader(
+    'Link',
+    `<${src}>; rel=modulepreload; as=script`
+  )
+  res.setHeader('x-script-src', src)
+  return (
+    <script
+      src={src}
+      type='module'
+    ></script>
+  )
+}
+
 globalThis.HttpResponse = (
   { res, status = 200, headers = {} },
   children
 ) => {
+  console.log(children)
   if (res.headersSent) {
     console.trace(
       'Response headers already sent.'

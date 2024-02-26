@@ -86,17 +86,19 @@ export const handler = async context => {
 
 // TODO: this runs on every call. Should it? as a non-function it
 // needs JSX to be imported and not a global, but we want that anyway
-export const Form = () => (
+export const Form = ({ username, error }) => (
   <form
     action='create-account'
     method='post'
     class='create-account-form'
   >
+    {error && <p>{error}</p>}
     <label for='username'>Username</label>
     <input
       type='text'
       id='username'
       name='username'
+      value={username || ''}
     />
     <label for='email'>Email</label>
     <input

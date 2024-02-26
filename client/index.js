@@ -23,6 +23,23 @@ navigation.addEventListener('navigate', event => {
 
     event.intercept({
       async handler() {
+        const action = event.formData.get(
+          'form-action'
+        )
+        const validationUrl = event.formData.get(
+          'data-validate'
+        )
+        const selector = `form[data-action="${action}"]`
+
+        const form =
+          document.querySelector(selector)
+
+        console.log({
+          action,
+          validationUrl,
+          selector,
+          form
+        })
         // send a fetch request with the form data
         const response = await fetch(
           event.destination.url,
@@ -38,6 +55,26 @@ navigation.addEventListener('navigate', event => {
         // return the response
         const body = await response.text()
         const headers = response.headers
+
+        const hasValidationErrors = headers.get(
+          'x-has-validation-error'
+        )
+
+        if (hasValidationErrors) {
+          const parser = new DOMParser()
+          const doc = parser.parseFromString(
+            body,
+            'text/html'
+          )
+
+          const newForm =
+            doc.querySelector(selector)
+
+          form.replaceWith(newForm)
+
+          // show the error to the user
+          return
+        }
 
         const parser = new DOMParser()
         const doc = parser.parseFromString(

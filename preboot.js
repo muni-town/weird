@@ -36,6 +36,19 @@ globalThis.JSXToString = function (
   // handle forms
   if (tag === 'form') {
     if (props.action) {
+      props['data-action'] = props.action
+
+      children.push(
+        <input
+          type='hidden'
+          name='form-action'
+          value={props.action}
+        />
+      )
+
+      props[
+        'data-validate'
+      ] = `/validation/${props.action}`
       props.action = `/actions/${props.action}`
     }
   }

@@ -47,7 +47,8 @@ navigation.addEventListener('navigate', event => {
             method: 'POST',
             headers: {
               'Content-Type':
-                'multipart/form-data'
+                'multipart/form-data',
+              'Accept': 'text/html-fragment'
             },
             body: event.formData
           }

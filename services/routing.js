@@ -130,6 +130,12 @@ async function createContext(req, res) {
       await parseURLEncodedFormData(req)
   }
 
+  if (
+    req.headers['Accept'] === 'text/html-fragment'
+  ) {
+    context.shouldSendHtmlFragment = true
+  }
+
   // form data
   if (
     req.headers['content-type'] ===

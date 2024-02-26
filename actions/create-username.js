@@ -58,7 +58,11 @@ export const Form = (props, children) => {
   )
 }
 export const handler = async context => {
-  const { res, formData } = context
+  const {
+    res,
+    formData,
+    shouldSendHtmlFragment
+  } = context
   const { username } = formData
 
   try {
@@ -80,7 +84,13 @@ export const handler = async context => {
           'x-has-validation-error': 'true'
         }}
       >
-        <Form error={error} />
+        {shouldSendHtmlFragment ? (
+          <Form error={error} />
+        ) : (
+          <Document>
+            <Form error={error} />
+          </Document>
+        )}
       </HttpResponse>
     )
   }

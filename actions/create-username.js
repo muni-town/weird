@@ -1,7 +1,10 @@
 import db from '../services/db-main.js'
+import { createSession } from '../services/sessions.js'
 
 import { Form as CreateAccountForm } from './create-account.js'
 import { Document } from '../layouts/document.js'
+
+import generateUniqueId from '../pure/generate-unique-id.js'
 
 export const validation = async username => {
   const [usernameCode, usernameResult] = await db`
@@ -17,6 +20,22 @@ export const validation = async username => {
   if (usernameResult.length > 0) {
     throw new Error('Username is already taken')
   }
+}
+
+const registerUser = async username => {
+  const _userId = generateUniqueId({
+    prefix: 'u'
+  })
+
+  const [code, result] = await db`
+    INSERT INTO weird_users (weird_user_id, username)
+    VALUES (${_userId}, ${username})
+    RETURNING weird_user_id
+  `
+
+  console.log(code, result)
+
+  return result[0].weird_user_id
 }
 
 export const Form = (props, children) => {
@@ -57,6 +76,22 @@ export const Form = (props, children) => {
     </>
   )
 }
+
+const _createSession = async sessionData => {
+  const [createSessionCode, createSessionResult] =
+    await createSession({
+      sessionData
+    })
+
+  if (createSessionCode > 0) {
+    throw new Error(createSessionResult)
+  }
+
+  const sessionId = createSessionResult
+
+  return sessionId
+}
+
 export const handler = async context => {
   const {
     res,
@@ -67,8 +102,22 @@ export const handler = async context => {
 
   try {
     await validation(username)
+    const weirdUserId = await registerUser(
+      username
+    )
+
+    const sessionId = await _createSession({
+      username,
+      weirdUserId
+    })
+
     return (
-      <HttpResponse res={res}>
+      <HttpResponse
+        res={res}
+        headers={{
+          'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`
+        }}
+      >
         <div>
           <h1>Username is available</h1>
           success

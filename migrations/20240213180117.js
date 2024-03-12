@@ -9,8 +9,8 @@ export default {
     CREATE TABLE weird_users (
       weird_user_id VARCHAR(7) PRIMARY KEY,
       username VARCHAR(255) NOT NULL,
-      email VARCHAR(255) NOT NULL,
-      password VARCHAR(255) NOT NULL
+      email VARCHAR(255) NULL UNIQUE,
+      password VARCHAR(255) NULL
     );
   `
 

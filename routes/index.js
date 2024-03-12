@@ -6,7 +6,7 @@ export const pattern = new URLPattern({
 })
 
 export const handler = context => {
-  const { res, session } = context
+  const { res } = context
 
   return (
     <HttpResponse res={res}>
@@ -15,7 +15,7 @@ export const handler = context => {
           res={res}
           src='/index.js'
         />
-        <Landing />
+        <Landing context={context} />
       </Document>
     </HttpResponse>
   )

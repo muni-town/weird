@@ -52,10 +52,39 @@ const getSessionsByPattern = ({ pattern }) =>
     pattern
   })
 
+const updateSession = async ({
+  sessionId,
+  sessionData
+}) => {
+  const oldSessionData = await getSession({
+    sessionId
+  })
+
+  if (oldSessionData === null) {
+    return [0, 'Session not found']
+  }
+
+  const newSessionData = {
+    ...oldSessionData,
+    ...sessionData
+  }
+
+  const [code, error] =
+    await setKeyWithExpiration({
+      prefix: SESSION_PREFIX,
+      key: sessionId,
+      value: newSessionData,
+      expirationSeconds: SESSION_EXPIRATION
+    })
+
+  return [code, error]
+}
+
 export {
   createSession,
   getSession,
   deleteSession,
   checkIfSessionExists,
-  getSessionsByPattern
+  getSessionsByPattern,
+  updateSession
 }

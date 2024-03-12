@@ -54,8 +54,18 @@ navigation.addEventListener('navigate', event => {
           }
         )
         // return the response
-        const body = await response.text()
+
         const headers = response.headers
+
+        // if redirect, follow the redirect
+        if (response.redirected) {
+          const url = new URL(response.url)
+
+          window.location.href = url
+          return
+        }
+
+        const body = await response.text()
 
         const hasValidationErrors = headers.get(
           'x-has-validation-error'

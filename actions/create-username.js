@@ -1,5 +1,6 @@
 import db from '../services/db-main.js'
 import { createSession } from '../services/sessions.js'
+import _env from '../consts/env.js'
 
 import { Form as CreateAccountForm } from './create-account.js'
 import { Document } from '../layouts/document.js'
@@ -111,18 +112,19 @@ export const handler = async context => {
       weirdUserId
     })
 
+    console.log(
+      `${_env.WEIRD_PROTOCOL}://${username}.${_env.BASE_URL}`
+    )
+
     return (
       <HttpResponse
         res={res}
+        status={302}
         headers={{
-          'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`
+          'Set-Cookie': `sessionId=${sessionId}; Path=/; Secure; HttpOnly`,
+          'Location': `${_env.WEIRD_PROTOCOL}://${username}.${_env.BASE_URL}`
         }}
-      >
-        <div>
-          <h1>Username is available</h1>
-          success
-        </div>
-      </HttpResponse>
+      ></HttpResponse>
     )
   } catch (error) {
     return (

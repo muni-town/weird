@@ -12,7 +12,13 @@ export const handler = context => {
   const [username] = host.split('.')
 
   return (
-    <HttpResponse res={res}>
+    <HttpResponse
+      res={res}
+      // TODO: tighten up the CORS policy
+      headers={{
+        'Access-Control-Allow-Origin': '*'
+      }}
+    >
       <Document>
         <Profile username={username} />
       </Document>

@@ -1,3 +1,7 @@
 /target
 weird.db
 config.local.yaml
+# pixi environments
+.pixi
+.unikraft
+

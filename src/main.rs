@@ -8,6 +8,8 @@ use serde::Deserialize;
 
 use tracing as trc;
 
+mod kv;
+
 static CONFIG: Lazy<Config> = Lazy::new(|| match parse_config() {
     Ok(config) => config,
     Err(e) => {
@@ -19,7 +21,7 @@ static CONFIG: Lazy<Config> = Lazy::new(|| match parse_config() {
 struct DbConn(OnceCell<libsql::Connection>);
 impl std::ops::Deref for DbConn {
     type Target = libsql::Connection;
-    
+
     fn deref(&self) -> &Self::Target {
         self.0.get().expect("Database connection not initialized.")
     }
@@ -48,8 +50,7 @@ impl std::fmt::Debug for DbConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             DbConfig::Local(local) => f.write_fmt(format_args!("{local:?}")),
-            DbConfig::Remote(remote) => 
-                f.write_fmt(format_args!("{:?}", remote.url))
+            DbConfig::Remote(remote) => f.write_fmt(format_args!("{:?}", remote.url)),
         }
     }
 }
@@ -123,7 +124,6 @@ async fn connect_to_database() -> anyhow::Result<libsql::Connection> {
         }
     }?;
 
-
     let conn = db.connect()?;
     Ok(conn)
 }
@@ -145,10 +145,12 @@ async fn run() -> anyhow::Result<()> {
 
     trc::info!(?config.db, "Connecting to Database");
     let conn = connect_to_database().await?;
-    DB.0.set(conn).unwrap_or_else(|_| panic!("Database connection already set"));
+    DB.0.set(conn)
+        .unwrap_or_else(|_| panic!("Database connection already set"));
     trc::info!("Database connection established");
 
-    DB.execute("create table if not exists kv (key string, value text)", ()).await?;
+    DB.execute("create table if not exists kv (key string, value text)", ())
+        .await?;
     let kv = DB.query("select * from kv", ()).await;
     let kv = kv.map(|x| x.column_count());
     trc::info!(?kv);

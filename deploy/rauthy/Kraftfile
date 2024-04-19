@@ -1,0 +1,4 @@
+spec: v0.6
+runtime: base:latest
+rootfs: ./rootfs.out
+cmd: ["/rauthy"]

@@ -1,0 +1,49 @@
+{
+	"name": "dev_key",
+	"access": [
+		{
+			"group": "Blacklist",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Clients",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Events",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Generic",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Groups",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Roles",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Secrets",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Sessions",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Scopes",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "UserAttributes",
+			"access_rights": ["read", "create", "update", "delete"]
+		},
+		{
+			"group": "Users",
+			"access_rights": ["read", "create", "update", "delete"]
+		}
+	]
+}

@@ -11,7 +11,7 @@ services:
     depends_on:
       - set-volume-owner
     environment:
-      PUB_URL: localhost:8921
+      PUB_URL: localhost:5173
       DATABASE_URL: 'sqlite:/app/data/rauthy.db'
       BOOTSTRAP_ADMIN_EMAIL: admin@localhost.de
       BOOTSTRAP_ADMIN_PASSWORD_PLAIN: adminadmin

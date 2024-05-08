@@ -4,7 +4,7 @@
 	export let data: PageData;
 </script>
 
-<h1>Key Info</h1>
+<h1 class="heading">Key Info</h1>
 
 <pre>
     {JSON.stringify(data.key_info)}

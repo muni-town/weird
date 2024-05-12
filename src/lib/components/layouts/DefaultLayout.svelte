@@ -4,11 +4,15 @@
 </script>
 
 <AppBar>
-	<svelte:fragment slot="lead">&nbsp;</svelte:fragment>
+	<svelte:fragment slot="lead"><img src="/logo.svg" alt="Weird Logo" width="40px" /></svelte:fragment>
 	<svelte:fragment slot="default"
 		><h1 class="text-xl font-bold"><a href="/">Weird.one</a></h1></svelte:fragment
 	>
-	<svelte:fragment slot="trail"><LightSwitch /></svelte:fragment>
+	<svelte:fragment slot="trail">
+		<a href="/account/login" class="btn variant-ghost">Login</a>
+		<a href="/account/register" class="btn variant-ghost">Register</a>
+		<LightSwitch />
+	</svelte:fragment>
 </AppBar>
 
 <slot></slot>

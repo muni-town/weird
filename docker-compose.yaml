@@ -1,6 +1,11 @@
 version: '3.14'
 services:
-  set-volume-owner:
+  smtp4dev:
+    image: rnwood/smtp4dev
+    ports:
+      - 8091:80
+
+  set-rauthy-volume-owner:
     image: alpine
     command: chown -R 10001:10001 /app/data
     volumes:
@@ -9,7 +14,8 @@ services:
   rauthy:
     image: ghcr.io/sebadob/rauthy:0.23.0-lite
     depends_on:
-      - set-volume-owner
+      - set-rauthy-volume-owner
+      - smtp4dev
     environment:
       PUB_URL: localhost:5173
       DATABASE_URL: 'sqlite:/app/data/rauthy.db'
@@ -17,6 +23,12 @@ services:
       BOOTSTRAP_ADMIN_PASSWORD_PLAIN: adminadmin
       COOKIE_MODE: danger-insecure
       COOKIE_SET_PATH: false
+      SMTP_URL: smtp4dev
+      SMTP_DANGER_INSECURE_PORT: 25
+      SMTP_USERNAME: dummy
+      SMTP_PASSWORD: dummy
+      SMTP_FROM: rauthy@localhost.de
+      SMTP_DANGER_INSECURE: true
     ports:
       - 8921:8080
     volumes:

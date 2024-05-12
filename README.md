@@ -1,3 +1,12 @@
+# Weird Web Pages
+
+https://blog.erlend.sh/weird-web-pages
+
+>Websites as the atomic matter of the internet
+>I consider the personal website to be the smallest possible building block of web identity. Once you wanna go past the observer (READ) level to the contributor (WRITE) level as a netizen, you’re gonna need a material web-persona to make yourself known.
+
+>The size of the internet can be measured in the atomic mass of the websites it's made up of. We collectively materialize the internet with every additional web page we create.
+
 # create-svelte
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).

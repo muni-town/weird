@@ -1,13 +1,8 @@
-<script lang="ts">
-    import "virtual:uno.css"
+<script>
+	import DefaultLayout from '$lib/components/layouts/DefaultLayout.svelte';
+	import '../app.css';
 </script>
 
-<style>
-</style>
-
-<header class="flex">
-    <div>Hello</div>
-    <div>World</div>
-</header>
-
-<slot></slot>
+<DefaultLayout>
+	<slot />
+</DefaultLayout>

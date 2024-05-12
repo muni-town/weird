@@ -7,16 +7,15 @@ services:
       - rauthy:/app/data
 
   rauthy:
-    image: ghcr.io/sebadob/rauthy:0.23.0-beta2-lite
+    image: ghcr.io/sebadob/rauthy:0.23.0-lite
     depends_on:
       - set-volume-owner
     environment:
-      PUB_URL: localhost:5173
+      PUB_URL: localhost:8921
       DATABASE_URL: 'sqlite:/app/data/rauthy.db'
       BOOTSTRAP_ADMIN_EMAIL: admin@localhost.de
       BOOTSTRAP_ADMIN_PASSWORD_PLAIN: adminadmin
-      BOOTSTRAP_API_KEY: ewoJIm5hbWUiOiAiZGV2X2tleSIsCgkiYWNjZXNzIjogWwoJCXsKCQkJImdyb3VwIjogIkJsYWNrbGlzdCIsCgkJCSJhY2Nlc3NfcmlnaHRzIjogWyJyZWFkIiwgImNyZWF0ZSIsICJ1cGRhdGUiLCAiZGVsZXRlIl0KCQl9LAoJCXsKCQkJImdyb3VwIjogIkNsaWVudHMiLAoJCQkiYWNjZXNzX3JpZ2h0cyI6IFsicmVhZCIsICJjcmVhdGUiLCAidXBkYXRlIiwgImRlbGV0ZSJdCgkJfSwKCQl7CgkJCSJncm91cCI6ICJFdmVudHMiLAoJCQkiYWNjZXNzX3JpZ2h0cyI6IFsicmVhZCIsICJjcmVhdGUiLCAidXBkYXRlIiwgImRlbGV0ZSJdCgkJfSwKCQl7CgkJCSJncm91cCI6ICJHZW5lcmljIiwKCQkJImFjY2Vzc19yaWdodHMiOiBbInJlYWQiLCAiY3JlYXRlIiwgInVwZGF0ZSIsICJkZWxldGUiXQoJCX0sCgkJewoJCQkiZ3JvdXAiOiAiR3JvdXBzIiwKCQkJImFjY2Vzc19yaWdodHMiOiBbInJlYWQiLCAiY3JlYXRlIiwgInVwZGF0ZSIsICJkZWxldGUiXQoJCX0sCgkJewoJCQkiZ3JvdXAiOiAiUm9sZXMiLAoJCQkiYWNjZXNzX3JpZ2h0cyI6IFsicmVhZCIsICJjcmVhdGUiLCAidXBkYXRlIiwgImRlbGV0ZSJdCgkJfSwKCQl7CgkJCSJncm91cCI6ICJTZWNyZXRzIiwKCQkJImFjY2Vzc19yaWdodHMiOiBbInJlYWQiLCAiY3JlYXRlIiwgInVwZGF0ZSIsICJkZWxldGUiXQoJCX0sCgkJewoJCQkiZ3JvdXAiOiAiU2Vzc2lvbnMiLAoJCQkiYWNjZXNzX3JpZ2h0cyI6IFsicmVhZCIsICJjcmVhdGUiLCAidXBkYXRlIiwgImRlbGV0ZSJdCgkJfSwKCQl7CgkJCSJncm91cCI6ICJTY29wZXMiLAoJCQkiYWNjZXNzX3JpZ2h0cyI6IFsicmVhZCIsICJjcmVhdGUiLCAidXBkYXRlIiwgImRlbGV0ZSJdCgkJfSwKCQl7CgkJCSJncm91cCI6ICJVc2VyQXR0cmlidXRlcyIsCgkJCSJhY2Nlc3NfcmlnaHRzIjogWyJyZWFkIiwgImNyZWF0ZSIsICJ1cGRhdGUiLCAiZGVsZXRlIl0KCQl9LAoJCXsKCQkJImdyb3VwIjogIlVzZXJzIiwKCQkJImFjY2Vzc19yaWdodHMiOiBbInJlYWQiLCAiY3JlYXRlIiwgInVwZGF0ZSIsICJkZWxldGUiXQoJCX0KCV0KfQo=
-      BOOTSTRAP_API_KEY_SECRET: very_bad_secret_use_only_in_development_qH6udD97p1hEXOxqFWoZwxAjl
+      COOKIE_MODE: host
     ports:
       - 8921:8080
     volumes:

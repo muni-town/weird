@@ -16,6 +16,7 @@ services:
       BOOTSTRAP_ADMIN_EMAIL: admin@localhost.de
       BOOTSTRAP_ADMIN_PASSWORD_PLAIN: adminadmin
       COOKIE_MODE: danger-insecure
+      COOKIE_SET_PATH: false
     ports:
       - 8921:8080
     volumes:

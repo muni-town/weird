@@ -3,7 +3,8 @@ services:
   smtp4dev:
     image: rnwood/smtp4dev
     ports:
-      - 8091:80
+      - '8091:80'
+      - '2525:25'
 
   set-rauthy-volume-owner:
     image: alpine
@@ -29,6 +30,8 @@ services:
       SMTP_PASSWORD: dummy
       SMTP_FROM: rauthy@localhost.de
       SMTP_DANGER_INSECURE: true
+      BOOTSTRAP_API_KEY: ewoJIm5hbWUiOiAidXNlcmF0dHJpYnV0ZXMiLAoJImFjY2VzcyI6IFsKCQl7CgkJCSJncm91cCI6ICJVc2VyQXR0cmlidXRlcyIsCgkJCSJhY2Nlc3NfcmlnaHRzIjogWyJyZWFkIiwgImNyZWF0ZSIsICJ1cGRhdGUiLCAiZGVsZXRlIl0KCQl9CgldCn0K
+      BOOTSTRAP_API_KEY_SECRET: very_bad_secret_use_only_in_development_qH6udD97p1hEXOxqFWoZwxAjl
     ports:
       - 8921:8080
     volumes:

@@ -4,7 +4,7 @@
 </script>
 
 <AppBar>
-	<svelte:fragment slot="lead"><img src="/logo.svg" alt="Weird Logo" width="40px" /></svelte:fragment>
+	<svelte:fragment slot="lead"><img src="/logo.png" alt="Weird Logo" width="40px" /></svelte:fragment>
 	<svelte:fragment slot="default"
 		><h1 class="text-xl font-bold"><a href="/">Weird.one</a></h1></svelte:fragment
 	>

@@ -1,0 +1,9 @@
+{
+	"name": "userattributes",
+	"access": [
+		{
+			"group": "UserAttributes",
+			"access_rights": ["read", "create", "update", "delete"]
+		}
+	]
+}

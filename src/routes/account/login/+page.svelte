@@ -1,27 +1,20 @@
 <main class="flex flex-col items-center">
-	<form class="card p-8 max-w-[600px] mt-12 flex flex-col gap-4">
-        <h1 class="text-2xl my-3">Login</h1>
+	<form method="POST" class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">
+		<h1 class="my-3 text-2xl">Login</h1>
 		<label class="label">
-			<span>Input</span>
-			<input class="input" type="text" placeholder="Input" />
+			<span>Email</span>
+			<input name="email" class="input" type="text" placeholder="Email" />
 		</label>
 		<label class="label">
-			<span>Select</span>
-			<select class="select">
-				<option value="1">Option 1</option>
-				<option value="2">Option 2</option>
-				<option value="3">Option 3</option>
-				<option value="4">Option 4</option>
-				<option value="5">Option 5</option>
-			</select>
+			<span>Password</span>
+			<input name="password" class="input" type="text" placeholder="Password" />
 		</label>
-		<label class="label">
-			<span>Textarea</span>
-			<textarea
-				class="textarea"
-				rows="4"
-				placeholder="Lorem ipsum dolor sit amet consectetur adipisicing elit."
-			></textarea>
-		</label>
+
+		<p class="mt-4">
+			Don't have an account?
+			<a href="/account/register" class="underline">Register a new account</a>.
+		</p>
+
+		<button class="variant-filled btn"> Login </button>
 	</form>
 </main>

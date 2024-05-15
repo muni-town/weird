@@ -13,6 +13,8 @@ Everything you need to build a Svelte project, powered by [`create-svelte`](http
 
 ## Creating a project
 
+TODO: write a proper development guide.
+
 If you're seeing this, you've probably already done this step. Congrats!
 
 ```bash

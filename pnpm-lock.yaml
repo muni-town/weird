@@ -32,6 +32,9 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.10
         version: 0.5.13(tailwindcss@3.4.3)
+      '@types/cookie':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@types/eslint':
         specifier: ^8.56.0
         version: 8.56.10
@@ -50,6 +53,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.16
         version: 10.4.19(postcss@8.4.38)
+      cookie:
+        specifier: ^0.6.0
+        version: 0.6.0
       eslint:
         specifier: ^8.56.0
         version: 8.57.0

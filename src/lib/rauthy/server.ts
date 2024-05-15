@@ -1,13 +1,16 @@
 import { env } from '$env/dynamic/private';
+import { checkResponse } from '$lib/utils';
+import cookie from 'cookie';
 
 export const RAUTHY_URL = env.RAUTHY_URL;
+export const PWD_RESET_COOKIE = 'rauthy-pwd-reset';
 
 // List of rauthy endpoints.
 const endpoints = {
 	pow: RAUTHY_URL + '/auth/v1/pow',
-	register: RAUTHY_URL + '/auth/v1/users/register'
+	register: RAUTHY_URL + '/auth/v1/users/register',
+	users: RAUTHY_URL + '/auth/v1/users'
 };
-// const USERATTRIBUTES_APK_KEY = env.RAUTHY_USERATTRIBUTES_API_KEY;
 
 export async function get_pow_challenge(): Promise<string> {
 	const challengeResp = await fetch(endpoints.pow, { method: 'post' });
@@ -16,6 +19,50 @@ export async function get_pow_challenge(): Promise<string> {
 	}
 	const challenge = await challengeResp.text();
 	return challenge;
+}
+
+export async function init_reset(opts: { user: string; token: string }): Promise<Response> {
+	return await checkResponse(fetch(`${endpoints.users}/${opts.user}/reset/${opts.token}`));
+}
+
+export async function reset(opts: {
+	user: string;
+	password: string;
+	token: string;
+	cookie: string;
+	csrfToken: string;
+}) {
+	const resp = await fetch(`${endpoints.users}/${opts.user}/reset`, {
+		method: 'put',
+		headers: {
+			Cookie: cookie.serialize('rauthy-pwd-reset', opts.cookie),
+			'pwd-csrf-token': opts.csrfToken
+		},
+		body: JSON.stringify({
+			magic_link_id: opts.token,
+			password: opts.password
+		})
+	});
+	return await checkResponse(resp);
+}
+
+export async function get_user(opts: { user: string }): Promise<{ [key: string]: string }> {
+	const resp = await fetch(endpoints.users + '/' + opts.user, {
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json'
+		}
+	});
+	if (!resp.ok) {
+		throw {
+			message: 'Error getting user info',
+			statusText: resp.statusText,
+			status: resp.status,
+			data: await resp.json()
+		};
+	}
+	const data = await resp.json();
+	return data;
 }
 
 export async function register_user(opts: {

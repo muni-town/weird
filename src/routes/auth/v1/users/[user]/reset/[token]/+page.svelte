@@ -10,7 +10,7 @@
 		<p>Set a new password for your account.</p>
 		<label class="label">
 			<span>Password</span>
-			<input name="password" class="input" type="text" placeholder="Password" />
+			<input name="password" class="input" type="password" placeholder="Password" />
 			<input name="csrfToken" type="hidden" value={data.csrfToken} />
 		</label>
 

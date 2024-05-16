@@ -48,6 +48,6 @@ export const actions = {
 			return error(400, 'Error resetting password.');
 		}
 
-		return redirect(303, '/');
+		return redirect(303, `/account/login?hasReset=true`);
 	}
 } satisfies Actions;

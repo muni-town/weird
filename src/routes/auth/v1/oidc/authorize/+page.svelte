@@ -1,27 +1,34 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import { browser } from '$app/environment';
+	import { checkResponse } from '$lib/utils';
 	import { onMount } from 'svelte';
 
-	let { data }: { data: PageData } = $props();
-
-	const url = new URL(data.url);
-	const clientId = url.searchParams.get('client_id');
-	const redirectUri = url.searchParams.get('redirect_uri');
-	const nonce = url.searchParams.get('nonce');
-	const scopes = url.searchParams.get('scope')?.split(' ');
-	const oidcState = url.searchParams.get('state');
-	const challenge = url.searchParams.get('code_challenge');
-	const challengeMethod = url.searchParams.get('code_challenge_method');
+	let clientId = $state('');
+	let redirectUri = $state('');
+	let nonce = $state('');
+	let scopes = $state([] as string[]);
+	let oidcState = $state('');
+	let challenge = $state('');
+	let challengeMethod = $state('');
 
 	let justResetPassword = $state(false);
-	if (browser) {
-		localStorage.setItem('csrfToken', data.csrfToken);
-	}
 
-	onMount(() => {
+	onMount(async () => {
 		justResetPassword = localStorage.getItem('justResetPassword') == 'true';
 		localStorage.removeItem('justResetPassword');
+
+		const initResp = await fetch('/auth/v1/oidc/session', { method: 'post' });
+		await checkResponse(initResp);
+		const init = await initResp.json();
+		localStorage.setItem('csrfToken', init.csrf_token);
+
+		const url = new URL(window.location.href);
+		clientId = url.searchParams.get('client_id')!;
+		redirectUri = url.searchParams.get('redirect_uri')!;
+		nonce = url.searchParams.get('nonce')!;
+		scopes = url.searchParams.get('scope')!.split(' ');
+		oidcState = url.searchParams.get('state')!;
+		challenge = url.searchParams.get('code_challenge')!;
+		challengeMethod = url.searchParams.get('code_challenge_method')!;
 	});
 
 	let email = $state('');
@@ -96,11 +103,15 @@
 			/>
 		</label>
 
-		<div class="mt-4 flex flex-col gap-2">
-			<p class="text-center">
-				Don't have an account?
-				<a href="/auth/v1/users/register" class="underline">Register a new account</a>.
-			</p>
+		<div class="mt-4 flex flex-col gap-3">
+			<div class="flex justify-center gap-4">
+				<p class="text-center">
+					<a href="/account/forgot-password" class="underline">Forgot your password?</a>
+				</p>
+				<p class="text-center">
+					<a href="/auth/v1/users/register" class="underline">Don't have an account?</a>.
+				</p>
+			</div>
 
 			<button class="variant-filled btn"> Login </button>
 		</div>

@@ -10,7 +10,7 @@
 	>
 	<svelte:fragment slot="trail">
 		<a href="/auth/v1/account" class="btn variant-ghost">Login</a>
-		<a href="/account/register" class="btn variant-ghost">Register</a>
+		<a href="/auth/v1/users/register" class="btn variant-ghost">Register</a>
 		<LightSwitch />
 	</svelte:fragment>
 </AppBar>

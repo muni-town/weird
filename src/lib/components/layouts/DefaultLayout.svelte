@@ -9,7 +9,7 @@
 		><h1 class="text-xl font-bold"><a href="/">Weird.one</a></h1></svelte:fragment
 	>
 	<svelte:fragment slot="trail">
-		<a href="/account/login" class="btn variant-ghost">Login</a>
+		<a href="/auth/v1/account" class="btn variant-ghost">Login</a>
 		<a href="/account/register" class="btn variant-ghost">Register</a>
 		<LightSwitch />
 	</svelte:fragment>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { pow_work_wasm } from '$lib/spow/spow-wasm';
-	import { get_pow_challenge } from '$lib/rauthy';
+	import { get_pow_challenge } from '$lib/rauthy/client';
 	import { checkResponse } from '$lib/utils';
 
 	let processing = $state(false);

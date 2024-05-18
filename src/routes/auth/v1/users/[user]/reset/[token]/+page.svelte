@@ -51,7 +51,6 @@
 				placeholder="Password"
 				bind:value={password}
 			/>
-			<input name="csrfToken" type="hidden" value={data.csrfToken} />
 		</label>
 
 		<button class="variant-filled btn"> Set Password </button>

@@ -56,11 +56,10 @@
 			headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
 		});
 
-		console.log(authResp);
-
 		if (authResp.status == 202) {
 			window.location.replace(authResp.headers.get('location')!);
 		} else if (!authResp.ok) {
+			console.error('Error logging in', authResp, await authResp.text());
 			error = 'Invalid email or password.';
 			password = '';
 		}

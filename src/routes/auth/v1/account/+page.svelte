@@ -41,7 +41,7 @@
 {#if userInfo}
 	<main class="flex flex-col items-center">
 		<div class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">
-			<h1 class="my-3 text-2xl">User Account</h1>
+			<h1 class="my-3 text-2xl">Profile</h1>
 
 			<p class="text-xl">
 				{userInfo.email}

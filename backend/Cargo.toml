@@ -1,0 +1,17 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.5"
+clap = { version = "4.5.4", features = ["derive", "env"] }
+headers = "0.4.0"
+http = "1.1.0"
+iroh = { version = "0.16.2", default-features = false, features = ["fs-store"] }
+once_cell = "1.19.0"
+serde = { version = "1.0.202", features = ["derive"] }
+tokio = { version = "1.37.0", default-features = false, features = ["macros"] }
+tower = { version = "0.4.13", features = ["filter"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }

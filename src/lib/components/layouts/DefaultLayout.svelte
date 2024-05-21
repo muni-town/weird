@@ -18,7 +18,7 @@
 			<a href="/auth/v1/account" class="variant-ghost btn">Login</a>
 			<a href="/auth/v1/users/register" class="variant-ghost btn">Register</a>
 		{:else}
-			<a href="/auth/v1/account" class="variant-ghost btn">Account</a>
+			<a href="/auth/v1/account" class="variant-ghost btn">Profile</a>
 			<a href="/auth/v1/oidc/logout" class="variant-ghost btn">Logout</a>
 		{/if}
 		<LightSwitch />

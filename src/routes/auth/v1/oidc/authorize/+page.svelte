@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { ProgressRadial } from '@skeletonlabs/skeleton';
+
 	import { getUserInfo } from '$lib/rauthy';
 	import { checkResponse } from '$lib/utils';
 	import { onMount } from 'svelte';
@@ -12,6 +14,8 @@
 	let oidcState = $state('');
 	let challenge = $state('');
 	let challengeMethod = $state('');
+	let refreshing = $state(false);
+	let loggingIn = $state(false);
 
 	let justResetPassword = $state(false);
 
@@ -37,6 +41,7 @@
 
 		// If we already have a session, then we can just refresh, and redirect immediately.
 		if (userInfo) {
+			refreshing = true;
 			const authResp = await fetch('/auth/v1/oidc/authorize/refresh', {
 				method: 'post',
 				body: JSON.stringify({
@@ -70,6 +75,8 @@
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault();
 
+		loggingIn = true;
+
 		const req = {
 			email,
 			client_id: clientId,
@@ -95,49 +102,57 @@
 	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">
 		<h1 class="my-3 text-2xl">Login</h1>
 
-		{#if justResetPassword}
-			<aside class="alert variant-ghost-success">
-				<div class="alert-message">
-					<p>Your password has been set, you may now login.</p>
-				</div>
-			</aside>
-		{/if}
-
-		{#if error}
-			<aside class="alert variant-ghost-error">
-				<div class="alert-message">
-					<p>{error}</p>
-				</div>
-			</aside>
-		{/if}
-
-		<label class="label">
-			<span>Email</span>
-			<input name="email" class="input" type="text" placeholder="Email" bind:value={email} />
-		</label>
-
-		<label class="label">
-			<span>Password</span>
-			<input
-				name="password"
-				class="input"
-				type="password"
-				placeholder="Password"
-				bind:value={password}
-			/>
-		</label>
-
-		<div class="mt-4 flex flex-col gap-3">
-			<div class="flex justify-center gap-4">
-				<p class="text-center">
-					<a href="/account/forgot-password" class="underline">Forgot your password?</a>
-				</p>
-				<p class="text-center">
-					<a href="/auth/v1/users/register" class="underline">Don't have an account?</a>.
-				</p>
+		{#if refreshing}
+			<div class="flex justify-center p-5">
+				<ProgressRadial width="w-20" />
 			</div>
+		{:else}
+			{#if justResetPassword}
+				<aside class="alert variant-ghost-success">
+					<div class="alert-message">
+						<p>Your password has been set, you may now login.</p>
+					</div>
+				</aside>
+			{/if}
 
-			<button class="variant-filled btn"> Login </button>
-		</div>
+			{#if error}
+				<aside class="alert variant-ghost-error">
+					<div class="alert-message">
+						<p>{error}</p>
+					</div>
+				</aside>
+			{/if}
+
+			<label class="label">
+				<span>Email</span>
+				<input name="email" class="input" type="text" placeholder="Email" bind:value={email} />
+			</label>
+
+			<label class="label">
+				<span>Password</span>
+				<input
+					name="password"
+					class="input"
+					type="password"
+					placeholder="Password"
+					bind:value={password}
+				/>
+			</label>
+
+			<div class="mt-4 flex flex-col gap-3">
+				<div class="flex justify-center gap-4">
+					<p class="text-center">
+						<a href="/account/forgot-password" class="underline">Forgot your password?</a>
+					</p>
+					<p class="text-center">
+						<a href="/auth/v1/users/register" class="underline">Don't have an account?</a>.
+					</p>
+				</div>
+
+				<button class="variant-filled btn" disabled={loggingIn}>
+					{!loggingIn ? 'Login' : 'Loading...'}
+				</button>
+			</div>
+		{/if}
 	</form>
 </main>

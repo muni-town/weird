@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { getUserInfo } from '$lib/rauthy';
 	import { checkResponse } from '$lib/utils';
 	import { onMount } from 'svelte';
+
+	const userInfo = getUserInfo();
 
 	let clientId = $state('');
 	let redirectUri = $state('');
@@ -12,15 +15,17 @@
 
 	let justResetPassword = $state(false);
 
+	async function handleAuthResp(authResp: Response) {
+		if (authResp.status == 202) {
+			window.location.replace(authResp.headers.get('location')!);
+		} else if (!authResp.ok) {
+			console.error('Error logging in', authResp, await authResp.text());
+			error = 'Invalid email or password.';
+			password = '';
+		}
+	}
+
 	onMount(async () => {
-		justResetPassword = localStorage.getItem('justResetPassword') == 'true';
-		localStorage.removeItem('justResetPassword');
-
-		const initResp = await fetch('/auth/v1/oidc/session', { method: 'post' });
-		await checkResponse(initResp);
-		const init = await initResp.json();
-		localStorage.setItem('csrfToken', init.csrf_token);
-
 		const url = new URL(window.location.href);
 		clientId = url.searchParams.get('client_id')!;
 		redirectUri = url.searchParams.get('redirect_uri')!;
@@ -29,6 +34,33 @@
 		oidcState = url.searchParams.get('state')!;
 		challenge = url.searchParams.get('code_challenge')!;
 		challengeMethod = url.searchParams.get('code_challenge_method')!;
+
+		// If we already have a session, then we can just refresh, and redirect immediately.
+		if (userInfo) {
+			const authResp = await fetch('/auth/v1/oidc/authorize/refresh', {
+				method: 'post',
+				body: JSON.stringify({
+					client_id: clientId,
+					redirect_uri: redirectUri,
+					state: oidcState,
+					code_challenge: challenge,
+					code_challenge_method: challengeMethod,
+					nonce: nonce,
+					scopes
+				}),
+				headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+			});
+			await handleAuthResp(authResp);
+			return;
+		}
+
+		justResetPassword = localStorage.getItem('justResetPassword') == 'true';
+		localStorage.removeItem('justResetPassword');
+
+		const initResp = await fetch('/auth/v1/oidc/session', { method: 'post' });
+		await checkResponse(initResp);
+		const init = await initResp.json();
+		localStorage.setItem('csrfToken', init.csrf_token);
 	});
 
 	let email = $state('');
@@ -55,14 +87,7 @@
 			body: JSON.stringify(req),
 			headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
 		});
-
-		if (authResp.status == 202) {
-			window.location.replace(authResp.headers.get('location')!);
-		} else if (!authResp.ok) {
-			console.error('Error logging in', authResp, await authResp.text());
-			error = 'Invalid email or password.';
-			password = '';
-		}
+		await handleAuthResp(authResp);
 	}
 </script>
 

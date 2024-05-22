@@ -8,7 +8,12 @@ const config = {
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		csrf: {
+			// TODO: Evaluate ways to turn this off only for the `/auth/v1/oidc/token` endpoint.
+			// We have to disable it for now because it breaks the OIDC client flow.
+			checkOrigin: false,
+		}
 	}
 };
 

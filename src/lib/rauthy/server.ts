@@ -6,7 +6,7 @@ import cookie from 'cookie';
 export const RAUTHY_URL = env.RAUTHY_URL;
 export const PWD_RESET_COOKIE = 'rauthy-pwd-reset';
 
-export const proxy_to_rauthy: RequestHandler = async ({ request }) => {
+export const proxy_to_rauthy: RequestHandler = async ({ request, fetch }) => {
 	const { pathname, search } = new URL(request.url);
 	const url = new URL('.' + pathname, env.RAUTHY_URL);
 	url.search = search;

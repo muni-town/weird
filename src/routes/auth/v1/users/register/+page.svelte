@@ -22,15 +22,14 @@
 				return;
 			}
 
-			const username = email.split('@')[0];
 			const home = new URL(window.location.href);
 			home.pathname = '/auth/v1/account';
 			const registerResp = await fetch('/auth/v1/users/register', {
 				method: 'post',
 				body: JSON.stringify({
 					email,
-					given_name: username,
-					family_name: username,
+					given_name: 'Weird',
+					family_name: 'User',
 					// This isn't really used, we do the redirect manually.
 					redirect_uri: home,
 					pow

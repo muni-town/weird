@@ -6,6 +6,7 @@ use futures_lite::StreamExt;
 use headers::{authorization::Bearer, Authorization, Header};
 use iroh::docs::AuthorId;
 use once_cell::sync::Lazy;
+use reqwest::Url;
 
 use crate::auth::AuthenticationError;
 
@@ -18,9 +19,13 @@ pub struct Args {
     pub api_key: String,
     #[arg(default_value = "data")]
     pub data_dir: PathBuf,
+    #[arg(default_value = "http://localhost:8922")]
+    pub rauthy_url: Url,
 }
 
 pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
+pub static CLIENT: Lazy<reqwest::Client> =
+    Lazy::new(|| reqwest::ClientBuilder::new().build().unwrap());
 
 pub type IrohNode = iroh::node::FsNode;
 pub type IrohClient = iroh::client::MemIroh;
@@ -57,7 +62,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Construct router
     let router = routes::install(Router::new())
-        .layer(auth::AuthCtxLayer)
         .layer(
             tower::ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(AuthenticationError::handle))

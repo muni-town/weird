@@ -26,6 +26,7 @@
 			console.error('Error logging in', authResp, await authResp.text());
 			error = 'Invalid email or password.';
 			password = '';
+			loggingIn = false;
 		}
 	}
 

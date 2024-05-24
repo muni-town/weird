@@ -1,19 +1,36 @@
+use std::{path::PathBuf, sync::Arc};
+
 use axum::{error_handling::HandleErrorLayer, routing::get, BoxError, Router};
 use clap::Parser;
+use futures_lite::StreamExt;
 use headers::{authorization::Bearer, Authorization, Header};
+use iroh::docs::AuthorId;
 use once_cell::sync::Lazy;
 
-use crate::auth::AuthenticationError;
+use crate::{auth::AuthenticationError, routes::install};
 
 mod auth;
+mod routes;
 
 #[derive(clap::Parser)]
 pub struct Args {
     #[arg(default_value = "temporarydevelopmentkey", env)]
     pub api_key: String,
+    #[arg(default_value = "data")]
+    pub data_dir: PathBuf,
 }
 
 pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
+
+pub type IrohNode = iroh::node::FsNode;
+pub type IrohClient = iroh::client::MemIroh;
+
+pub type AppState = Arc<AppStateInner>;
+pub struct AppStateInner {
+    pub server_author: AuthorId,
+    pub node: IrohNode,
+    pub client: IrohClient,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,7 +38,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt().init();
 
     // Parse CLI args.
-    let _ = &*ARGS;
+    let args = &*ARGS;
+
+    let node = iroh::node::FsNode::persistent(&args.data_dir)
+        .await?
+        .node_discovery(iroh::node::DiscoveryConfig::None)
+        .spawn()
+        .await?;
+    let client = node.client().clone();
+
+    // Get the first author key that we have, and use that as the default server key. For now we expect to only
+    // have one key.
+    let server_author = if let Some(first_author) = client.authors.list().await?.next().await {
+        first_author?
+    } else {
+        client.authors.create().await?
+    };
 
     // Construct router
     let router = Router::new()
@@ -40,6 +72,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }),
         );
+    let router = install(router).with_state(Arc::new(AppStateInner {
+        client,
+        node,
+        server_author,
+    }));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     tracing::info!("Starting server");

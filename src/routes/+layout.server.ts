@@ -2,6 +2,7 @@ import { checkResponse } from '$lib/utils';
 import type { LayoutServerLoad } from './$types';
 import type { SessionInfo, UserInfo } from '$lib/rauthy';
 
+// TODO: Move this logic to a "SessionProvider" component.
 export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 	let sessionInfo: SessionInfo | undefined = undefined;
 	let userInfo: UserInfo | undefined = undefined;

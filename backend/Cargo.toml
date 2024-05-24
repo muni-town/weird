@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 axum = "0.7.5"
 clap = { version = "4.5.4", features = ["derive", "env"] }
+futures-lite = { version = "2.3.0", default-features = false }
 headers = "0.4.0"
 http = "1.1.0"
 iroh = { version = "0.16.2", default-features = false, features = ["fs-store"] }

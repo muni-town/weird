@@ -1,13 +1,13 @@
 use std::{path::PathBuf, sync::Arc};
 
-use axum::{error_handling::HandleErrorLayer, routing::get, BoxError, Router};
+use axum::{error_handling::HandleErrorLayer, BoxError, Router};
 use clap::Parser;
 use futures_lite::StreamExt;
 use headers::{authorization::Bearer, Authorization, Header};
 use iroh::docs::AuthorId;
 use once_cell::sync::Lazy;
 
-use crate::{auth::AuthenticationError, routes::install};
+use crate::auth::AuthenticationError;
 
 mod auth;
 mod routes;
@@ -56,8 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Construct router
-    let router = Router::new()
-        .route("/", get(|| async { "Hello world" }))
+    let router = routes::install(Router::new())
+        .layer(auth::AuthCtxLayer)
         .layer(
             tower::ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(AuthenticationError::handle))
@@ -71,12 +71,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         _ => Err(AuthenticationError.into()),
                     }
                 }),
-        );
-    let router = install(router).with_state(Arc::new(AppStateInner {
-        client,
-        node,
-        server_author,
-    }));
+        )
+        .with_state(Arc::new(AppStateInner {
+            client,
+            node,
+            server_author,
+        }));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     tracing::info!("Starting server");

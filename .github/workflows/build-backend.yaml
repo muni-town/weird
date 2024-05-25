@@ -49,6 +49,27 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: |
+            target
+            registry
+            git
+          key: cache-${{ hashFiles('backend/Dockerfile') }}
+
+      - name: Inject Container Build Cache
+        uses: reproducible-containers/buildkit-cache-dance@v3.1.0
+        with:
+          cache-map: |
+            {
+              "target": "/home/rust/src/target",
+              "registry": "/root/.cargo/registry",
+              "git": "/root/.cargo/git"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
       - name: Build and push
         uses: docker/build-push-action@v3
         with:

@@ -2,7 +2,6 @@ use axum::{
     extract::{FromRequest, Request},
     BoxError,
 };
-use axum_extra::extract::CookieJar;
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 
@@ -21,39 +20,27 @@ where
     type Rejection = ();
 
     async fn from_request(req: Request, _: &S) -> Result<Self, Self::Rejection> {
-        let cookies = CookieJar::from_headers(req.headers());
-        let rauthy_session = cookies.get(&format!("{}RauthySession", ARGS.cookie_prefix));
         let session = async move {
-            if let Some(session) = rauthy_session {
-                let session_info = CLIENT
-                    .get(ARGS.rauthy_url.join("/auth/v1/oidc/sessioninfo").unwrap())
-                    .header(
-                        "Cookie",
-                        format!("{}RauthySession={}", ARGS.cookie_prefix, session.value()),
-                    )
-                    .send()
-                    .await?;
-                let session_info = session_info.json::<RauthySessionInfo>().await?;
-                let user_info = CLIENT
-                    .get(
-                        ARGS.rauthy_url
-                            .join(&format!("/auth/v1/users/{}", session_info.user_id))
-                            .unwrap(),
-                    )
-                    .header(
-                        "Cookie",
-                        format!("{}RauthySession={}", ARGS.cookie_prefix, session.value()),
-                    )
-                    .send()
-                    .await?;
-                let user_info = user_info.json::<RauthyUserInfo>().await?;
-                Ok::<_, reqwest::Error>(Some(RauthySession {
-                    info: session_info,
-                    user: user_info,
-                }))
-            } else {
-                Ok(None)
-            }
+            let session_info = CLIENT
+                .get(ARGS.rauthy_url.join("/auth/v1/oidc/sessioninfo").unwrap())
+                .headers(req.headers().clone())
+                .send()
+                .await?;
+            let session_info = session_info.json::<RauthySessionInfo>().await?;
+            let user_info = CLIENT
+                .get(
+                    ARGS.rauthy_url
+                        .join(&format!("/auth/v1/users/{}", session_info.user_id))
+                        .unwrap(),
+                )
+                .headers(req.headers().clone())
+                .send()
+                .await?;
+            let user_info = user_info.json::<RauthyUserInfo>().await?;
+            Ok::<_, reqwest::Error>(Some(RauthySession {
+                info: session_info,
+                user: user_info,
+            }))
         }
         .await;
         if let Err(e) = &session {

@@ -102,7 +102,7 @@ pub struct RauthyUserInfo {
     pub roles: Vec<String>,
     pub enabled: bool,
     pub email_verified: bool,
-    pub password_expires: u64,
+    pub password_expires: Option<u64>,
     pub created_at: u64,
     pub last_login: u64,
     pub account_type: String,

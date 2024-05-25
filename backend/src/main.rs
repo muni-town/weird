@@ -7,6 +7,8 @@ use headers::{authorization::Bearer, Authorization, Header};
 use iroh::docs::AuthorId;
 use once_cell::sync::Lazy;
 use reqwest::Url;
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::auth::AuthenticationError;
 
@@ -40,7 +42,16 @@ pub struct AppStateInner {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Init logger
-    tracing_subscriber::fmt().init();
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                "backend=debug,tower_http=debug,axum::rejection=trace".into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     // Parse CLI args.
     let args = &*ARGS;
@@ -77,6 +88,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }),
         )
+        // `TraceLayer` is provided by tower-http so you have to add that as a dependency.
+        // It provides good defaults but is also very customizable.
+        //
+        // See https://docs.rs/tower-http/0.1.1/tower_http/trace/index.html for more details.
+        //
+        // If you want to customize the behavior using closures here is how.
+        .layer(TraceLayer::new_for_http())
         .with_state(Arc::new(AppStateInner {
             client,
             node,

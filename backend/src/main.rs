@@ -21,9 +21,6 @@ pub struct Args {
     pub data_dir: PathBuf,
     #[arg(default_value = "http://localhost:8921", env)]
     pub rauthy_url: Url,
-    /// Set this to `__Host-` if using Rauthy in production with host-scope cookies
-    #[arg(default_value = "", env)]
-    pub cookie_prefix: String,
 }
 
 pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);

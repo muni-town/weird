@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/public';
 import { checkResponse } from '$lib/utils';
 import type { LayoutServerLoad } from './$types';
 import type { SessionInfo, UserInfo } from '$lib/rauthy';
@@ -7,17 +8,17 @@ export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 	let sessionInfo: SessionInfo | undefined = undefined;
 	let userInfo: UserInfo | undefined = undefined;
 
-	const rauthySession = cookies.get('RauthySession');
+	const rauthySession = cookies.get(`${env.PUBLIC_COOKIE_PREFIX}RauthySession`);
 
 	try {
 		const sessionInfoResp = await fetch('/auth/v1/oidc/sessioninfo', {
-			headers: [['Cookie', `RauthySession=${rauthySession}`]]
+			headers: [['Cookie', `${env.PUBLIC_COOKIE_PREFIX}RauthySession=${rauthySession}`]]
 		});
 		await checkResponse(sessionInfoResp);
 		sessionInfo = await sessionInfoResp.json();
 
 		const userInfoResp = await fetch(`/auth/v1/users/${sessionInfo?.user_id}`, {
-			headers: [['Cookie', `RauthySession=${rauthySession}`]]
+			headers: [['Cookie', `${env.PUBLIC_COOKIE_PREFIX}RauthySession=${rauthySession}`]]
 		});
 		await checkResponse(userInfoResp);
 		userInfo = await userInfoResp.json();

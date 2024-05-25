@@ -17,12 +17,12 @@ mod routes;
 pub struct Args {
     #[arg(default_value = "temporarydevelopmentkey", env)]
     pub api_key: String,
-    #[arg(default_value = "data")]
+    #[arg(default_value = "data", env)]
     pub data_dir: PathBuf,
-    #[arg(default_value = "http://localhost:8921")]
+    #[arg(default_value = "http://localhost:8921", env)]
     pub rauthy_url: Url,
     /// Set this to `__Host-` if using Rauthy in production with host-scope cookies
-    #[arg(default_value = "")]
+    #[arg(default_value = "", env)]
     pub cookie_prefix: String,
 }
 

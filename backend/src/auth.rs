@@ -22,12 +22,15 @@ where
 
     async fn from_request(req: Request, _: &S) -> Result<Self, Self::Rejection> {
         let cookies = CookieJar::from_headers(req.headers());
-        let rauthy_session = cookies.get("RauthySession");
+        let rauthy_session = cookies.get(&format!("{}RauthySession", ARGS.cookie_prefix));
         let session = async move {
             if let Some(session) = rauthy_session {
                 let session_info = CLIENT
                     .get(ARGS.rauthy_url.join("/auth/v1/oidc/sessioninfo").unwrap())
-                    .header("Cookie", format!("RauthySession={}", session.value()))
+                    .header(
+                        "Cookie",
+                        format!("{}RauthySession={}", ARGS.cookie_prefix, session.value()),
+                    )
                     .send()
                     .await?;
                 let session_info = session_info.json::<RauthySessionInfo>().await?;
@@ -37,7 +40,10 @@ where
                             .join(&format!("/auth/v1/users/{}", session_info.user_id))
                             .unwrap(),
                     )
-                    .header("Cookie", format!("RauthySession={}", session.value()))
+                    .header(
+                        "Cookie",
+                        format!("{}RauthySession={}", ARGS.cookie_prefix, session.value()),
+                    )
                     .send()
                     .await?;
                 let user_info = user_info.json::<RauthyUserInfo>().await?;

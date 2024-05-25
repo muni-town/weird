@@ -13,7 +13,7 @@ services:
       - rauthy:/app/data
 
   rauthy:
-    image: ghcr.io/sebadob/rauthy:0.23.1-lite
+    image: ghcr.io/sebadob/rauthy:0.23.2-20240524-lite
     depends_on:
       - set-rauthy-volume-owner
       - smtp4dev

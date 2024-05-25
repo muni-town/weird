@@ -23,6 +23,7 @@ where
     async fn from_request(req: Request, _: &S) -> Result<Self, Self::Rejection> {
         let cookies = CookieJar::from_headers(req.headers());
         let rauthy_session = cookies.get(&format!("{}RauthySession", ARGS.cookie_prefix));
+        let rauthy_user = cookies.get(&format!("{}RauthyUser", ARGS.cookie_prefix));
         let session = async move {
             if let Some(session) = rauthy_session {
                 let session_info = CLIENT
@@ -42,7 +43,12 @@ where
                     )
                     .header(
                         "Cookie",
-                        format!("{}RauthySession={}", ARGS.cookie_prefix, session.value()),
+                        format!(
+                            "{prefix}RauthySession={sess};{prefix}RauthyUser={user}",
+                            prefix = ARGS.cookie_prefix,
+                            sess = session.value(),
+                            user = rauthy_user.map(|x| x.value()).unwrap_or_default()
+                        ),
                     )
                     .send()
                     .await?;

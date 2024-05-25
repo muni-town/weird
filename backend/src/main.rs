@@ -19,7 +19,7 @@ pub struct Args {
     pub api_key: String,
     #[arg(default_value = "data")]
     pub data_dir: PathBuf,
-    #[arg(default_value = "http://localhost:8922")]
+    #[arg(default_value = "http://localhost:8921")]
     pub rauthy_url: Url,
 }
 
@@ -48,6 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let node = iroh::node::FsNode::persistent(&args.data_dir)
         .await?
         .node_discovery(iroh::node::DiscoveryConfig::None)
+        .relay_mode(iroh::net::relay::RelayMode::Disabled)
         .spawn()
         .await?;
     let client = node.client().clone();

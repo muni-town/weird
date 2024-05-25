@@ -4,4 +4,6 @@
 	const { data }: { data: PageData } = $props();
 </script>
 
-{JSON.stringify(data)}
+<pre>
+{JSON.stringify(data.info, null, 2)}
+</pre>

@@ -9,20 +9,24 @@ export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 	let userInfo: UserInfo | undefined = undefined;
 
 	const rauthySession = cookies.get(`${env.PUBLIC_COOKIE_PREFIX}RauthySession`);
-	const rauthyUser = cookies.get(`${env.PUBLIC_COOKIE_PREFIX}RauthyUser`);
+	console.log(rauthySession);
 
 	try {
 		const sessionInfoResp = await fetch('/auth/v1/oidc/sessioninfo', {
-			headers: [['Cookie', `${env.PUBLIC_COOKIE_PREFIX}RauthySession=${rauthySession};${env.PUBLIC_COOKIE_PREFIX}RauthyUser=${rauthyUser}`]]
+			headers: [['Cookie', `${env.PUBLIC_COOKIE_PREFIX}RauthySession=${rauthySession}`]]
 		});
+		console.log(sessionInfoResp);
 		await checkResponse(sessionInfoResp);
 		sessionInfo = await sessionInfoResp.json();
+		console.log(sessionInfo);
 
 		const userInfoResp = await fetch(`/auth/v1/users/${sessionInfo?.user_id}`, {
-			headers: [['Cookie', `${env.PUBLIC_COOKIE_PREFIX}RauthySession=${rauthySession};${env.PUBLIC_COOKIE_PREFIX}RauthyUser=${rauthyUser}`]]
+			headers: [['Cookie', `${env.PUBLIC_COOKIE_PREFIX}RauthySession=${rauthySession}`]]
 		});
+		console.log(userInfoResp)
 		await checkResponse(userInfoResp);
 		userInfo = await userInfoResp.json();
+		console.log(userInfo);
 	} catch (_) {}
 
 	return { sessionInfo, userInfo };

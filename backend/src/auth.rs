@@ -1,3 +1,4 @@
+use anyhow::Context;
 use axum::{
     extract::{FromRequest, Request},
     BoxError,
@@ -26,25 +27,33 @@ where
                 .headers(req.headers().clone())
                 .send()
                 .await?;
-            let session_info = session_info.json::<RauthySessionInfo>().await?;
+            let session_info = session_info
+                .json::<RauthyResponse<RauthySessionInfo>>()
+                .await
+                .context("Parsing session info")?
+                .result()?;
             let user_info = CLIENT
                 .get(
                     ARGS.rauthy_url
-                        .join(&format!("/auth/v1/users/{}", session_info.user_id))
+                        .join(&format!("/auth/v1/users/t{}", session_info.user_id))
                         .unwrap(),
                 )
                 .headers(req.headers().clone())
                 .send()
                 .await?;
-            let user_info = user_info.json::<RauthyUserInfo>().await?;
-            Ok::<_, reqwest::Error>(Some(RauthySession {
+            let user_info = user_info
+                .json::<RauthyResponse<RauthyUserInfo>>()
+                .await
+                .context("Parsing user info")?
+                .result()?;
+            Ok::<_, anyhow::Error>(Some(RauthySession {
                 info: session_info,
                 user: user_info,
             }))
         }
         .await;
         if let Err(e) = &session {
-            tracing::warn!("{e:#?}");
+            tracing::warn!("{e:?}");
         }
 
         Ok(AuthCtx {
@@ -114,6 +123,38 @@ pub struct RauthyUserInfoUserValues {
     pub city: Option<String>,
     pub country: Option<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(untagged)]
+pub enum RauthyResponse<T> {
+    Ok(T),
+    Err(RauthyError),
+}
+
+impl<T> RauthyResponse<T> {
+    pub fn result(self) -> Result<T, RauthyError> {
+        match self {
+            RauthyResponse::Ok(t) => Ok(t),
+            RauthyResponse::Err(e) => Err(e),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RauthyError {
+    error: String,
+    message: String,
+    timestamp: u64,
+}
+impl std::fmt::Display for RauthyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "Error[{}]: {}: {}",
+            self.timestamp, self.error, self.message
+        ))
+    }
+}
+impl std::error::Error for RauthyError {}
 
 #[derive(Debug, Clone)]
 pub struct AuthenticationError;

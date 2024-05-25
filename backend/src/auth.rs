@@ -31,18 +31,16 @@ where
                     .send()
                     .await?;
                 let session_info = session_info.json::<RauthySessionInfo>().await?;
-
                 let user_info = CLIENT
                     .get(
                         ARGS.rauthy_url
-                            .join(&format!("/auth/v1/users/{}", session_info.id))
+                            .join(&format!("/auth/v1/users/{}", session_info.user_id))
                             .unwrap(),
                     )
                     .header("Cookie", format!("RauthySession={}", session.value()))
                     .send()
                     .await?;
                 let user_info = user_info.json::<RauthyUserInfo>().await?;
-
                 Ok::<_, reqwest::Error>(Some(RauthySession {
                     info: session_info,
                     user: user_info,
@@ -52,6 +50,9 @@ where
             }
         }
         .await;
+        if let Err(e) = &session {
+            tracing::warn!("{e:#?}");
+        }
 
         Ok(AuthCtx {
             session: session.ok().flatten(),
@@ -59,49 +60,21 @@ where
     }
 }
 
-// #[derive(Clone)]
-// pub struct AuthCtxLayer;
-// impl<S> Layer<S> for AuthCtxLayer {
-//     type Service = AddAuthCtx<S>;
-//     fn layer(&self, inner: S) -> Self::Service {
-//         AddAuthCtx { inner }
-//     }
-// }
-
-// #[derive(Clone, Copy, Debug)]
-// pub struct AddAuthCtx<S> {
-//     pub(crate) inner: S,
-// }
-
-// impl<ResBody, S> Service<Request<ResBody>> for AddAuthCtx<S>
-// where
-//     S: Service<Request<ResBody>>,
-// {
-//     type Response = S::Response;
-//     type Error = S::Error;
-//     type Future = S::Future;
-
-//     #[inline]
-//     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-//         self.inner.poll_ready(cx)
-//     }
-
-//     fn call(&mut self, mut req: Request<ResBody>) -> Self::Future {
-//         async move {
-//             let cookies = CookieJar::from_headers(req.headers());
-//             let rauthy_session = cookies.get("RauthySession");
-//             let session = if let Some(session) = rauthy_session {
-//                 None
-//             } else {
-//                 None
-//             };
-
-//             req.extensions_mut().insert(AuthCtx { session });
-
-//             self.inner.call(req)
-//         }
-//     }
-// }
+#[async_trait::async_trait]
+impl<S: Sync + Send> FromRequest<S> for RauthySession {
+    type Rejection = (StatusCode, &'static str);
+    async fn from_request(req: Request, s: &S) -> Result<Self, Self::Rejection> {
+        AuthCtx::from_request(req, s)
+            .await
+            .and_then(|x| x.session.ok_or(()))
+            .map_err(|_| {
+                (
+                    StatusCode::UNAUTHORIZED,
+                    r#"{"error": "valid user session required to access this endpiont."}"#,
+                )
+            })
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RauthySession {
@@ -119,7 +92,7 @@ pub struct RauthySessionInfo {
     pub state: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct RauthyUserInfo {
     pub id: String,
     pub email: String,
@@ -139,7 +112,7 @@ pub struct RauthyUserInfo {
     pub federation_uid: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct RauthyUserInfoUserValues {
     pub birthdate: Option<String>,
     pub phone: Option<String>,

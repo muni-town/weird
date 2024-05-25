@@ -1,4 +1,3 @@
-import { env } from '$env/dynamic/public';
 import { checkResponse } from '$lib/utils';
 import type { LayoutServerLoad } from './$types';
 import type { SessionInfo, UserInfo } from '$lib/rauthy';

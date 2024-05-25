@@ -2,7 +2,7 @@ FROM node:20 as build
 RUN npm i -g pnpm
 COPY . /project
 WORKDIR /project
-RUN pnpm i && pnpm run build
+RUN --mount=type=cache,target=/project/node_modules pnpm i && pnpm run build
 
 FROM node:20
 COPY --from=build /project/build /project

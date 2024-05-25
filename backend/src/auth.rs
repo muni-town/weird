@@ -35,7 +35,9 @@ where
             let user_info = CLIENT
                 .get(
                     ARGS.rauthy_url
-                        .join(&format!("/auth/v1/users/t{}", session_info.user_id))
+                        .join("/auth/v1/users/")
+                        .unwrap()
+                        .join(&session_info.user_id)
                         .unwrap(),
                 )
                 .headers(req.headers().clone())

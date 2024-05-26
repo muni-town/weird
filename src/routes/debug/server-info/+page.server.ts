@@ -1,11 +1,10 @@
 import { env } from '$env/dynamic/private';
+import { backendFetch } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ fetch, request }) => {
-	const headers = request.headers;
-	headers.set('Authorization', `Bearer ${env.BACKEND_SECRET}`);
-	const resp = await fetch(env.BACKEND_URL + '/server-info', {
-		headers
+	const resp = await backendFetch(fetch, '/server-info', {
+		headers: request.headers
 	});
 	const info = await resp.json();
 

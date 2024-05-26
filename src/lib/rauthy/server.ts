@@ -2,6 +2,7 @@ import { env } from '$env/dynamic/private';
 import { checkResponse } from '$lib/utils';
 import type { RequestHandler } from '@sveltejs/kit';
 import cookie from 'cookie';
+import type { SessionInfo, UserInfo } from '.';
 
 export const RAUTHY_URL = env.RAUTHY_URL;
 export const PWD_RESET_COOKIE = 'rauthy-pwd-reset';
@@ -120,3 +121,30 @@ export async function register_user(opts: {
 
 // export async function reset_init(_opts: { user: string, token: string }) {
 // }
+
+export async function getSession(
+	fetch: typeof window.fetch,
+	request: Request
+): Promise<{ sessionInfo?: SessionInfo; userInfo?: UserInfo }> {
+	let sessionInfo: SessionInfo | undefined = undefined;
+	let userInfo: UserInfo | undefined = undefined;
+
+	const headers = new Headers(request.headers);
+	headers.delete('content-length');
+
+	try {
+		const sessionInfoResp = await fetch('/auth/v1/oidc/sessioninfo', {
+			headers
+		});
+		await checkResponse(sessionInfoResp);
+		sessionInfo = await sessionInfoResp.json();
+
+		const userInfoResp = await fetch(`/auth/v1/users/${sessionInfo?.user_id}`, {
+			headers
+		});
+		await checkResponse(userInfoResp);
+		userInfo = await userInfoResp.json();
+	} catch (_) {}
+
+	return { sessionInfo, userInfo };
+}

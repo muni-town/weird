@@ -2,9 +2,14 @@
 	import getPkce from 'oauth-pkce';
 	import { getUserInfo } from '$lib/rauthy';
 	import { onMount } from 'svelte';
+	import type { PageData } from '../$types';
+
+	const { data }: { data: PageData } = $props();
 
 	const userInfo = getUserInfo();
 	const PKCE_VERIFIER = 'pkce_verifier';
+
+	let username = $state(data.profile?.username || '');
 
 	const getKey = (i: number) => {
 		let res = '';
@@ -40,12 +45,23 @@
 
 {#if userInfo}
 	<main class="flex flex-col items-center">
-		<div class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">
+		<form
+			method="post"
+			action="/account/update"
+			class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
+		>
 			<h1 class="my-3 text-2xl">Profile</h1>
 
-			<p class="text-xl">
-				{userInfo.email}
-			</p>
-		</div>
+			<div class="mb-4">
+				<strong class="pr-2">Email:</strong>{userInfo.email}
+			</div>
+
+			<label class="label">
+				<span>Username</span>
+				<input name="username" class="input" placeholder="Username" bind:value={username} />
+			</label>
+
+			<button class="variant-filled btn"> Save </button>
+		</form>
 	</main>
 {/if}

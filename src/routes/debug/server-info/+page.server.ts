@@ -1,5 +1,4 @@
-import { env } from '$env/dynamic/private';
-import { backendFetch } from '$lib/utils';
+import { backendFetch } from '$lib/backend';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ fetch, request }) => {

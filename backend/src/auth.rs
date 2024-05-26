@@ -21,7 +21,6 @@ where
     type Rejection = ();
 
     async fn from_request(req: Request, _: &S) -> Result<Self, Self::Rejection> {
-        tracing::trace!(request=?req, "Extracting session info from request");
         let session = async move {
             let session_info = CLIENT
                 .get(ARGS.rauthy_url.join("/auth/v1/oidc/sessioninfo").unwrap())

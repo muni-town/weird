@@ -1,11 +1,15 @@
 use std::{path::PathBuf, sync::Arc};
 
-use axum::{error_handling::HandleErrorLayer, BoxError, Router};
+use axum::{error_handling::HandleErrorLayer, response::IntoResponse, BoxError, Router};
 use clap::Parser;
-use futures_lite::StreamExt;
 use headers::{authorization::Bearer, Authorization, Header};
-use iroh::docs::AuthorId;
+use http::StatusCode;
+use iroh::{
+    client::{docs::Doc, RpcService},
+    docs::{AuthorId, NamespaceId},
+};
 use once_cell::sync::Lazy;
+use quic_rpc::transport::flume::FlumeConnection;
 use reqwest::Url;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -34,9 +38,26 @@ pub type IrohClient = iroh::client::MemIroh;
 
 pub type AppState = Arc<AppStateInner>;
 pub struct AppStateInner {
-    pub server_author: AuthorId,
     pub node: IrohNode,
-    pub client: IrohClient,
+    pub node_author: AuthorId,
+    pub profiles: Doc<FlumeConnection<RpcService>>,
+}
+
+pub type AppResult<T> = Result<T, AppError>;
+pub struct AppError(pub anyhow::Error);
+impl<E: Into<anyhow::Error>> From<E> for AppError {
+    fn from(value: E) -> Self {
+        AppError(value.into())
+    }
+}
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        (
+            StatusCode::BAD_REQUEST,
+            format!(r#"{{ "error": "{:?}" }}"#, self.0),
+        )
+            .into_response()
+    }
 }
 
 #[tokio::main]
@@ -62,14 +83,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .relay_mode(iroh::net::relay::RelayMode::Disabled)
         .spawn()
         .await?;
-    let client = node.client().clone();
-
-    // Get the first author key that we have, and use that as the default server key. For now we expect to only
-    // have one key.
-    let server_author = if let Some(first_author) = client.authors.list().await?.next().await {
-        first_author?
+    let node_author = node.authors.default().await?;
+    let profile_namespace_path = args.data_dir.join("weird-profile-namespace");
+    let profiles = if profile_namespace_path.exists() {
+        let bytes = std::fs::read(profile_namespace_path)?;
+        let bytes: [u8; 32] = bytes.try_into().map_err(|_| {
+            anyhow::format_err!("weird-profile-namespace length not equal to 32 bytes")
+        })?;
+        let namespace = NamespaceId::from(bytes);
+        node.docs
+            .open(namespace)
+            .await?
+            .ok_or_else(|| anyhow::format_err!("Weird profile namespace doc does not exist"))?
     } else {
-        client.authors.create().await?
+        let profiles = node.docs.create().await?;
+        std::fs::write(profile_namespace_path, profiles.id())?;
+        profiles
     };
 
     // Construct router
@@ -96,9 +125,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // If you want to customize the behavior using closures here is how.
         .layer(TraceLayer::new_for_http())
         .with_state(Arc::new(AppStateInner {
-            client,
             node,
-            server_author,
+            node_author,
+            profiles,
         }));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;

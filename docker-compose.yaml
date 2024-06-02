@@ -18,7 +18,7 @@ services:
       - set-rauthy-volume-owner
       - smtp4dev
     environment:
-      PUB_URL: localhost:5173
+      PUB_URL: localhost:9523
       DATABASE_URL: 'sqlite:/app/data/rauthy.db'
       BOOTSTRAP_ADMIN_EMAIL: admin@localhost.de
       BOOTSTRAP_ADMIN_PASSWORD_PLAIN: adminadmin

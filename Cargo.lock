@@ -1315,6 +1315,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "gdata"
+version = "0.1.0"
+dependencies = [
+ "iroh-docs",
+]
+
+[[package]]
 name = "genawaiter"
 version = "0.99.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

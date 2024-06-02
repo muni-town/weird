@@ -1,0 +1,7 @@
+[package]
+name = "gdata"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+iroh-docs = "0.17.0"

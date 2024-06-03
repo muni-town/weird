@@ -27,6 +27,8 @@ pub struct Args {
     pub data_dir: PathBuf,
     #[arg(default_value = "http://localhost:8921", env)]
     pub rauthy_url: Url,
+    #[arg(default_value = "7431", env)]
+    pub port: u16,
 }
 
 pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
@@ -130,7 +132,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             profiles,
         }));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
+    let listener = tokio::net::TcpListener::bind(("0.0.0.0", args.port)).await?;
     tracing::info!("Starting server");
     axum::serve(listener, router).await?;
 

@@ -7,3 +7,6 @@ edition = "2021"
 anyhow = "1.0.86"
 bytes = "1.6.0"
 iroh = { version = "0.17.0", default-features = false }
+
+[dev-dependencies]
+tokio = "1.38.0"

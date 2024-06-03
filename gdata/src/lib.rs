@@ -10,6 +10,11 @@ pub struct IrohGStore {
     pub iroh: iroh::client::MemIroh,
     pub author: AuthorId,
 }
+impl IrohGStore {
+    pub fn new(iroh: iroh::client::MemIroh, author: AuthorId) -> Self {
+        Self { iroh, author }
+    }
+}
 impl GStoreBackend for IrohGStore {
     async fn get(&self, link: Link) -> anyhow::Result<GStoreValue<Self>> {
         let doc =
@@ -292,6 +297,11 @@ impl From<Vec<u8>> for Value {
         Value::Bytes(value.into())
     }
 }
+impl<'a> From<&'a str> for Value {
+    fn from(value: &'a str) -> Self {
+        Value::String(value.into())
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum ParseValueError {
@@ -415,5 +425,24 @@ mod test {
         ] {
             round_trip(v)
         }
+    }
+
+    #[tokio::test]
+    async fn ux() {
+        let node = iroh::node::Node::memory().spawn().await.unwrap();
+        let ns = node.docs.create().await.unwrap().id();
+        let gstore = IrohGStore::new(node.client().clone(), node.authors.default().await.unwrap());
+
+        // Create a string entry
+        gstore.put(Link::new(ns, "hello"), "world").await.unwrap();
+        assert_eq!(
+            "world",
+            gstore
+                .get(Link::new(ns, "hello"))
+                .await
+                .unwrap()
+                .as_str()
+                .unwrap()
+        )
     }
 }

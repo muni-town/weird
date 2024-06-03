@@ -1321,6 +1321,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "iroh",
+ "tokio",
 ]
 
 [[package]]

@@ -1318,7 +1318,9 @@ dependencies = [
 name = "gdata"
 version = "0.1.0"
 dependencies = [
- "iroh-docs",
+ "anyhow",
+ "bytes",
+ "iroh",
 ]
 
 [[package]]

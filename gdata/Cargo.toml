@@ -6,7 +6,9 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.86"
 bytes = "1.6.0"
+futures = { version = "0.3.30", default-features = false }
 iroh = { version = "0.17.0", default-features = false }
+ulid = "1.1.2"
 
 [dev-dependencies]
 tokio = "1.38.0"

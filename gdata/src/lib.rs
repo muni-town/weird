@@ -1,7 +1,10 @@
 //! Graph database on top of Iroh.
 
+use anyhow::Result;
 use bytes::Bytes;
+use futures::{Stream, StreamExt};
 use std::future::Future;
+use ulid::Ulid;
 
 use iroh::docs::{store::Query, AuthorId, NamespaceId};
 
@@ -16,7 +19,8 @@ impl IrohGStore {
     }
 }
 impl GStoreBackend for IrohGStore {
-    async fn get(&self, link: Link) -> anyhow::Result<GStoreValue<Self>> {
+    async fn get(&self, link: impl Into<Link>) -> Result<GStoreValue<Self>> {
+        let link = link.into();
         let doc =
             self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
                 anyhow::format_err!("Namespace does not exist: {}", link.namespace)
@@ -39,7 +43,8 @@ impl GStoreBackend for IrohGStore {
         }
     }
 
-    async fn get_list_idx(&self, link: Link, idx: u64) -> anyhow::Result<GStoreValue<Self>> {
+    async fn get_map_idx(&self, link: impl Into<Link>, idx: u64) -> Result<GStoreValue<Self>> {
+        let link = link.into();
         let doc =
             self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
                 anyhow::format_err!("Namespace does not exist: {}", link.namespace)
@@ -66,34 +71,36 @@ impl GStoreBackend for IrohGStore {
 
     async fn get_map_key(
         &self,
-        link: Link,
-        idx: impl Into<Bytes>,
-    ) -> anyhow::Result<GStoreValue<Self>> {
+        link: impl Into<Link>,
+        key: impl Into<Bytes>,
+    ) -> Result<GStoreValue<Self>> {
+        let link = link.into();
         let doc =
             self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
                 anyhow::format_err!("Namespace does not exist: {}", link.namespace)
             })?;
         // TODO: use smallvec to avoid allocations for reasonable key lengths.
-        let key = [link.key.clone(), idx.into()].concat();
+        let key = [link.key.clone(), key.into()].concat();
         let entry = doc.get_one(Query::key_exact(&key)).await?;
         if let Some(entry) = entry {
             let value = entry.content_bytes(&self.iroh).await?;
             let value = Value::from_bytes(value)?;
             Ok(GStoreValue {
-                link,
+                link: (link.namespace, key).into(),
                 store: self.clone(),
                 value,
             })
         } else {
             Ok(GStoreValue {
-                link,
+                link: (link.namespace, key).into(),
                 store: self.clone(),
                 value: Value::Null,
             })
         }
     }
 
-    async fn put(&self, link: Link, value: impl Into<Value>) -> anyhow::Result<()> {
+    async fn set(&self, link: impl Into<Link>, value: impl Into<Value>) -> Result<()> {
+        let link = link.into();
         let doc =
             self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
                 anyhow::format_err!("Namespace does not exist: {}", link.namespace)
@@ -103,110 +110,222 @@ impl GStoreBackend for IrohGStore {
         Ok(())
     }
 
-    async fn put_list_idx(
+    async fn set_map_key(
         &self,
-        link: Link,
-        idx: impl Into<Bytes>,
-        value: impl Into<Value>,
-    ) -> anyhow::Result<()> {
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
-        // TODO: use smallvec to avoid allocations for reasonable key lengths.
-        let key = [link.key.clone(), idx.into()].concat();
-        doc.set_bytes(self.author, key, value.into().to_bytes())
-            .await?;
-
-        Ok(())
-    }
-
-    async fn put_map_key(
-        &self,
-        link: Link,
+        link: impl Into<Link>,
         key: impl Into<Bytes>,
         value: impl Into<Value>,
-    ) -> anyhow::Result<()> {
+    ) -> Result<Link> {
+        let link = link.into();
         let doc =
             self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
                 anyhow::format_err!("Namespace does not exist: {}", link.namespace)
             })?;
         // TODO: use smallvec to avoid allocations for reasonable key lengths.
-        let key = [link.key.clone(), key.into()].concat();
-        doc.set_bytes(self.author, key, value.into().to_bytes())
+        let key = Bytes::from([link.key.clone(), key.into()].concat());
+        doc.set_bytes(self.author, key.clone(), value.into().to_bytes())
             .await?;
 
-        Ok(())
+        Ok(Link::new(link.namespace, key))
+    }
+
+    async fn list_map_items(
+        self,
+        link: impl Into<Link>,
+    ) -> Result<impl Stream<Item = anyhow::Result<(Bytes, GStoreValue<Self>)>>> {
+        let link = link.into();
+        let doc =
+            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
+                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
+            })?;
+        let stream = doc
+            .get_many(Query::single_latest_per_key().key_prefix(&link.key))
+            .await?
+            .then(move |entry_result| {
+                let store = self.clone();
+                let link = link.clone();
+                Box::pin(async move {
+                    match entry_result {
+                        Ok(entry) => {
+                            let key = Bytes::from(entry.key()[link.key.len()..].to_vec());
+                            let bytes = entry.content_bytes(&store.iroh).await?;
+                            let value = Value::from_bytes(bytes)?;
+                            Ok((
+                                key,
+                                GStoreValue {
+                                    link: link.clone(),
+                                    store: store.clone(),
+                                    value,
+                                },
+                            ))
+                        }
+                        Err(e) => Err(e),
+                    }
+                })
+            });
+
+        Ok(stream)
     }
 }
 
-pub trait GStoreBackend: Sized {
-    fn get(&self, link: Link) -> impl Future<Output = Result<GStoreValue<Self>, anyhow::Error>>;
-    fn get_list_idx(
+pub trait GStoreBackend: Sync + Send + Sized + Clone {
+    fn get(&self, link: impl Into<Link>) -> impl Future<Output = Result<GStoreValue<Self>>>;
+    fn get_or_init_map(
         &self,
-        link: Link,
+        link: impl Into<Link>,
+    ) -> impl Future<Output = Result<GStoreValue<Self>>>
+    where
+        Self: 'static,
+    {
+        let link = link.into();
+        async move {
+            let value = self.get(link.clone()).await?;
+            if value.is_null() {
+                let new_map_link = Link::new(link.namespace, Ulid::new().to_bytes().to_vec());
+                self.set(link.clone(), Value::Map(new_map_link.clone()))
+                    .await?;
+                Ok(GStoreValue {
+                    link,
+                    store: self.clone(),
+                    value: Value::Map(new_map_link),
+                })
+            } else {
+                Ok(value)
+            }
+        }
+    }
+    fn get_map_idx(
+        &self,
+        link: impl Into<Link>,
         idx: u64,
-    ) -> impl Future<Output = Result<GStoreValue<Self>, anyhow::Error>>;
+    ) -> impl Future<Output = Result<GStoreValue<Self>>>;
     fn get_map_key(
         &self,
-        link: Link,
-        idx: impl Into<Bytes>,
-    ) -> impl Future<Output = Result<GStoreValue<Self>, anyhow::Error>>;
-    fn put(
+        link: impl Into<Link>,
+        key: impl Into<Bytes>,
+    ) -> impl Future<Output = Result<GStoreValue<Self>>>;
+    fn get_map_key_or_init_map(
         &self,
-        link: Link,
+        link: impl Into<Link>,
+        key: impl Into<Bytes>,
+    ) -> impl Future<Output = Result<GStoreValue<Self>>>
+    where
+        Self: 'static,
+    {
+        let link = link.into();
+        let key = key.into();
+        async move {
+            let value = self.get_map_key(link.clone(), key.clone()).await?;
+            if value.is_null() {
+                let new_map_link = Link::new(link.namespace, Ulid::new().to_bytes().to_vec());
+                self.set_map_key(link.clone(), key.clone(), Value::Map(new_map_link.clone()))
+                    .await?;
+                Ok(GStoreValue {
+                    link: new_map_link.clone(),
+                    store: self.clone(),
+                    value: Value::Map(new_map_link),
+                })
+            } else {
+                Ok(value)
+            }
+        }
+    }
+    fn list_map_items(
+        self,
+        link: impl Into<Link>,
+    ) -> impl Future<Output = Result<impl Stream<Item = Result<(Bytes, GStoreValue<Self>)>>>>;
+    fn set(
+        &self,
+        link: impl Into<Link>,
         value: impl Into<Value>,
-    ) -> impl Future<Output = Result<(), anyhow::Error>>;
-    fn put_list_idx(
+    ) -> impl Future<Output = Result<()>>;
+    fn set_map_key(
         &self,
-        link: Link,
-        idx: impl Into<Bytes>,
-        value: impl Into<Value>,
-    ) -> impl Future<Output = Result<(), anyhow::Error>>;
-    fn put_map_key(
-        &self,
-        link: Link,
+        link: impl Into<Link>,
         key: impl Into<Bytes>,
         value: impl Into<Value>,
-    ) -> impl Future<Output = Result<(), anyhow::Error>>;
+    ) -> impl Future<Output = Result<Link>>;
 }
 
+#[derive(Clone)]
 pub struct GStoreValue<G: GStoreBackend> {
     pub link: Link,
     pub store: G,
     pub value: Value,
 }
-impl<G: GStoreBackend + Sync + Send> GStoreValue<G> {
-    pub async fn get_idx(&self, idx: u64) -> anyhow::Result<Self> {
-        if matches!(self.value, Value::List(_)) {
-            Ok(self.store.get_list_idx(self.link.clone(), idx).await?)
-        } else {
-            Err(anyhow::format_err!("item is not a list"))
+impl<G: GStoreBackend> std::fmt::Debug for GStoreValue<G> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GStoreValue")
+            .field("link", &self.link)
+            .field("value", &self.value)
+            .finish_non_exhaustive()
+    }
+}
+impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
+    pub async fn get_idx(&self, idx: u64) -> Result<Self> {
+        match &self.value {
+            Value::Map(map_link) => Ok(self.store.get_map_idx(map_link.clone(), idx).await?),
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
-    pub async fn get_key(&self, key: impl Into<Bytes>) -> anyhow::Result<Self> {
-        if matches!(self.value, Value::Map(_)) {
-            Ok(self.store.get_map_key(self.link.clone(), key).await?)
-        } else {
-            Err(anyhow::format_err!("item is not a map"))
+    pub async fn get_key(&self, key: impl Into<Bytes>) -> Result<Self> {
+        match &self.value {
+            Value::Map(map_link) => Ok(self.store.get_map_key(map_link.clone(), key).await?),
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
-    pub fn as_bytes(&self) -> anyhow::Result<&Bytes> {
+    pub async fn get_key_or_init_map(&self, key: impl Into<Bytes>) -> Result<Self> {
+        match &self.value {
+            Value::Map(map_link) => Ok(self
+                .store
+                .get_map_key_or_init_map(map_link.clone(), key)
+                .await?),
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+        }
+    }
+    pub async fn list_items(&self) -> Result<impl Stream<Item = Result<(Bytes, Self)>>> {
+        match &self.value {
+            Value::Map(map_link) => Ok(self.store.clone().list_map_items(map_link.clone()).await?),
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+        }
+    }
+    pub fn as_bytes(&self) -> Result<&Bytes> {
         match &self.value {
             Value::Bytes(b) => Ok(b),
-            _ => Err(anyhow::format_err!("item is not Bytes")),
+            _ => Err(anyhow::format_err!("item is not bytes: {:?}", self.value)),
         }
     }
-    pub fn as_str(&self) -> anyhow::Result<&str> {
+    pub fn as_str(&self) -> Result<&str> {
         match &self.value {
             Value::String(s) => Ok(s),
-            _ => Err(anyhow::format_err!("item is not a string")),
+            _ => Err(anyhow::format_err!(
+                "item is not a string: {:?}",
+                self.value
+            )),
         }
     }
-    pub async fn follow_link(&self) -> anyhow::Result<GStoreValue<G>> {
+    pub async fn set(&mut self, value: impl Into<Value>) -> Result<()> {
+        let value = value.into();
+        self.store.set(self.link.clone(), value.clone()).await?;
+        self.value = value;
+        Ok(())
+    }
+    pub async fn set_key(
+        &mut self,
+        key: impl Into<Bytes>,
+        value: impl Into<Value>,
+    ) -> Result<Link> {
+        match &self.value {
+            Value::Map(map_link) => {
+                Ok(self.store.set_map_key(map_link.clone(), key, value).await?)
+            }
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+        }
+    }
+    pub async fn follow_link(&self) -> Result<GStoreValue<G>> {
         match &self.value {
             Value::Link(link) => self.store.get(link.clone()).await,
-            _ => Err(anyhow::format_err!("item is not a link")),
+            _ => Err(anyhow::format_err!("item is not a link: {:?}", self.value)),
         }
     }
     pub fn is_null(&self) -> bool {
@@ -230,10 +349,22 @@ impl<G: GStoreBackend> std::ops::DerefMut for GStoreValue<G> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Link {
     pub namespace: NamespaceId,
     pub key: Bytes,
+}
+impl std::fmt::Debug for Link {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Link")
+            .field("namespace", &self.namespace)
+            .field(
+                "key",
+                &String::from_utf8(self.key.to_vec())
+                    .unwrap_or_else(|_| format!("0x{:X}", self.key)),
+            )
+            .finish()
+    }
 }
 const NAMESPACE_SIZE: usize = std::mem::size_of::<NamespaceId>();
 impl Link {
@@ -261,6 +392,11 @@ impl Link {
         buf
     }
 }
+impl<B: Into<Bytes>> From<(NamespaceId, B)> for Link {
+    fn from((namespace, bytes): (NamespaceId, B)) -> Self {
+        Link::new(namespace, bytes)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum ParseLinkError {
@@ -277,13 +413,12 @@ impl std::fmt::Display for ParseLinkError {
 }
 impl std::error::Error for ParseLinkError {}
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum Value {
     Null,
     String(String),
     Bytes(Bytes),
-    List(Link),
     Map(Link),
     Link(Link),
 }
@@ -300,6 +435,17 @@ impl From<Vec<u8>> for Value {
 impl<'a> From<&'a str> for Value {
     fn from(value: &'a str) -> Self {
         Value::String(value.into())
+    }
+}
+impl std::fmt::Debug for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Null => write!(f, "Null"),
+            Self::String(arg0) => f.debug_tuple("String").field(arg0).finish(),
+            Self::Bytes(arg0) => f.debug_tuple("Bytes").field(arg0).finish(),
+            Self::Map(arg0) => f.debug_tuple("Map").field(arg0).finish(),
+            Self::Link(arg0) => f.debug_tuple("Link").field(arg0).finish(),
+        }
     }
 }
 
@@ -325,9 +471,6 @@ impl std::fmt::Display for ParseValueError {
 impl std::error::Error for ParseValueError {}
 
 impl Value {
-    pub fn list(nsid: NamespaceId, key: impl Into<Bytes>) -> Self {
-        Value::List(Link::new(nsid, key))
-    }
     pub fn map(nsid: NamespaceId, key: impl Into<Bytes>) -> Self {
         Value::Map(Link::new(nsid, key))
     }
@@ -349,12 +492,11 @@ impl Value {
                 String::from_utf8(payload.to_vec()).map_err(|_| ParseValueError::Utf8Error)?,
             )),
             2 => Ok(Value::Bytes(payload.to_vec().into())),
-            3..=5 => {
+            3..=4 => {
                 let link = Link::from_bytes(payload).map_err(ParseValueError::ParseLinkError)?;
                 Ok(match tag {
-                    3 => Value::List(link),
-                    4 => Value::Map(link),
-                    5 => Value::Link(link),
+                    3 => Value::Map(link),
+                    4 => Value::Link(link),
                     _ => unreachable!(),
                 })
             }
@@ -379,14 +521,13 @@ impl Value {
                 buf.extend_from_slice(bytes);
                 buf
             }
-            Value::List(l) | Value::Map(l) | Value::Link(l) => {
+            Value::Map(l) | Value::Link(l) => {
                 let link_data = l.to_bytes();
                 let len = link_data.len() + 1;
                 let mut buf = Vec::with_capacity(len);
                 buf.push(match self {
-                    Value::List(_) => 3,
-                    Value::Map(_) => 4,
-                    Value::Link(_) => 5,
+                    Value::Map(_) => 3,
+                    Value::Link(_) => 4,
                     _ => unreachable!(),
                 });
                 buf.extend_from_slice(&link_data);
@@ -406,10 +547,6 @@ mod test {
             0u8, 1, 6, 8, 20, 3, 5, 87, 58, 86, 20, 38, 5, 29, 47, 57, 75, 59, 59, 75, 78, 57, 28,
             83, 83, 83, 84, 85, 83, 83, 83, 83,
         ]);
-        let nsid2 = NamespaceId::from([
-            0u8, 1, 6, 8, 20, 3, 5, 87, 58, 86, 20, 38, 5, 29, 47, 57, 75, 59, 59, 75, 78, 57, 28,
-            3, 83, 83, 84, 85, 83, 83, 83, 83,
-        ]);
         fn round_trip(v: Value) {
             let b = v.to_bytes();
             let v2 = Value::from_bytes(b).unwrap();
@@ -420,8 +557,6 @@ mod test {
             Value::Bytes(vec![1, 2, 3, 255, 20, 49, 84].into()),
             Value::Null,
             Value::Map(Link::new(nsid1, "hello world")),
-            Value::List(Link::new(nsid2, "goodbye world")),
-            Value::List(Link::new(nsid2, "other document")),
         ] {
             round_trip(v)
         }
@@ -434,7 +569,7 @@ mod test {
         let gstore = IrohGStore::new(node.client().clone(), node.authors.default().await.unwrap());
 
         // Create a string entry
-        gstore.put(Link::new(ns, "hello"), "world").await.unwrap();
+        gstore.set(Link::new(ns, "hello"), "world").await.unwrap();
         assert_eq!(
             "world",
             gstore

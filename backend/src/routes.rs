@@ -4,10 +4,10 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use iroh::docs::{store::Query, AuthorId};
+use iroh::docs::AuthorId;
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{auth::RauthySession, AppResult, AppState, AppError};
+use crate::{auth::RauthySession, AppError, AppResult, AppState};
 
 mod profile;
 

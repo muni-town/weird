@@ -2,14 +2,11 @@ use std::{path::PathBuf, sync::Arc};
 
 use axum::{error_handling::HandleErrorLayer, response::IntoResponse, BoxError, Router};
 use clap::Parser;
+use gdata::IrohGStore;
 use headers::{authorization::Bearer, Authorization, Header};
 use http::StatusCode;
-use iroh::{
-    client::{docs::Doc, RpcService},
-    docs::{AuthorId, NamespaceId},
-};
+use iroh::docs::{AuthorId, NamespaceId};
 use once_cell::sync::Lazy;
-use quic_rpc::transport::flume::FlumeConnection;
 use reqwest::Url;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -42,7 +39,8 @@ pub type AppState = Arc<AppStateInner>;
 pub struct AppStateInner {
     pub node: IrohNode,
     pub node_author: AuthorId,
-    pub profiles: Doc<FlumeConnection<RpcService>>,
+    pub graph: IrohGStore,
+    pub ns: NamespaceId,
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -54,6 +52,7 @@ impl<E: Into<anyhow::Error>> From<E> for AppError {
 }
 impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
+        tracing::error!("{:?}", self.0);
         (
             StatusCode::BAD_REQUEST,
             format!(r#"{{ "error": "{:?}" }}"#, self.0),
@@ -86,21 +85,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .spawn()
         .await?;
     let node_author = node.authors.default().await?;
+    let graph = IrohGStore::new(node.client().clone(), node_author);
     let profile_namespace_path = args.data_dir.join("weird-profile-namespace");
-    let profiles = if profile_namespace_path.exists() {
+    let ns = if profile_namespace_path.exists() {
         let bytes = std::fs::read(profile_namespace_path)?;
         let bytes: [u8; 32] = bytes.try_into().map_err(|_| {
             anyhow::format_err!("weird-profile-namespace length not equal to 32 bytes")
         })?;
-        let namespace = NamespaceId::from(bytes);
-        node.docs
-            .open(namespace)
-            .await?
-            .ok_or_else(|| anyhow::format_err!("Weird profile namespace doc does not exist"))?
+        NamespaceId::from(bytes)
     } else {
         let profiles = node.docs.create().await?;
         std::fs::write(profile_namespace_path, profiles.id())?;
-        profiles
+        profiles.id()
     };
 
     // Construct router
@@ -129,7 +125,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_state(Arc::new(AppStateInner {
             node,
             node_author,
-            profiles,
+            graph,
+            ns,
         }));
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", args.port)).await?;

@@ -1,4 +1,5 @@
-use futures_lite::StreamExt;
+use futures::StreamExt;
+use gdata::{GStoreBackend, Value};
 
 use super::*;
 
@@ -17,20 +18,23 @@ async fn get_profile(
     state: State<AppState>,
     Path(user_id): Path<String>,
 ) -> AppResult<Json<Profile>> {
-    let profile = state.profiles.get_one(Query::key_exact(&user_id)).await?;
-    let profile = if let Some(entry) = profile {
-        let content = entry.content_bytes(&state.profiles).await?;
-        serde_json::from_slice(&content)?
-    } else {
-        let profile = Profile::default();
-        state
-            .profiles
-            .set_bytes(state.node_author, user_id, serde_json::to_string(&profile)?)
-            .await?;
-        profile
-    };
+    tracing::info!(?user_id, "Getting profile data");
+    let profiles = state
+        .graph
+        .get_or_init_map((state.ns, "profiles".to_string()))
+        .await?;
+    tracing::info!(?profiles, "Loaded profiles");
+    let profile = profiles.get_key_or_init_map(user_id).await?;
+    tracing::info!(?profile, "Loaded profile");
+    let username = profile
+        .get_key("username".to_string())
+        .await?
+        .as_str()
+        .ok()
+        .map(|x| x.to_owned());
+    tracing::info!(?username, "Loaded username");
 
-    Ok(Json(profile))
+    Ok(Json(Profile { username }))
 }
 
 async fn post_profile(
@@ -38,21 +42,33 @@ async fn post_profile(
     Path(user_id): Path<String>,
     new_profile: Json<Profile>,
 ) -> AppResult<()> {
+    tracing::info!(?new_profile);
+    let profiles = state
+        .graph
+        .get_or_init_map((state.ns, "profiles".to_string()))
+        .await?;
+
+    tracing::info!(?profiles.value);
+
     // Usernames must be unique ( this is _really_ naïve, but just loop through every user for now
     // and make sure it's not taken )
-    let mut profiles = state.profiles.get_many(Query::key_prefix("")).await?;
-    while let Some(profile) = profiles.next().await {
-        let profile = profile?;
+    let mut stream = profiles.list_items().await?;
+    tracing::info!("Got stream");
+    while let Some(profile) = stream.next().await {
+        let (key, profile) = profile?;
+
+        tracing::info!(?profile.value, "found item");
 
         // The user's username can conflict with it's own username
-        if profile.key() == user_id.as_bytes() {
+        if key == user_id.as_bytes() {
+            tracing::info!("This is the same user, skipping");
             continue;
         }
 
         // Deserialize the profile and compare the username
-        let profile = profile.content_bytes(&state.profiles).await?;
-        let profile: Profile = serde_json::from_slice(&profile)?;
-        match (&profile.username, &new_profile.username) {
+        let username = profile.get_key("username".to_string()).await?;
+        let username = username.as_str().ok();
+        match (username, new_profile.username.as_deref()) {
             (Some(u1), Some(u2)) if u1 == u2 => {
                 return Err(AppError(anyhow::format_err!("Username already taken.")))
             }
@@ -60,12 +76,18 @@ async fn post_profile(
         }
     }
 
-    state
-        .profiles
-        .set_bytes(
-            state.node_author,
-            user_id,
-            serde_json::to_vec(&*new_profile)?,
+    tracing::info!(?new_profile, "Setting username");
+
+    profiles
+        .get_key_or_init_map(user_id)
+        .await?
+        .set_key(
+            "username".to_string(),
+            new_profile
+                .username
+                .clone()
+                .map(|x| x.into())
+                .unwrap_or(Value::Null),
         )
         .await?;
 

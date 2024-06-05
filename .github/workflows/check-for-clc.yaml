@@ -1,0 +1,14 @@
+name: Check for CLC Confirmation
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+env:
+  checkbox: "I have read and agree with the [Contributor License Compromise](https://github.com/commune-os/weird/blob/main/CONTRIBUTING.md#contributor-license-compromise)."
+
+jobs:
+  check_pull_request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate 
+        uses: MatiBrond/github-actions-checkbox-check@0.0.2

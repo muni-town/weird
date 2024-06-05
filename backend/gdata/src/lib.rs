@@ -3,28 +3,50 @@
 use anyhow::Result;
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
-use std::future::Future;
+use quic_rpc::transport::flume::FlumeConnection;
+use quick_cache::sync::Cache;
+use std::{future::Future, sync::Arc};
 use ulid::Ulid;
 
-use iroh::docs::{store::Query, AuthorId, NamespaceId};
+use iroh::{
+    client::RpcService,
+    docs::{store::Query, AuthorId, NamespaceId},
+};
+
+type Doc = iroh::client::docs::Doc<FlumeConnection<RpcService>>;
 
 #[derive(Clone, Debug)]
 pub struct IrohGStore {
     pub iroh: iroh::client::MemIroh,
     pub author: AuthorId,
+    pub docs: Arc<Cache<NamespaceId, Doc>>,
+}
+impl IrohGStore {
+    async fn open(&self, ns: NamespaceId) -> anyhow::Result<Doc> {
+        self.docs
+            .get_or_insert_async(&ns, async {
+                self.iroh
+                    .docs
+                    .open(ns)
+                    .await?
+                    .ok_or_else(|| anyhow::format_err!("doc does not exist"))
+            })
+            .await
+    }
 }
 impl IrohGStore {
     pub fn new(iroh: iroh::client::MemIroh, author: AuthorId) -> Self {
-        Self { iroh, author }
+        Self {
+            iroh,
+            author,
+            docs: Arc::new(Cache::new(5)),
+        }
     }
 }
 impl GStoreBackend for IrohGStore {
     async fn get(&self, link: impl Into<Link>) -> Result<GStoreValue<Self>> {
         let link = link.into();
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
+        let doc = self.open(link.namespace).await?;
         let entry = doc.get_one(Query::key_exact(&link.key)).await?;
         if let Some(entry) = entry {
             let value = entry.content_bytes(&self.iroh).await?;
@@ -45,10 +67,7 @@ impl GStoreBackend for IrohGStore {
 
     async fn get_map_idx(&self, link: impl Into<Link>, idx: u64) -> Result<GStoreValue<Self>> {
         let link = link.into();
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
+        let doc = self.open(link.namespace).await?;
         let entry = doc
             .get_one(Query::key_exact(&link.key).offset(idx).limit(1))
             .await?;
@@ -75,10 +94,7 @@ impl GStoreBackend for IrohGStore {
         key: impl Into<Bytes>,
     ) -> Result<GStoreValue<Self>> {
         let link = link.into();
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
+        let doc = self.open(link.namespace).await?;
         // TODO: use smallvec to avoid allocations for reasonable key lengths.
         let key = [link.key.clone(), key.into()].concat();
         let entry = doc.get_one(Query::key_exact(&key)).await?;
@@ -101,10 +117,7 @@ impl GStoreBackend for IrohGStore {
 
     async fn set(&self, link: impl Into<Link>, value: impl Into<Value>) -> Result<()> {
         let link = link.into();
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
+        let doc = self.open(link.namespace).await?;
         doc.set_bytes(self.author, link.key, value.into().to_bytes())
             .await?;
         Ok(())
@@ -117,10 +130,7 @@ impl GStoreBackend for IrohGStore {
         value: impl Into<Value>,
     ) -> Result<Link> {
         let link = link.into();
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
+        let doc = self.open(link.namespace).await?;
         // TODO: use smallvec to avoid allocations for reasonable key lengths.
         let key = Bytes::from([link.key.clone(), key.into()].concat());
         doc.set_bytes(self.author, key.clone(), value.into().to_bytes())
@@ -134,10 +144,7 @@ impl GStoreBackend for IrohGStore {
         link: impl Into<Link>,
     ) -> Result<impl Stream<Item = anyhow::Result<(Bytes, GStoreValue<Self>)>>> {
         let link = link.into();
-        let doc =
-            self.iroh.docs.open(link.namespace).await?.ok_or_else(|| {
-                anyhow::format_err!("Namespace does not exist: {}", link.namespace)
-            })?;
+        let doc = self.open(link.namespace).await?;
         let stream = doc
             .get_many(Query::single_latest_per_key().key_prefix(&link.key))
             .await?

@@ -16,7 +16,6 @@ export const actions = {
 		}
 
 		const json = JSON.stringify({ username });
-		console.log(json);
 
 		try {
 			const resp = await backendFetch(fetch, `/profile/${userInfo.id}`, {

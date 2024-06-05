@@ -54,7 +54,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
         tracing::error!("{:?}", self.0);
         (
-            StatusCode::BAD_REQUEST,
+            StatusCode::INTERNAL_SERVER_ERROR,
             format!(r#"{{ "error": "{:?}" }}"#, self.0),
         )
             .into_response()

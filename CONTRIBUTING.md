@@ -17,3 +17,27 @@ Because Weird wants to serve self-hosters and cloud-subscribers on equal terms. 
 #### Why the Blue Oak license for contributors and general utilities?
 
 Blue Oak is a simpler and [more modern alternative](https://writing.kemitchell.com/2019/03/09/Deprecation-Notice.html) to older permissive licenses with equivalent legal implications.
+
+## Development Setup
+
+Steps to get Weird running locally.
+
+### Dependencies
+
+- Docker
+- Docker Compose
+- pnpm
+- Rust
+
+### Steps
+
+1. Clone the repo.
+1. `docker compose up -d`
+1. `pnpm i`
+1. `pnpm run dev`
+1. In a separate terminal `cargo r -p backend`
+
+### Result
+
+- You will be able to hit the app at http://localhost:9523
+- To see emails sent by the system you can go to the development SMTP viewer at http://localhost:8091

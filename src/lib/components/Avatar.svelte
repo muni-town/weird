@@ -4,12 +4,12 @@
 
 	const baseUrl = env.PUBLIC_DICEBEAR_URL + '/8.x/bottts/svg?seed=';
 
-	let { seed }: { seed: string } = $props();
+	let { seed, width }: { seed: string; width?: string } = $props();
 </script>
 
 <Avatar
 	background="bg-transparent"
 	src={`${baseUrl}${seed}`}
 	rounded="rounded-full"
-	width="w-32"
+	width={width || 'w-32'}
 />

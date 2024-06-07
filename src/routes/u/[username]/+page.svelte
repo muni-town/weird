@@ -69,6 +69,11 @@
 						{printWorkCompensation(profile.work_compensation)}
 					</div>
 				{/if}
+				{#if profile.bio}
+					<div>
+						<pre class="text-base p-3 rounded-lg bg-surface-900 mt-2 font-sans">{profile.bio}</pre>
+					</div>
+				{/if}
 			</div>
 		</div>
 	</main>

@@ -40,6 +40,10 @@ export const actions = {
 		if (work_compensation == '') {
 			work_compensation = null;
 		}
+		let bio = data.get('bio');
+		if (bio == '') {
+			bio = null;
+		}
 
 		const json = JSON.stringify({
 			username,
@@ -49,7 +53,8 @@ export const actions = {
 			contact_info,
 			tags,
 			work_capacity,
-			work_compensation
+			work_compensation,
+			bio
 		});
 
 		try {

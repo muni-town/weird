@@ -20,6 +20,7 @@
 	let tags = $state(data.profile?.tags || []);
 	let work_capacity = $state(data.profile?.work_capacity);
 	let work_compensation = $state(data.profile?.work_compensation);
+	let bio = $state(data.profile?.bio || '');
 
 	const baseUrl = new URL($page.url);
 	baseUrl.pathname = '';
@@ -140,6 +141,16 @@
 					<option value="paid">Paid</option>
 					<option value="volunteer">Volunteer</option>
 				</select>
+			</label>
+			<label class="label">
+				<span>Bio</span>
+				<textarea
+					name="bio"
+					class="textarea"
+					placeholder="Tell people more about you..."
+					bind:value={bio}
+				>
+				</textarea>
 			</label>
 
 			<button class="variant-filled btn mt-4"> Save </button>

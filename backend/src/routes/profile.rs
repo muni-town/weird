@@ -11,6 +11,7 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Profile {
     pub username: Option<String>,
     pub display_name: Option<String>,
@@ -21,6 +22,7 @@ pub struct Profile {
     pub tags: Vec<String>,
     pub work_capacity: Option<WorkCapacity>,
     pub work_compensation: Option<WorkCompensation>,
+    pub bio: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -90,6 +92,12 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
             "volunteer" => Some(WorkCompensation::Volunteer),
             _ => None,
         });
+    let bio = profile
+        .get_key("bio".to_string())
+        .await?
+        .as_str()
+        .ok()
+        .map(|x| x.to_owned());
     let tags_stream = profile
         .get_key_or_init_map("tags".to_string())
         .await?
@@ -115,6 +123,7 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
         tags,
         work_capacity,
         work_compensation,
+        bio,
     })
 }
 
@@ -262,6 +271,16 @@ async fn post_profile(
                     WorkCompensation::Paid => "paid".into(),
                     WorkCompensation::Volunteer => "volunteer".into(),
                 })
+                .unwrap_or(Value::Null),
+        )
+        .await?;
+    profile
+        .set_key(
+            "bio".to_string(),
+            new_profile
+                .bio
+                .clone()
+                .map(|x| x.into())
                 .unwrap_or(Value::Null),
         )
         .await?;

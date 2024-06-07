@@ -2,7 +2,9 @@
 	import getPkce from 'oauth-pkce';
 	import { getUserInfo } from '$lib/rauthy';
 	import { onMount } from 'svelte';
-	import type { PageData } from '../$types';
+	import type { PageData } from './$types';
+	import { page } from '$app/stores';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	const { data }: { data: PageData } = $props();
 
@@ -10,6 +12,9 @@
 	const PKCE_VERIFIER = 'pkce_verifier';
 
 	let username = $state(data.profile?.username || '');
+	let avatar_seed = $state(data.profile?.avatar_seed || '');
+	const baseUrl = new URL($page.url);
+	baseUrl.pathname = '';
 
 	const getKey = (i: number) => {
 		let res = '';
@@ -50,18 +55,39 @@
 			action="/account/update"
 			class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
 		>
-			<h1 class="my-3 text-2xl">Profile</h1>
+			<div class="mb-4 flex items-center gap-3">
+				<Avatar username={avatar_seed} />
+				<h1 class="my-3 text-2xl">Profile</h1>
+			</div>
 
 			<div class="mb-4">
-				<strong class="pr-2">Email:</strong>{userInfo.email}
+				<div>
+					<strong class="pr-2">Email:</strong>{userInfo.email}
+				</div>
+				<div>
+					<strong class="pr-2">Profile Page:</strong>
+					{#if data.profile?.username}
+						<a class="underline" href={`${baseUrl}u/${data.profile?.username}`}>
+							{`${baseUrl}u/${data.profile?.username}`}
+						</a>
+					{:else}Username Not Set{/if}
+				</div>
 			</div>
 
 			<label class="label">
 				<span>Username</span>
 				<input name="username" class="input" placeholder="Username" bind:value={username} />
+				{#if !data.profile?.username}<div class="pl-3 text-sm">
+						Set a username to claim your profile page.
+					</div>{/if}
+			</label>
+			<label class="label">
+				<span>Avatar Seed</span>
+				<input name="avatar_seed" class="input" placeholder="I am a robot..." bind:value={avatar_seed} />
+				<div class="pl-3 text-sm">Your avatar is randomly generated from this text.</div>
 			</label>
 
-			<button class="variant-filled btn"> Save </button>
+			<button class="variant-filled btn mt-4"> Save </button>
 		</form>
 	</main>
 {/if}

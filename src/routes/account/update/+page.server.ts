@@ -14,8 +14,12 @@ export const actions = {
 		if (username === '') {
 			username = null;
 		}
+		let avatar_seed = data.get('avatar_seed');
+		if (avatar_seed == '') {
+			avatar_seed = null;
+		}
 
-		const json = JSON.stringify({ username });
+		const json = JSON.stringify({ username, avatar_seed });
 
 		try {
 			const resp = await backendFetch(fetch, `/profile/${userInfo.id}`, {

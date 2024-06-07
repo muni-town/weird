@@ -12,6 +12,7 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Profile {
     pub username: Option<String>,
+    pub avatar_seed: Option<String>,
 }
 
 async fn get_profile(
@@ -29,8 +30,17 @@ async fn get_profile(
         .as_str()
         .ok()
         .map(|x| x.to_owned());
+    let avatar_seed = profile
+        .get_key("avatar_seed".to_string())
+        .await?
+        .as_str()
+        .ok()
+        .map(|x| x.to_owned());
 
-    Ok(Json(Profile { username }))
+    Ok(Json(Profile {
+        username,
+        avatar_seed,
+    }))
 }
 
 async fn post_profile(
@@ -65,9 +75,8 @@ async fn post_profile(
         }
     }
 
-    profiles
-        .get_key_or_init_map(user_id)
-        .await?
+    let mut profile = profiles.get_key_or_init_map(user_id).await?;
+    profile
         .set_key(
             "username".to_string(),
             new_profile
@@ -75,6 +84,17 @@ async fn post_profile(
                 .clone()
                 .map(|x| x.into())
                 .unwrap_or(Value::Null),
+        )
+        .await?;
+    profile
+        .set_key(
+            "avatar_seed".to_string(),
+            new_profile
+                .avatar_seed
+                .clone()
+                .or_else(|| new_profile.username.clone())
+                .map(|x| x.into())
+                .unwrap_or_else(|| Value::Null),
         )
         .await?;
 

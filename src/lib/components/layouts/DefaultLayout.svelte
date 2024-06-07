@@ -54,5 +54,10 @@
 
 <slot></slot>
 
+<div class="text-xs text-center text-surface-500 mt-12">
+	Avatars generated with <a class="underline" href="https://bottts.com/">Bottts</a> and
+	<a class="underline" href="https://dicebear.com">DiceBear</a>.
+</div>
+
 <style>
 </style>

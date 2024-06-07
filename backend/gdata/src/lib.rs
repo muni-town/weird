@@ -173,6 +173,21 @@ impl GStoreBackend for IrohGStore {
 
         Ok(stream)
     }
+
+    async fn del(&self, link: impl Into<Link>) -> Result<()> {
+        let link = link.into();
+        let doc = self.open(link.namespace).await?;
+        doc.del(self.author, link.key).await?;
+        Ok(())
+    }
+
+    async fn del_map_key(&self, link: impl Into<Link>, key: impl Into<Bytes>) -> Result<()> {
+        let link = link.into();
+        let doc = self.open(link.namespace).await?;
+        let key = Bytes::from([link.key.clone(), key.into()].concat());
+        doc.del(self.author, key).await?;
+        Ok(())
+    }
 }
 
 pub trait GStoreBackend: Sync + Send + Sized + Clone {
@@ -246,12 +261,18 @@ pub trait GStoreBackend: Sync + Send + Sized + Clone {
         link: impl Into<Link>,
         value: impl Into<Value>,
     ) -> impl Future<Output = Result<()>>;
+    fn del(&self, link: impl Into<Link>) -> impl Future<Output = Result<()>>;
     fn set_map_key(
         &self,
         link: impl Into<Link>,
         key: impl Into<Bytes>,
         value: impl Into<Value>,
     ) -> impl Future<Output = Result<Link>>;
+    fn del_map_key(
+        &self,
+        link: impl Into<Link>,
+        key: impl Into<Bytes>,
+    ) -> impl Future<Output = Result<()>>;
 }
 
 #[derive(Clone)]
@@ -318,7 +339,7 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         Ok(())
     }
     pub async fn set_key(
-        &mut self,
+        &self,
         key: impl Into<Bytes>,
         value: impl Into<Value>,
     ) -> Result<Link> {
@@ -326,6 +347,18 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
             Value::Map(map_link) => {
                 Ok(self.store.set_map_key(map_link.clone(), key, value).await?)
             }
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+        }
+    }
+    pub async fn del_key(&mut self, key: impl Into<Bytes>) -> Result<()> {
+        match &self.value {
+            Value::Map(map_link) => Ok(self.store.del_map_key(map_link.clone(), key).await?),
+            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+        }
+    }
+    pub async fn del_all_keys(&self) -> Result<()> {
+        match &self.value {
+            Value::Map(map_link) => Ok(self.store.del(map_link.clone()).await?),
             _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
@@ -428,6 +461,11 @@ pub enum Value {
     Bytes(Bytes),
     Map(Link),
     Link(Link),
+}
+impl From<()> for Value {
+    fn from(_: ()) -> Self {
+        Value::Null
+    }
 }
 impl From<String> for Value {
     fn from(value: String) -> Self {

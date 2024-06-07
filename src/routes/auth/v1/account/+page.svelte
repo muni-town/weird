@@ -5,6 +5,7 @@
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import Avatar from '$lib/components/Avatar.svelte';
+	import { InputChip } from '@skeletonlabs/skeleton';
 
 	const { data }: { data: PageData } = $props();
 
@@ -12,7 +13,14 @@
 	const PKCE_VERIFIER = 'pkce_verifier';
 
 	let username = $state(data.profile?.username || '');
+	let display_name = $state(data.profile?.display_name || '');
 	let avatar_seed = $state(data.profile?.avatar_seed || '');
+	let location = $state(data.profile?.location || '');
+	let contact_info = $state(data.profile?.contact_info || '');
+	let tags = $state(data.profile?.tags || []);
+	let work_capacity = $state(data.profile?.work_capacity);
+	let work_compensation = $state(data.profile?.work_compensation);
+
 	const baseUrl = new URL($page.url);
 	baseUrl.pathname = '';
 
@@ -56,21 +64,23 @@
 			class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
 		>
 			<div class="mb-4 flex items-center gap-3">
-				<Avatar username={avatar_seed} />
-				<h1 class="my-3 text-2xl">Profile</h1>
+				<Avatar seed={avatar_seed} />
+				<div>
+					<h1 class="my-3 text-4xl">Edit Profile</h1>
+					<div class="text-surface-300">{userInfo.email}</div>
+				</div>
 			</div>
 
 			<div class="mb-4">
 				<div>
-					<strong class="pr-2">Email:</strong>{userInfo.email}
-				</div>
-				<div>
-					<strong class="pr-2">Profile Page:</strong>
-					{#if data.profile?.username}
-						<a class="underline" href={`${baseUrl}u/${data.profile?.username}`}>
-							{`${baseUrl}u/${data.profile?.username}`}
-						</a>
-					{:else}Username Not Set{/if}
+					<strong class="pr-2">Public Profile:</strong>
+					<span class="text-base">
+						{#if data.profile?.username}
+							<a class="underline" href={`${baseUrl}u/${data.profile?.username}`}>
+								{`${baseUrl}u/${data.profile?.username}`}
+							</a>
+						{:else}<span class="text-surface-400">Username Not Set</span>{/if}
+					</span>
 				</div>
 			</div>
 
@@ -82,9 +92,54 @@
 					</div>{/if}
 			</label>
 			<label class="label">
+				<span>Display Name</span>
+				<input name="display_name" class="input" placeholder={username} bind:value={display_name} />
+			</label>
+			<label class="label">
 				<span>Avatar Seed</span>
-				<input name="avatar_seed" class="input" placeholder="I am a robot..." bind:value={avatar_seed} />
+				<input
+					name="avatar_seed"
+					class="input"
+					placeholder="I am a robot..."
+					bind:value={avatar_seed}
+				/>
 				<div class="pl-3 text-sm">Your avatar is randomly generated from this text.</div>
+			</label>
+			<label class="label">
+				<span>Location</span>
+				<input name="location" class="input" bind:value={location} />
+			</label>
+			<label class="label">
+				<span>Contact Info</span>
+				<input
+					name="contact_info"
+					class="input"
+					placeholder="Email, phone, etc."
+					bind:value={contact_info}
+				/>
+
+				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
+			</label>
+			<!-- svelte-ignore a11y_label_has_associated_control -->
+			<label class="label">
+				<span>Tags</span>
+				<InputChip bind:value={tags} name="tags" placeholder="Interest, skill, etc." />
+			</label>
+			<label class="label">
+				<span>Work Capacity</span>
+				<select class="select" name="work_capacity" bind:value={work_capacity}>
+					<option value={null}>Not Specified</option>
+					<option value="part_time">Part Time</option>
+					<option value="full_time">Full Time</option>
+				</select>
+			</label>
+			<label class="label">
+				<span>Work Compensation</span>
+				<select class="select" name="work_compensation" bind:value={work_compensation}>
+					<option value={null}>Not Specified</option>
+					<option value="paid">Paid</option>
+					<option value="volunteer">Volunteer</option>
+				</select>
 			</label>
 
 			<button class="variant-filled btn mt-4"> Save </button>

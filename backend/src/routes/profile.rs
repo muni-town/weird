@@ -5,6 +5,7 @@ use super::*;
 
 pub fn install(router: Router<AppState>) -> Router<AppState> {
     router
+        .route("/profiles", get(get_profiles))
         .route("/profile/username/:username", get(get_profile_by_name))
         .route("/profile/:user_id", get(get_profile))
         .route("/profile/:user_id", post(post_profile))
@@ -125,6 +126,25 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
         work_compensation,
         bio,
     })
+}
+
+async fn get_profiles(state: State<AppState>) -> AppResult<Json<Vec<Profile>>> {
+    let profiles = state
+        .graph
+        .get_or_init_map((state.ns, "profiles".to_string()))
+        .await?;
+    let mut profiles_resp = Vec::new();
+
+    let mut profile_stream = profiles.list_items().await?;
+    while let Some(result) = profile_stream.next().await {
+        let (_, profile) = result?;
+        let profile = get_profile_from_value(profile).await?;
+        if profile.username.is_some() {
+            profiles_resp.push(profile);
+        }
+    }
+
+    Ok(Json(profiles_resp))
 }
 
 async fn get_profile_by_name(

@@ -14,7 +14,7 @@
 
 	let username = $state(data.profile?.username || '');
 	let display_name = $state(data.profile?.display_name || '');
-	let avatar_seed = $state(data.profile?.avatar_seed || '');
+	let avatar_seed = $state(data.profile?.avatar_seed || data.profile?.username || '');
 	let location = $state(data.profile?.location || '');
 	let contact_info = $state(data.profile?.contact_info || '');
 	let tags = $state(data.profile?.tags || []);
@@ -148,6 +148,7 @@
 					name="bio"
 					class="textarea"
 					placeholder="Tell people more about you..."
+					rows="5"
 					bind:value={bio}
 				>
 				</textarea>

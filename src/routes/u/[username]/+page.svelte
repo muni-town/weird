@@ -29,7 +29,7 @@
 	<main class="flex flex-col items-center">
 		<div class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl">
 			<div class="flex items-center gap-4">
-				<Avatar seed={profile.avatar_seed || ''} />
+				<Avatar seed={profile.avatar_seed || profile.username || ''} />
 				<h1 class="my-3 text-4xl">{profile.display_name || profile.username}</h1>
 			</div>
 
@@ -42,7 +42,7 @@
 						{profile.location}
 					</div>
 				{/if}
-				{#if profile.tags}
+				{#if profile.tags.length > 0}
 					<div class="flex items-center gap-2">
 						<strong>Tags: </strong>
 						<span class="flex gap-2 text-base">
@@ -71,7 +71,7 @@
 				{/if}
 				{#if profile.bio}
 					<div>
-						<pre class="text-base p-3 rounded-lg bg-surface-900 mt-2 font-sans">{profile.bio}</pre>
+						<pre class="mt-2 rounded-lg bg-surface-900 p-3 font-sans text-base">{profile.bio}</pre>
 					</div>
 				{/if}
 			</div>

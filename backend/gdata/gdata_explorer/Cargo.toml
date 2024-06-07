@@ -1,0 +1,12 @@
+[package]
+name = "gdata_explorer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crossterm = "0.27.0"
+ratatui = "0.26.3"
+gdata = { path = "../" }
+clap = { version = "4.5.6", features = ["derive", "env"] }
+iroh = "0.17.0"
+anyhow = "1.0.86"

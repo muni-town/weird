@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { env} from "$env/dynamic/public"
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	import { getUserInfo } from '$lib/rauthy';
@@ -98,6 +99,10 @@
 		await handleAuthResp(authResp);
 	}
 </script>
+
+<svelte:head>
+	<title>Login | {env.PUBLIC_INSTANCE_NAME}</title>
+</svelte:head>
 
 <main class="flex flex-col items-center" onsubmit={onSubmit}>
 	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import type { WorkCapacity, WorkCompensation } from '../../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
@@ -24,6 +25,12 @@
 		}
 	};
 </script>
+
+<svelte:head>
+	<title>
+		{profile ? profile.display_name || profile.username : 'Profile'} | {env.PUBLIC_INSTANCE_NAME}
+	</title>
+</svelte:head>
 
 {#if profile}
 	<main class="flex flex-col items-center">

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
+	import { PUBLIC_MEMBERS_TITLE } from '$env/static/public';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import type { WorkCapacity, WorkCompensation } from '../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
@@ -56,6 +57,10 @@
 		searchBox.focus();
 	};
 </script>
+
+<svelte:head>
+	<title>{env.PUBLIC_MEMBERS_TITLE} | {env.PUBLIC_INSTANCE_NAME}</title>
+</svelte:head>
 
 <main class="flex max-w-full flex-col items-center">
 	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>

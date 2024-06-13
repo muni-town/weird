@@ -5,8 +5,9 @@ import type { Profile } from '../auth/v1/account/proxy+page.server';
 
 export const load: PageServerLoad = async ({
 	fetch,
-	request
-}): Promise<{ profiles: Profile[] }> => {
+	request,
+	url
+}): Promise<{ profiles: Profile[]; search?: string }> => {
 	let { userInfo } = await getSession(fetch, request);
 	let loggedIn = !!userInfo;
 	const resp = await backendFetch(fetch, `/profiles`);
@@ -18,5 +19,5 @@ export const load: PageServerLoad = async ({
 		});
 	}
 
-	return { profiles };
+	return { profiles, search: url.searchParams.get('q') || undefined };
 };

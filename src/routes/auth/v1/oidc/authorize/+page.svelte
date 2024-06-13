@@ -1,10 +1,15 @@
 <script lang="ts">
-	import { env} from "$env/dynamic/public"
+	import type { PageData } from './$types';
+	import { env } from '$env/dynamic/public';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	import { getUserInfo } from '$lib/rauthy';
 	import { checkResponse } from '$lib/utils';
 	import { onMount } from 'svelte';
+	import getPkce from 'oauth-pkce';
+
+	const { data }: { data: PageData } = $props();
+	const providers = data.providers;
 
 	const userInfo = getUserInfo();
 
@@ -28,6 +33,44 @@
 			error = 'Invalid email or password.';
 			password = '';
 			loggingIn = false;
+		}
+	}
+
+	function providerLogin(id: string) {
+		getPkce(64, (error, { challenge, verifier }) => {
+			if (!error) {
+				localStorage.setItem('pkceVerifierUpstream', verifier);
+				providerLoginPkce(id, challenge);
+			}
+		});
+	}
+
+	async function providerLoginPkce(id: string, pkce_challenge: string) {
+		let data = {
+			email: null,
+			client_id: clientId,
+			redirect_uri: redirectUri,
+			scopes: scopes,
+			state: oidcState,
+			nonce: nonce,
+			code_challenge: challenge,
+			code_challenge_method: challengeMethod,
+			provider_id: id,
+			pkce_challenge
+		};
+		try {
+			let res = await fetch('/auth/v1/providers/login', {
+				method: 'post',
+				body: JSON.stringify(data),
+				headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+			});
+			await checkResponse(res);
+			const xsrfToken = await res.text();
+			localStorage.setItem('providerToken', xsrfToken);
+
+			window.location.href = res.headers.get('location')!;
+		} catch (e) {
+			console.error('Error logging in with upstream provider', e);
 		}
 	}
 
@@ -158,6 +201,33 @@
 				<button class="variant-filled btn" disabled={loggingIn}>
 					{!loggingIn ? 'Login' : 'Loading...'}
 				</button>
+
+				{#if providers}
+					<div class="flex w-full flex-col items-center">
+						<div>Or Login With</div>
+						<div class="providers mt-2 flex-col">
+							{#each providers as provider (provider.id)}
+								<button
+									class="variant-outline btn w-full"
+									onclick={(e) => {
+										e.preventDefault();
+										providerLogin(provider.id);
+									}}
+								>
+									<div class="flex gap-3">
+										<span class="providerName">{provider.name}</span>
+										<img
+											src={`/auth/v1/providers/${provider.id}/img`}
+											alt=""
+											width="20"
+											height="20"
+										/>
+									</div>
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
 			</div>
 		{/if}
 	</form>

@@ -37,7 +37,7 @@
 			// we will get a forbidden if for instance the user already exists but without
 			// any upstream provider link (or the wrong one)
 			let body = await res.json();
-			error = body;
+			error = body.message;
 		} else if (res.status === 406) {
 			// TODO: mfa
 			// // 406 -> client forces MFA while the user has none

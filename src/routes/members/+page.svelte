@@ -5,7 +5,7 @@
 
 	const { data }: { data: PageData } = $props();
 	const profiles = data.profiles;
-	let search = $state('');
+	let search = $state(data.search || '');
 
 	const printWorkCapacity = (c?: WorkCapacity): string => {
 		if (c == 'full_time') {
@@ -88,7 +88,7 @@
 						{#if profile.tags.length > 0}
 							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
 								{#each profile.tags as tag}<button
-										class="dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 bg-surface-200 hover:bg-surface-400 text-surface-900-50-token btn rounded-md p-1"
+										class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
 										onclick={(e) => setSearch(e, tag)}
 									>
 										{tag}

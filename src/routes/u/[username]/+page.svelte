@@ -46,8 +46,14 @@
 					<div class="flex items-center gap-2">
 						<strong>Tags: </strong>
 						<span class="flex gap-2 text-base">
-							{#each profile.tags as tag}<span class="rounded-md bg-surface-900 p-1">{tag}</span
-								>{/each}
+							{#each profile.tags as tag}
+								<a
+									class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
+									href={`/members?q=${tag}`}
+								>
+									{tag}
+								</a>
+							{/each}
 						</span>
 					</div>
 				{/if}
@@ -71,7 +77,8 @@
 				{/if}
 				{#if profile.bio}
 					<div>
-						<pre class="mt-2 rounded-lg bg-surface-300 dark:bg-surface-900 p-3 font-sans text-base text-wrap">{profile.bio}</pre>
+						<pre
+							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
 					</div>
 				{/if}
 			</div>

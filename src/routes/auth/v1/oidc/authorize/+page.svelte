@@ -205,8 +205,8 @@
 				{#if providers}
 					<div class="flex w-full flex-col items-center">
 						<div>Or Login With</div>
-						<div class="providers mt-2 flex-col">
-							{#each providers as provider (provider.id)}
+						<div class="providers mt-2 flex-col flex gap-2">
+							{#each providers as provider}
 								<button
 									class="variant-outline btn w-full"
 									onclick={(e) => {
@@ -214,14 +214,9 @@
 										providerLogin(provider.id);
 									}}
 								>
-									<div class="flex gap-3">
+									<div class="flex flex-row gap-3">
 										<span class="providerName">{provider.name}</span>
-										<img
-											src={`/auth/v1/providers/${provider.id}/img`}
-											alt=""
-											width="20"
-											height="20"
-										/>
+										<img src={`/auth/v1/providers/${provider.id}/img`} alt={provider.name} />
 									</div>
 								</button>
 							{/each}

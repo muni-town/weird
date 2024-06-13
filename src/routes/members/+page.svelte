@@ -60,7 +60,13 @@
 	<h1 class="mt-8 text-4xl font-bold">Weird Ones</h1>
 
 	<div class="input-group input-group-divider mt-8 max-w-80 grid-cols-[1fr_auto]">
-		<input bind:this={searchBox} type="text" class="input" placeholder="Search..." bind:value={search} />
+		<input
+			bind:this={searchBox}
+			type="text"
+			class="input"
+			placeholder="Search..."
+			bind:value={search}
+		/>
 		<button class:invisible={search.length == 0} onclick={(e) => setSearch(e, '')}>x</button>
 	</div>
 
@@ -82,7 +88,7 @@
 						{#if profile.tags.length > 0}
 							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
 								{#each profile.tags as tag}<button
-										class="btn rounded-md bg-surface-900 p-1 hover:bg-surface-700"
+										class="dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 bg-surface-200 hover:bg-surface-400 text-surface-900-50-token btn rounded-md p-1"
 										onclick={(e) => setSearch(e, tag)}
 									>
 										{tag}

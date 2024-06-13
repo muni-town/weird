@@ -14,6 +14,10 @@
 	};
 </script>
 
+<svelte:head>
+	<title>{env.PUBLIC_INSTANCE_NAME}</title>
+</svelte:head>
+
 <AppBar>
 	<svelte:fragment slot="lead"
 		><img src="/logo.png" alt="Weird Logo" width="40px" /></svelte:fragment

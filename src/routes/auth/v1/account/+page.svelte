@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { InputChip } from '@skeletonlabs/skeleton';
+	import { env } from '$env/dynamic/public';
 
 	const { data }: { data: PageData } = $props();
 
@@ -56,6 +57,10 @@
 		}
 	});
 </script>
+
+<svelte:head>
+	<title>Profile | {env.PUBLIC_INSTANCE_NAME}</title>
+</svelte:head>
 
 {#if userInfo}
 	<main class="flex flex-col items-center">

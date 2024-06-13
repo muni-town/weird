@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { env } from '$env/dynamic/public';
 	import { checkResponse } from '$lib/utils';
 	import type { PageData } from './$types';
 
@@ -28,6 +29,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Set Password | {env.PUBLIC_INSTANCE_NAME}</title>
+</svelte:head>
 
 <main class="flex flex-col items-center">
 	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8" onsubmit={onSubmit}>

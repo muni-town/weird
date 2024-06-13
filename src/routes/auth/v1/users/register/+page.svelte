@@ -2,6 +2,7 @@
 	import { pow_work_wasm } from '$lib/spow/spow-wasm';
 	import { get_pow_challenge } from '$lib/rauthy/client';
 	import { checkResponse } from '$lib/utils';
+	import { env } from '$env/dynamic/public';
 
 	let processing = $state(false);
 	let error: string | null = $state(null);
@@ -44,6 +45,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Register | {env.PUBLIC_INSTANCE_NAME}</title>
+</svelte:head>
 
 <main class="flex flex-col items-center">
 	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8" onsubmit={handleSubmit}>

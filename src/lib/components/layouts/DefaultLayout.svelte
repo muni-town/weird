@@ -19,7 +19,7 @@
 		><img src="/logo.png" alt="Weird Logo" width="40px" /></svelte:fragment
 	>
 	<svelte:fragment slot="default"
-		><h1 class="text-xl font-bold"><a href="/">Weird.one</a></h1></svelte:fragment
+		><h1 class="text-xl font-bold"><a href="/">{env.PUBLIC_INSTANCE_NAME}</a></h1></svelte:fragment
 	>
 	<svelte:fragment slot="trail">
 		<div class="hidden items-center gap-3 sm:flex">

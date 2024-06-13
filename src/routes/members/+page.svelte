@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import type { WorkCapacity, WorkCompensation } from '../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
@@ -57,7 +58,7 @@
 </script>
 
 <main class="flex max-w-full flex-col items-center">
-	<h1 class="mt-8 text-4xl font-bold">Weird Ones</h1>
+	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>
 
 	<div class="input-group input-group-divider mt-8 max-w-80 grid-cols-[1fr_auto]">
 		<input

@@ -14,6 +14,7 @@ export const proxy_to_rauthy: RequestHandler = async ({ request, fetch }) => {
 
 	const headers = new Headers(request.headers);
 	headers.set('Host', url.hostname);
+	headers.set('Origin', url.host);
 
 	const resp = await fetch(url, {
 		method: request.method,

@@ -71,7 +71,7 @@
 				{/if}
 				{#if profile.bio}
 					<div>
-						<div class="mt-2 rounded-lg bg-surface-300 dark:bg-surface-900 p-3 font-sans text-base">{profile.bio}</div>
+						<pre class="mt-2 rounded-lg bg-surface-300 dark:bg-surface-900 p-3 font-sans text-base text-wrap">{profile.bio}</pre>
 					</div>
 				{/if}
 			</div>

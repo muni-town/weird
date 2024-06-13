@@ -46,12 +46,23 @@
 			return false;
 		});
 	});
+
+	let searchBox: HTMLInputElement;
+
+	const setSearch = (e: MouseEvent, s: string) => {
+		e.preventDefault();
+		search = s;
+		searchBox.focus();
+	};
 </script>
 
 <main class="flex max-w-full flex-col items-center">
 	<h1 class="mt-8 text-4xl font-bold">Weird Ones</h1>
 
-	<input class="input mt-8 max-w-80" placeholder="Search..." bind:value={search} />
+	<div class="input-group input-group-divider mt-8 max-w-80 grid-cols-[1fr_auto]">
+		<input bind:this={searchBox} type="text" class="input" placeholder="Search..." bind:value={search} />
+		<button class:invisible={search.length == 0} onclick={(e) => setSearch(e, '')}>x</button>
+	</div>
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
 		{#each filtered_profiles as profile}
@@ -70,8 +81,12 @@
 						{/if}
 						{#if profile.tags.length > 0}
 							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
-								{#each profile.tags as tag}<span class="rounded-md bg-surface-900 p-1">{tag}</span
-									>{/each}
+								{#each profile.tags as tag}<button
+										class="btn rounded-md bg-surface-900 p-1 hover:bg-surface-700"
+										onclick={(e) => setSearch(e, tag)}
+									>
+										{tag}
+									</button>{/each}
 							</div>
 						{/if}
 						{#if profile.contact_info}

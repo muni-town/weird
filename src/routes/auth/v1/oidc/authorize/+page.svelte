@@ -214,9 +214,9 @@
 										providerLogin(provider.id);
 									}}
 								>
-									<div class="flex flex-row gap-3">
+									<div class="flex flex-row gap-3 items-center">
 										<span class="providerName">{provider.name}</span>
-										<img src={`/auth/v1/providers/${provider.id}/img`} alt={provider.name} />
+										<img src={`/auth/v1/providers/${provider.id}/img`} alt={provider.name} style="width: 20px; height: 20px;" />
 									</div>
 								</button>
 							{/each}

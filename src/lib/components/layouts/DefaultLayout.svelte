@@ -1,4 +1,5 @@
 <script>
+	import { env } from '$env/dynamic/public';
 	import { getUserInfo } from '$lib/rauthy';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
 	import { AppBar } from '@skeletonlabs/skeleton';
@@ -54,9 +55,12 @@
 
 <slot></slot>
 
-<div class="text-xs text-center text-surface-500 mt-12">
-	Avatars generated with <a class="underline" href="https://bottts.com/">Bottts</a> and
-	<a class="underline" href="https://dicebear.com">DiceBear</a>.
+<div class="mt-12 text-center text-xs text-surface-500">
+	Avatars generated with
+	<a class="underline" href="https://dicebear.com">DiceBear</a> and the
+	<a class="underline" href={`https://dicebear.com/styles/${env.PUBLIC_DICEBEAR_STYLE}`}
+		>{env.PUBLIC_DICEBEAR_STYLE}</a
+	> style.
 </div>
 
 <style>

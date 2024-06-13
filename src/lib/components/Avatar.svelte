@@ -2,7 +2,7 @@
 	import { env } from '$env/dynamic/public';
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	const baseUrl = env.PUBLIC_DICEBEAR_URL + '/8.x/bottts/svg?seed=';
+	const baseUrl = `${env.PUBLIC_DICEBEAR_URL}8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=`;
 
 	let { seed, width }: { seed: string; width?: string } = $props();
 </script>

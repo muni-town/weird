@@ -22,7 +22,7 @@ pub struct IrohGStore {
     pub docs: Arc<Cache<NamespaceId, Doc>>,
 }
 impl IrohGStore {
-    async fn open(&self, ns: NamespaceId) -> anyhow::Result<Doc> {
+    pub async fn open(&self, ns: NamespaceId) -> anyhow::Result<Doc> {
         self.docs
             .get_or_insert_async(&ns, async {
                 self.iroh

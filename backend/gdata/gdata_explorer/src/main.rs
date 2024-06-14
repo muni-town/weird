@@ -1,124 +1,288 @@
-use std::{error::Error, io, path::PathBuf};
+use std::path::{Path, PathBuf};
 
+use bytes::Bytes;
+use clap::Parser;
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
+    event::{DisableMouseCapture, EnableMouseCapture, Event, EventStream, KeyCode, KeyModifiers},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use futures::StreamExt;
+use gdata::{GStoreBackend, GStoreValue, IrohGStore};
+use iroh::{
+    client::docs::Entry,
+    docs::{store::Query, AuthorId, NamespaceId},
+    node::FsNode,
+};
+use layout::Size;
+use once_cell::sync::Lazy;
 use ratatui::{
     prelude::*,
-    widgets::{Block, List, ListItem, Paragraph},
+    widgets::{Block, List, ListState, Paragraph, Wrap},
 };
-
-enum InputMode {
-    Normal,
-    Editing,
-}
 
 #[derive(clap::Parser)]
 pub struct Args {
-    #[arg(short = 'd', default_value = "data", env)]
+    #[arg(default_value = "data", env)]
     pub data_dir: PathBuf,
 }
 
+pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
+pub static RT: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+});
+
 /// App holds the state of the application
 struct App {
-    /// Current value of the input box
-    input: String,
-    /// Position of cursor in the editor area.
-    character_index: usize,
-    /// Current input mode
-    input_mode: InputMode,
-    /// History of recorded messages
-    messages: Vec<String>,
+    node: iroh::node::FsNode,
+    node_author: AuthorId,
+    size: Size,
+    graph: IrohGStore,
+    state: AppState,
+}
+
+#[derive(Default)]
+enum AppState {
+    // Temporary state
+    #[default]
+    None,
+    /// The app has been intialized and is on the home page.
+    Home(HomePage),
+    Doc(NamespaceView),
+}
+
+impl AppState {
+    fn take(&mut self) -> Self {
+        std::mem::take(self)
+    }
+}
+
+fn check_for_exit(event: &Event) -> anyhow::Result<()> {
+    if let Event::Key(key) = &event {
+        if key.code == KeyCode::Char('q')
+            || (key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c'))
+        {
+            anyhow::bail!("Exiting");
+        }
+    }
+    Ok(())
 }
 
 impl App {
-    const fn new() -> Self {
-        Self {
-            input: String::new(),
-            input_mode: InputMode::Normal,
-            messages: Vec::new(),
-            character_index: 0,
+    async fn new(path: &Path) -> anyhow::Result<Self> {
+        let node = iroh::node::FsNode::persistent(path)
+            .await?
+            .node_discovery(iroh::node::DiscoveryConfig::None)
+            .relay_mode(iroh::net::relay::RelayMode::Disabled)
+            .spawn()
+            .await?;
+        let node_author = node.authors.default().await?;
+        let graph = IrohGStore::new(node.client().clone(), node_author);
+
+        let state = Self::load_home(&node).await?;
+        Ok(Self {
+            node,
+            node_author,
+            size: Size::default(),
+            graph,
+            state,
+        })
+    }
+
+    async fn load_home(node: &FsNode) -> anyhow::Result<AppState> {
+        let mut docs = Vec::new();
+        let mut stream = node.docs.list().await?;
+        while let Some(doc) = stream.next().await {
+            let (doc, _cap) = doc?;
+            docs.push(doc);
         }
+        Ok(AppState::Home(HomePage {
+            docs,
+            docs_state: ListState::default().with_selected(Some(0)),
+        }))
     }
 
-    fn move_cursor_left(&mut self) {
-        let cursor_moved_left = self.character_index.saturating_sub(1);
-        self.character_index = self.clamp_cursor(cursor_moved_left);
+    async fn update(&mut self, event: Event) -> anyhow::Result<()> {
+        self.state = match self.state.take() {
+            AppState::None => {
+                panic!("State should be replaced each update and not allowed to get to None")
+            }
+            AppState::Home(home) => self.update_home(home, event).await?,
+            AppState::Doc(doc) => self.update_doc(doc, event).await?,
+        };
+        Ok(())
     }
 
-    fn move_cursor_right(&mut self) {
-        let cursor_moved_right = self.character_index.saturating_add(1);
-        self.character_index = self.clamp_cursor(cursor_moved_right);
-    }
+    async fn update_home(&mut self, mut home: HomePage, event: Event) -> anyhow::Result<AppState> {
+        check_for_exit(&event)?;
 
-    fn enter_char(&mut self, new_char: char) {
-        let index = self.byte_index();
-        self.input.insert(index, new_char);
-        self.move_cursor_right();
-    }
+        if let Event::Key(key) = event {
+            match key.code {
+                KeyCode::Up | KeyCode::Char('k') => {
+                    let selected = home.docs_state.selected_mut().get_or_insert(0);
+                    *selected = (*selected + 1).min(home.docs.len())
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    let selected = home.docs_state.selected_mut().get_or_insert(0);
+                    *selected = selected.saturating_sub(1);
+                }
+                KeyCode::Enter => {
+                    if let Some(ns) = home.docs.get(home.docs_state.selected().unwrap_or(0)) {
+                        let doc = self.graph.open(*ns).await?;
+                        let mut entries = Vec::new();
+                        let mut stream = doc.get_many(Query::single_latest_per_key()).await?;
+                        while let Some(entry) = stream.next().await {
+                            let entry = entry?;
+                            entries.push(entry);
+                        }
+                        let selected_value = match entries.first() {
+                            Some(entry) => Some(self.graph.get((*ns, entry.key().to_vec())).await?),
+                            None => None,
+                        };
 
-    /// Returns the byte index based on the character position.
-    ///
-    /// Since each character in a string can be contain multiple bytes, it's necessary to calculate
-    /// the byte index based on the index of the character.
-    fn byte_index(&mut self) -> usize {
-        self.input
-            .char_indices()
-            .map(|(i, _)| i)
-            .nth(self.character_index)
-            .unwrap_or(self.input.len())
-    }
-
-    fn delete_char(&mut self) {
-        let is_not_cursor_leftmost = self.character_index != 0;
-        if is_not_cursor_leftmost {
-            // Method "remove" is not used on the saved text for deleting the selected char.
-            // Reason: Using remove on String works on bytes instead of the chars.
-            // Using remove would require special care because of char boundaries.
-
-            let current_index = self.character_index;
-            let from_left_to_current_index = current_index - 1;
-
-            // Getting all characters before the selected character.
-            let before_char_to_delete = self.input.chars().take(from_left_to_current_index);
-            // Getting all characters after selected character.
-            let after_char_to_delete = self.input.chars().skip(current_index);
-
-            // Put all characters together except the selected one.
-            // By leaving the selected one out, it is forgotten and therefore deleted.
-            self.input = before_char_to_delete.chain(after_char_to_delete).collect();
-            self.move_cursor_left();
+                        return Ok(AppState::Doc(NamespaceView {
+                            ns: *ns,
+                            entries,
+                            entries_state: ListState::default().with_selected(Some(0)),
+                            selected_value,
+                        }));
+                    }
+                }
+                _ => (),
+            }
         }
+
+        Ok(AppState::Home(home))
     }
 
-    fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
-        new_cursor_pos.clamp(0, self.input.chars().count())
-    }
+    async fn update_doc(&mut self, page: NamespaceView, event: Event) -> anyhow::Result<AppState> {
+        check_for_exit(&event)?;
 
-    fn reset_cursor(&mut self) {
-        self.character_index = 0;
-    }
+        if let Event::Key(key) = event {
+            #[allow(clippy::single_match)]
+            match key.code {
+                KeyCode::Esc => return Self::load_home(&self.node).await,
+                _ => (),
+            }
+        }
 
-    fn submit_message(&mut self) {
-        self.messages.push(self.input.clone());
-        self.input.clear();
-        self.reset_cursor();
+        Ok(AppState::Doc(page))
     }
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
+impl Widget for &mut App {
+    fn render(self, area: Rect, buf: &mut Buffer)
+    where
+        Self: Sized,
+    {
+        self.size = buf.area.as_size();
+        match &mut self.state {
+            AppState::None => panic!("App should not be left in none state"),
+            AppState::Home(home) => home.render(area, buf),
+            AppState::Doc(doc) => doc.render(area, buf),
+        }
+    }
+}
+
+struct HomePage {
+    docs: Vec<NamespaceId>,
+    docs_state: ListState,
+}
+
+impl Widget for &mut HomePage {
+    fn render(self, area: Rect, buf: &mut Buffer)
+    where
+        Self: Sized,
+    {
+        let layout = Layout::vertical(vec![Constraint::Max(1), Constraint::Fill(1)]);
+        let [title_bar_area, app_area] = layout.areas(area);
+
+        Line::styled("GData Explorer", Style::default().bold())
+            .centered()
+            .render(title_bar_area, buf);
+
+        StatefulWidget::render(
+            List::new(
+                self.docs
+                    .iter()
+                    .map(|x| Text::from(x.to_string()))
+                    .collect::<Vec<_>>(),
+            )
+            .block(Block::bordered().title("Namespaces"))
+            .highlight_style(Style::default().black().on_gray()),
+            app_area,
+            buf,
+            &mut self.docs_state,
+        );
+    }
+}
+
+struct NamespaceView {
+    ns: NamespaceId,
+    entries: Vec<Entry>,
+    entries_state: ListState,
+    selected_value: Option<GStoreValue<IrohGStore>>,
+}
+
+impl Widget for &mut NamespaceView {
+    fn render(self, area: Rect, buf: &mut Buffer)
+    where
+        Self: Sized,
+    {
+        let layout = Layout::vertical(vec![Constraint::Max(1), Constraint::Fill(1)]);
+        let [title_bar_area, app_area] = layout.areas(area);
+
+        Line::styled(
+            format!("GData Explorer ( {} )", self.ns),
+            Style::default().bold(),
+        )
+        .centered()
+        .render(title_bar_area, buf);
+
+        let layout = Layout::horizontal(vec![Constraint::Fill(1), Constraint::Fill(1)]);
+        let [document_area, value_area] = layout.areas(app_area);
+
+        StatefulWidget::render(
+            List::new(
+                self.entries
+                    .iter()
+                    .map(|x| Line::raw(String::from_utf8_lossy(x.key()))),
+            )
+            .highlight_style(Style::new().black().on_white())
+            .block(Block::bordered().title("Key")),
+            document_area,
+            buf,
+            &mut self.entries_state,
+        );
+
+        Paragraph::new(format!("{:#?}", self.selected_value))
+            .block(Block::bordered().title("Namespace"))
+            .wrap(Wrap { trim: false })
+            .render(value_area, buf);
+
+        Block::bordered().title("Value").render(value_area, buf);
+    }
+}
+
+fn main() -> anyhow::Result<()> {
+    RT.block_on(start())
+}
+
+async fn start() -> anyhow::Result<()> {
+    let app = App::new(&ARGS.data_dir).await?;
+
+    let backend = CrosstermBackend::new(std::io::stdout());
     let mut terminal = Terminal::new(backend)?;
 
+    // setup terminal
+    enable_raw_mode()?;
+    execute!(std::io::stdout(), EnterAlternateScreen, EnableMouseCapture)?;
+
     // create app and run it
-    let app = App::new();
-    let res = run_app(&mut terminal, app);
+    let res = run_app(&mut terminal, app).await;
 
     // restore terminal
     disable_raw_mode()?;
@@ -136,115 +300,87 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
+async fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> anyhow::Result<()> {
+    let mut events = EventStream::new();
+    terminal.draw(|f| f.render_widget(&mut app, f.size()))?;
     loop {
-        terminal.draw(|f| ui(f, &app))?;
-
-        if let Event::Key(key) = event::read()? {
-            match app.input_mode {
-                InputMode::Normal => match key.code {
-                    KeyCode::Char('e') => {
-                        app.input_mode = InputMode::Editing;
-                    }
-                    KeyCode::Char('q') => {
-                        return Ok(());
-                    }
-                    _ => {}
-                },
-                InputMode::Editing if key.kind == KeyEventKind::Press => match key.code {
-                    KeyCode::Enter => app.submit_message(),
-                    KeyCode::Char(to_insert) => {
-                        app.enter_char(to_insert);
-                    }
-                    KeyCode::Backspace => {
-                        app.delete_char();
-                    }
-                    KeyCode::Left => {
-                        app.move_cursor_left();
-                    }
-                    KeyCode::Right => {
-                        app.move_cursor_right();
-                    }
-                    KeyCode::Esc => {
-                        app.input_mode = InputMode::Normal;
-                    }
-                    _ => {}
-                },
-                InputMode::Editing => {}
-            }
+        if let Some(event) = events.next().await {
+            let event = event?;
+            app.update(event).await?;
+            terminal.draw(|f| f.render_widget(&mut app, f.size()))?;
         }
     }
 }
 
-fn ui(f: &mut Frame, app: &App) {
-    let vertical = Layout::vertical([
-        Constraint::Length(1),
-        Constraint::Length(3),
-        Constraint::Min(1),
-    ]);
-    let [help_area, input_area, messages_area] = vertical.areas(f.size());
+// fn ui(f: &mut Frame, app: &App) {
+//     let vertical = Layout::vertical([
+//         Constraint::Length(1),
+//         Constraint::Length(3),
+//         Constraint::Min(1),
+//     ]);
+//     let [help_area, input_area, messages_area] = vertical.areas(f.size());
 
-    let (msg, style) = match app.input_mode {
-        InputMode::Normal => (
-            vec![
-                "Press ".into(),
-                "q".bold(),
-                " to exit, ".into(),
-                "e".bold(),
-                " to start editing.".bold(),
-            ],
-            Style::default().add_modifier(Modifier::RAPID_BLINK),
-        ),
-        InputMode::Editing => (
-            vec![
-                "Press ".into(),
-                "Esc".bold(),
-                " to stop editing, ".into(),
-                "Enter".bold(),
-                " to record the message".into(),
-            ],
-            Style::default(),
-        ),
-    };
-    let text = Text::from(Line::from(msg)).patch_style(style);
-    let help_message = Paragraph::new(text);
-    f.render_widget(help_message, help_area);
+//     let (msg, style) = match app.input_mode {
+//         InputMode::Normal => (
+//             vec![
+//                 "Press ".into(),
+//                 "q".bold(),
+//                 " to exit, ".into(),
+//                 "e".bold(),
+//                 " to start editing.".bold(),
+//             ],
+//             Style::default().add_modifier(Modifier::RAPID_BLINK),
+//         ),
+//         InputMode::Editing => (
+//             vec![
+//                 "Press ".into(),
+//                 "Esc".bold(),
+//                 " to stop editing, ".into(),
+//                 "Enter".bold(),
+//                 " to record the message".into(),
+//             ],
+//             Style::default(),
+//         ),
+//     };
+//     let text = Text::from(Line::from(msg)).patch_style(style);
+//     let help_message = Paragraph::new(text);
+//     f.render_widget(help_message, help_area);
 
-    let input = Paragraph::new(app.input.as_str())
-        .style(match app.input_mode {
-            InputMode::Normal => Style::default(),
-            InputMode::Editing => Style::default().fg(Color::Yellow),
-        })
-        .block(Block::bordered().title("Input"));
-    f.render_widget(input, input_area);
-    match app.input_mode {
-        InputMode::Normal =>
-            // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
-            {}
+//     let input = Paragraph::new(app.input.as_str())
+//         .style(match app.input_mode {
+//             InputMode::Normal => Style::default(),
+//             InputMode::Editing => Style::default().fg(Color::Yellow),
+//         })
+//         .block(Block::bordered().title("Input"));
+//     f.render_widget(input, input_area);
+//     match app.input_mode {
+//         InputMode::Normal =>
+//             // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
+//             {}
 
-        InputMode::Editing => {
-            // Make the cursor visible and ask ratatui to put it at the specified coordinates after
-            // rendering
-            #[allow(clippy::cast_possible_truncation)]
-            f.set_cursor(
-                // Draw the cursor at the current position in the input field.
-                // This position is can be controlled via the left and right arrow key
-                input_area.x + app.character_index as u16 + 1,
-                // Move one line down, from the border to the input line
-                input_area.y + 1,
-            );
-        }
-    }
+//         InputMode::Editing => {
+//             // Make the cursor visible and ask ratatui to put it at the specified coordinates after
+//             // rendering
+//             #[allow(clippy::cast_possible_truncation)]
+//             f.set_cursor(
+//                 // Draw the cursor at the current position in the input field.
+//                 // This position is can be controlled via the left and right arrow key
+//                 input_area.x + app.character_index as u16 + 1,
+//                 // Move one line down, from the border to the input line
+//                 input_area.y + 1,
+//             );
+//         }
+//     }
 
-    let messages: Vec<ListItem> = app
-        .messages
-        .iter()
-        .enumerate()
-        .map(|(i, m)| {
-            let content = Line::from(Span::raw(format!("{i}: {m}")));
-            ListItem::new(content)
-        })
-        .collect();
-    let messages = List::new(messages).block(Block::bordered().title("Messages"));
-    f.render_widget(messages, messages_area);
-}
+//     let messages: Vec<ListItem> = app
+//         .messages
+//         .iter()
+//         .enumerate()
+//         .map(|(i, m)| {
+//             let content = Line::from(Span::raw(format!("{i}: {m}")));
+//             ListItem::new(content)
+//         })
+//         .collect();
+//     let messages = List::new(messages).block(Block::bordered().title("Messages"));
+//     f.render_widget(messages, messages_area);
+// }

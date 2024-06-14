@@ -1,3 +1,4 @@
+use axum::routing::delete;
 use futures::StreamExt;
 use gdata::{GStoreBackend, GStoreValue, Value};
 
@@ -9,6 +10,7 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/username/:username", get(get_profile_by_name))
         .route("/profile/:user_id", get(get_profile))
         .route("/profile/:user_id", post(post_profile))
+        .route("/profile/:user_id", delete(delete_profile))
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -170,7 +172,16 @@ async fn get_profile_by_name(
     Err(anyhow::format_err!("User not found").into())
 }
 
-async fn get_profile(
+async fn get_profile(state: State<AppState>, Path(user_id): Path<String>) -> AppResult<()> {
+    let profiles = state
+        .graph
+        .get_or_init_map((state.ns, "profiles".to_string()))
+        .await?;
+    let profile = profiles.get_key_or_init_map(user_id).await?;
+    Err(anyhow::format_err!("TODO: profile deletion not implemented").into())
+}
+
+async fn delete_profile(
     state: State<AppState>,
     Path(user_id): Path<String>,
 ) -> AppResult<Json<Profile>> {

@@ -861,6 +861,7 @@ checksum = "f476fe445d41c9e991fd07515a6f463074b782242ccf4a5b7b1d1012e70824df"
 dependencies = [
  "bitflags 2.5.0",
  "crossterm_winapi",
+ "futures-core",
  "libc",
  "mio",
  "parking_lot",
@@ -1573,11 +1574,16 @@ name = "gdata_explorer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytes",
  "clap",
  "crossterm",
+ "futures",
+ "futures-timer",
  "gdata",
  "iroh",
+ "once_cell",
  "ratatui",
+ "tokio",
 ]
 
 [[package]]

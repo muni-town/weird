@@ -31,7 +31,15 @@ export const actions = {
 		if (contact_info == '') {
 			contact_info = null;
 		}
-		const tags = data.getAll('tags');
+		let tagsInput = data.get('tags');
+		let tags: string[] = [];
+		if (tagsInput) {
+			const trimmedInput = tagsInput.toString().trim();
+			tags = trimmedInput
+				.split(',')
+				.map((x) => x.trim())
+				.filter((x) => x.length > 0);
+		}
 		let work_capacity = data.get('work_capacity');
 		if (work_capacity == '') {
 			work_capacity = null;

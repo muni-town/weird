@@ -5,7 +5,6 @@
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import Avatar from '$lib/components/Avatar.svelte';
-	import { InputChip } from '@skeletonlabs/skeleton';
 	import { env } from '$env/dynamic/public';
 
 	const { data }: { data: PageData } = $props();
@@ -18,10 +17,19 @@
 	let avatar_seed = $state(data.profile?.avatar_seed || data.profile?.username || '');
 	let location = $state(data.profile?.location || '');
 	let contact_info = $state(data.profile?.contact_info || '');
-	let tags = $state(data.profile?.tags || []);
 	let work_capacity = $state(data.profile?.work_capacity);
 	let work_compensation = $state(data.profile?.work_compensation);
 	let bio = $state(data.profile?.bio || '');
+
+	let tags = $state(data.profile?.tags || []);
+	let tagsString = $state((data.profile?.tags || []).join(', '));
+
+	$effect(() => {
+		tags = tagsString
+			.split(',')
+			.map((x) => x.trim())
+			.filter((x) => x.length > 0);
+	});
 
 	const baseUrl = new URL($page.url);
 	baseUrl.pathname = '';
@@ -129,7 +137,18 @@
 			<!-- svelte-ignore a11y_label_has_associated_control -->
 			<label class="label">
 				<span>Tags</span>
-				<InputChip bind:value={tags} name="tags" placeholder="Interest, skill, etc." />
+				<input
+					bind:value={tagsString}
+					name="tags"
+					class="input"
+					placeholder="Interest, skill, etc."
+				/>
+				<div class="text-surface-600-300-token text-sm ml-3">Separate tags by commas.</div>
+				<div class="ml-4 mt-1 flex gap-2">
+					{#each tags as tag}
+						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
+					{/each}
+				</div>
 			</label>
 			<label class="label">
 				<span>Work Capacity</span>

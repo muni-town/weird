@@ -1,0 +1,1 @@
+../microsoft-identity-association/+server.ts

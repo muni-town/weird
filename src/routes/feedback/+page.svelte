@@ -11,7 +11,10 @@
 </svelte:head>
 
 <main class="flex flex-col items-center">
-	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8" method="post">
+	<form
+		class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8"
+		method="post"
+	>
 		<h1 class="my-3 text-center text-2xl">Leave Feedback or Request Help</h1>
 
 		<p class="text-surface-500-400-token text-center">
@@ -21,7 +24,7 @@
 
 		<label class="label">
 			<span>Email <span class="text-surface-500-400-token text-sm">( optional )</span></span>
-			<input class="input" type="text" name="email" placeholder="Email" bind:value={email} />
+			<input class="input" type="text" placeholder="Email" bind:value={email} />
 			<div class="text-surface-500-400-token ml-4 text-sm">
 				If you specify an email we may get back to you.
 			</div>
@@ -38,6 +41,7 @@
 			>
 			</textarea>
 		</label>
+		<input type="hidden" name="username" value={email || 'Anonymous'} />
 
 		<button class="variant-filled btn" type="submit" disabled={processing}> Send </button>
 	</form>

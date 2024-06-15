@@ -246,7 +246,7 @@ impl IrohGStore {
         }
         let mut bytes = &bytes[0..len];
         if bytes.is_empty() {
-            return Ok(Key::default())
+            return Ok(Key::default());
         }
 
         let mut segments = SmallVec::new();
@@ -424,7 +424,8 @@ impl GStoreBackend for IrohGStore {
     async fn list(
         self,
         link: impl Into<Link>,
-    ) -> Result<impl Stream<Item = anyhow::Result<(KeySegment, GStoreValue<Self>)>>> {
+        recursive: bool,
+    ) -> Result<impl Stream<Item = anyhow::Result<GStoreValue<Self>>>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
         let mut key_bytes = Self::key_to_bytes(&link.key);
@@ -444,24 +445,19 @@ impl GStoreBackend for IrohGStore {
                     let result = async move {
                         match entry_result {
                             Ok(entry) => {
-                                dbg!(&entry);
                                 let key =
                                     Self::key_from_bytes(&SmallVec::<[u8; 32]>::from(entry.key()))?;
                                 // Ignore keys that are not a direct child, i.e. grandchildren
-                                if key.len() != link.key.len() + 1 {
+                                if !recursive && key.len() != link.key.len() + 1 {
                                     return Ok(None);
                                 }
-                                let key_segment = key.last().unwrap().clone();
                                 let bytes = entry.content_bytes(&store.iroh).await?;
                                 let value = Self::value_from_bytes(&bytes)?;
-                                Ok(Some((
-                                    key_segment,
-                                    GStoreValue {
-                                        link: (link.namespace, key).into(),
-                                        store: store.clone(),
-                                        value,
-                                    },
-                                )))
+                                Ok(Some(GStoreValue {
+                                    link: (link.namespace, key).into(),
+                                    store: store.clone(),
+                                    value,
+                                }))
                             }
                             Err(e) => Err(e),
                         }
@@ -511,7 +507,8 @@ pub trait GStoreBackend: Sync + Send + Sized + Clone + 'static {
     fn list(
         self,
         link: impl Into<Link>,
-    ) -> impl Future<Output = Result<impl Stream<Item = Result<(KeySegment, GStoreValue<Self>)>>>>;
+        recursive: bool,
+    ) -> impl Future<Output = Result<impl Stream<Item = Result<GStoreValue<Self>>>>>;
     fn set(
         &self,
         link: impl Into<Link>,
@@ -560,9 +557,17 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
             )),
         }
     }
-    pub async fn list_items(&self) -> Result<impl Stream<Item = Result<(KeySegment, Self)>>> {
+    pub async fn list_items(&self) -> Result<impl Stream<Item = Result<Self>>> {
         match &self.value {
-            Value::Map => Ok(self.store.clone().list(self.link.clone()).await?),
+            Value::Map => Ok(self.store.clone().list(self.link.clone(), false).await?),
+            v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
+        }
+    }
+    pub async fn list_items_recursive(
+        &self,
+    ) -> Result<impl Stream<Item = Result<Self>>> {
+        match &self.value {
+            Value::Map => Ok(self.store.clone().list(self.link.clone(), true).await?),
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
@@ -608,7 +613,7 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         let stream = self.list_items().await?;
         futures::pin_mut!(stream);
         while let Some(result) = stream.next().await {
-            let (_, value) = result?;
+            let value = result?;
             Box::pin(value.del_all_keys()).await?;
             self.store.del(value.link).await?;
         }

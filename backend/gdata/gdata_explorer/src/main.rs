@@ -7,7 +7,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use futures::StreamExt;
-use gdata::{GStoreBackend, GStoreValue, IrohGStore, KeySegment};
+use gdata::{GStoreBackend, GStoreValue, IrohGStore, Key};
 use iroh::{docs::NamespaceId, node::FsNode};
 use layout::Size;
 use once_cell::sync::Lazy;
@@ -125,19 +125,24 @@ impl App {
                 }
                 KeyCode::Enter => {
                     if let Some(ns) = home.docs.get(home.docs_state.selected().unwrap_or(0)) {
-                        let selected_value = self.graph.get_or_init_map((*ns, ())).await?;
+                        let current_value = self.graph.get_or_init_map((*ns, ())).await?;
                         let mut entries = Vec::new();
-                        let mut stream = selected_value.list_items().await?;
+                        let mut stream = current_value.list_items_recursive().await?;
                         while let Some(entry) = stream.next().await {
-                            let (key, _value) = entry?;
-                            entries.push(key);
+                            let value = entry?;
+                            entries.push(value.link.key);
                         }
 
                         return Ok(AppState::Doc(NamespaceView {
+                            history: vec![current_value.clone()],
                             ns: *ns,
-                            entries,
                             entries_state: ListState::default().with_selected(Some(0)),
-                            selected_value,
+                            current_value,
+                            highlighted_value: match entries.first() {
+                                Some(x) => Some(self.graph.get((*ns, x.clone())).await?),
+                                None => None,
+                            },
+                            entries,
                         }));
                     }
                 }
@@ -212,9 +217,11 @@ impl Widget for &mut HomePage {
 
 struct NamespaceView {
     ns: NamespaceId,
-    entries: Vec<KeySegment>,
+    history: Vec<GStoreValue<IrohGStore>>,
+    entries: Vec<Key>,
     entries_state: ListState,
-    selected_value: GStoreValue<IrohGStore>,
+    current_value: GStoreValue<IrohGStore>,
+    highlighted_value: Option<GStoreValue<IrohGStore>>,
 }
 
 impl Widget for &mut NamespaceView {
@@ -244,7 +251,7 @@ impl Widget for &mut NamespaceView {
             &mut self.entries_state,
         );
 
-        Paragraph::new(format!("{:#?}", self.selected_value))
+        Paragraph::new(format!("{:#?}", self.current_value))
             .block(Block::bordered().title("Namespace"))
             .wrap(Wrap { trim: false })
             .render(value_area, buf);

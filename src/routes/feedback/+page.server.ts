@@ -8,10 +8,7 @@ export const actions = {
 		const data = await request.formData();
 		await fetch(env.FEEDBACK_WEBHOOK, {
 			method: 'post',
-			body: JSON.stringify({
-				username: data.get('email') || 'Anonymous',
-				content: data.get('content')
-			})
+			body: data
 		});
 
 		return redirect(302, '/feedback/confirmation');

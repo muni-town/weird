@@ -46,37 +46,37 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
     profile: GStoreValue<T>,
 ) -> anyhow::Result<Profile> {
     let username = profile
-        .get_key("username".to_string())
+        .get_key("username")
         .await?
         .as_str()
         .ok()
         .map(|x| x.to_owned());
     let display_name = profile
-        .get_key("display_name".to_string())
+        .get_key("display_name")
         .await?
         .as_str()
         .ok()
         .map(|x| x.to_owned());
     let avatar_seed = profile
-        .get_key("avatar_seed".to_string())
+        .get_key("avatar_seed")
         .await?
         .as_str()
         .ok()
         .map(|x| x.to_owned());
     let location = profile
-        .get_key("location".to_string())
+        .get_key("location")
         .await?
         .as_str()
         .ok()
         .map(|x| x.to_owned());
     let contact_info = profile
-        .get_key("contact_info".to_string())
+        .get_key("contact_info")
         .await?
         .as_str()
         .ok()
         .map(|x| x.to_owned());
     let work_capacity = profile
-        .get_key("work_capacity".to_string())
+        .get_key("work_capacity")
         .await?
         .as_str()
         .ok()
@@ -86,7 +86,7 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
             _ => None,
         });
     let work_compensation = profile
-        .get_key("work_compensation".to_string())
+        .get_key("work_compensation")
         .await?
         .as_str()
         .ok()
@@ -96,7 +96,7 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
             _ => None,
         });
     let bio = profile
-        .get_key("bio".to_string())
+        .get_key("bio")
         .await?
         .as_str()
         .ok()
@@ -108,7 +108,10 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
         .await?
         .then(|result| async {
             let (key, _) = result?;
-            let key = String::from_utf8(key.to_vec())?;
+            let key = key
+                .as_str()
+                .ok_or_else(|| anyhow::format_err!("Tag not a string"))?
+                .to_string();
             Ok::<_, anyhow::Error>(key)
         });
     futures::pin_mut!(tags_stream);
@@ -131,10 +134,7 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
 }
 
 async fn get_profiles(state: State<AppState>) -> AppResult<Json<Vec<Profile>>> {
-    let profiles = state
-        .graph
-        .get_or_init_map((state.ns, "profiles".to_string()))
-        .await?;
+    let profiles = state.graph.get_or_init_map((state.ns, "profiles")).await?;
     let mut profiles_resp = Vec::new();
 
     let mut profile_stream = profiles.list_items().await?;
@@ -153,15 +153,12 @@ async fn get_profile_by_name(
     state: State<AppState>,
     Path(username): Path<String>,
 ) -> AppResult<Json<Profile>> {
-    let profiles = state
-        .graph
-        .get_or_init_map((state.ns, "profiles".to_string()))
-        .await?;
+    let profiles = state.graph.get_or_init_map((state.ns, "profiles")).await?;
 
     let mut profile_stream = profiles.list_items().await?;
     while let Some(result) = profile_stream.next().await {
         let (_, profile) = result?;
-        let u = profile.get_key("username".to_string()).await?;
+        let u = profile.get_key("username").await?;
         let u = u.as_str().ok();
         if Some(username.as_str()) == u {
             let profile = get_profile_from_value(profile).await?;
@@ -172,23 +169,17 @@ async fn get_profile_by_name(
     Err(anyhow::format_err!("User not found").into())
 }
 
-async fn get_profile(state: State<AppState>, Path(user_id): Path<String>) -> AppResult<()> {
-    let profiles = state
-        .graph
-        .get_or_init_map((state.ns, "profiles".to_string()))
-        .await?;
-    let profile = profiles.get_key_or_init_map(user_id).await?;
+async fn delete_profile(state: State<AppState>, Path(user_id): Path<String>) -> AppResult<()> {
+    let profiles = state.graph.get_or_init_map((state.ns, "profiles")).await?;
+    let _profile = profiles.get_key_or_init_map(user_id).await?;
     Err(anyhow::format_err!("TODO: profile deletion not implemented").into())
 }
 
-async fn delete_profile(
+async fn get_profile(
     state: State<AppState>,
     Path(user_id): Path<String>,
 ) -> AppResult<Json<Profile>> {
-    let profiles = state
-        .graph
-        .get_or_init_map((state.ns, "profiles".to_string()))
-        .await?;
+    let profiles = state.graph.get_or_init_map((state.ns, "profiles")).await?;
     let profile = profiles.get_key_or_init_map(user_id).await?;
     let profile = get_profile_from_value(profile).await?;
     Ok(Json(profile))
@@ -199,10 +190,7 @@ async fn post_profile(
     Path(user_id): Path<String>,
     new_profile: Json<Profile>,
 ) -> AppResult<()> {
-    let profiles = state
-        .graph
-        .get_or_init_map((state.ns, "profiles".to_string()))
-        .await?;
+    let profiles = state.graph.get_or_init_map((state.ns, "profiles")).await?;
 
     // Usernames must be unique ( this is _really_ naïve, but just loop through every user for now
     // and make sure it's not taken )
@@ -211,7 +199,11 @@ async fn post_profile(
         let (key, profile) = profile?;
 
         // The user's username can conflict with it's own username
-        if key == user_id.as_bytes() {
+        if key
+            .as_str()
+            .ok_or_else(|| anyhow::format_err!("username is not a string"))?
+            == user_id
+        {
             continue;
         }
 
@@ -230,7 +222,7 @@ async fn post_profile(
 
     profile
         .set_key(
-            "username".to_string(),
+            "username",
             new_profile
                 .username
                 .clone()
@@ -240,7 +232,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "display_name".to_string(),
+            "display_name",
             new_profile
                 .display_name
                 .clone()
@@ -250,7 +242,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "avatar_seed".to_string(),
+            "avatar_seed",
             new_profile
                 .avatar_seed
                 .clone()
@@ -261,7 +253,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "location".to_string(),
+            "location",
             new_profile
                 .location
                 .clone()
@@ -271,7 +263,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "contact_info".to_string(),
+            "contact_info",
             new_profile
                 .contact_info
                 .clone()
@@ -281,7 +273,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "work_capacity".to_string(),
+            "work_capacity",
             new_profile
                 .work_capacity
                 .clone()
@@ -294,7 +286,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "work_compensation".to_string(),
+            "work_compensation",
             new_profile
                 .work_compensation
                 .clone()
@@ -307,7 +299,7 @@ async fn post_profile(
         .await?;
     profile
         .set_key(
-            "bio".to_string(),
+            "bio",
             new_profile
                 .bio
                 .clone()
@@ -316,7 +308,7 @@ async fn post_profile(
         )
         .await?;
 
-    let tags = profile.get_key("tags".to_string()).await?;
+    let tags = profile.get_key("tags").await?;
     // Clear existing tags
     tags.del_all_keys().await?;
     // Set tags from request

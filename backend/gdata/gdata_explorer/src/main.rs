@@ -1,6 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use bytes::Bytes;
 use clap::Parser;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture, Event, EventStream, KeyCode, KeyModifiers},
@@ -8,12 +7,8 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use futures::StreamExt;
-use gdata::{GStoreBackend, GStoreValue, IrohGStore};
-use iroh::{
-    client::docs::Entry,
-    docs::{store::Query, AuthorId, NamespaceId},
-    node::FsNode,
-};
+use gdata::{GStoreBackend, GStoreValue, IrohGStore, KeySegment};
+use iroh::{docs::NamespaceId, node::FsNode};
 use layout::Size;
 use once_cell::sync::Lazy;
 use ratatui::{
@@ -38,7 +33,6 @@ pub static RT: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
 /// App holds the state of the application
 struct App {
     node: iroh::node::FsNode,
-    node_author: AuthorId,
     size: Size,
     graph: IrohGStore,
     state: AppState,
@@ -85,7 +79,7 @@ impl App {
         let state = Self::load_home(&node).await?;
         Ok(Self {
             node,
-            node_author,
+            // node_author,
             size: Size::default(),
             graph,
             state,
@@ -131,17 +125,13 @@ impl App {
                 }
                 KeyCode::Enter => {
                     if let Some(ns) = home.docs.get(home.docs_state.selected().unwrap_or(0)) {
-                        let doc = self.graph.open(*ns).await?;
+                        let selected_value = self.graph.get_or_init_map((*ns, ())).await?;
                         let mut entries = Vec::new();
-                        let mut stream = doc.get_many(Query::single_latest_per_key()).await?;
+                        let mut stream = selected_value.list_items().await?;
                         while let Some(entry) = stream.next().await {
-                            let entry = entry?;
-                            entries.push(entry);
+                            let (key, _value) = entry?;
+                            entries.push(key);
                         }
-                        let selected_value = match entries.first() {
-                            Some(entry) => Some(self.graph.get((*ns, entry.key().to_vec())).await?),
-                            None => None,
-                        };
 
                         return Ok(AppState::Doc(NamespaceView {
                             ns: *ns,
@@ -222,9 +212,9 @@ impl Widget for &mut HomePage {
 
 struct NamespaceView {
     ns: NamespaceId,
-    entries: Vec<Entry>,
+    entries: Vec<KeySegment>,
     entries_state: ListState,
-    selected_value: Option<GStoreValue<IrohGStore>>,
+    selected_value: GStoreValue<IrohGStore>,
 }
 
 impl Widget for &mut NamespaceView {
@@ -246,13 +236,9 @@ impl Widget for &mut NamespaceView {
         let [document_area, value_area] = layout.areas(app_area);
 
         StatefulWidget::render(
-            List::new(
-                self.entries
-                    .iter()
-                    .map(|x| Line::raw(String::from_utf8_lossy(x.key()))),
-            )
-            .highlight_style(Style::new().black().on_white())
-            .block(Block::bordered().title("Key")),
+            List::new(self.entries.iter().map(|x| Line::raw(format!("{x}"))))
+                .highlight_style(Style::new().black().on_white())
+                .block(Block::bordered().title("Key")),
             document_area,
             buf,
             &mut self.entries_state,

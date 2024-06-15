@@ -107,7 +107,8 @@ async fn get_profile_from_value<T: GStoreBackend + 'static>(
         .list_items()
         .await?
         .then(|result| async {
-            let (key, _) = result?;
+            let value = result?;
+            let key = value.link.key.last().unwrap();
             let key = key
                 .as_str()
                 .ok_or_else(|| anyhow::format_err!("Tag not a string"))?
@@ -139,7 +140,7 @@ async fn get_profiles(state: State<AppState>) -> AppResult<Json<Vec<Profile>>> {
 
     let mut profile_stream = profiles.list_items().await?;
     while let Some(result) = profile_stream.next().await {
-        let (_, profile) = result?;
+        let profile = result?;
         let profile = get_profile_from_value(profile).await?;
         if profile.username.is_some() {
             profiles_resp.push(profile);
@@ -157,7 +158,7 @@ async fn get_profile_by_name(
 
     let mut profile_stream = profiles.list_items().await?;
     while let Some(result) = profile_stream.next().await {
-        let (_, profile) = result?;
+        let profile = result?;
         let u = profile.get_key("username").await?;
         let u = u.as_str().ok();
         if Some(username.as_str()) == u {
@@ -196,7 +197,8 @@ async fn post_profile(
     // and make sure it's not taken )
     let mut stream = profiles.list_items().await?;
     while let Some(profile) = stream.next().await {
-        let (key, profile) = profile?;
+        let profile = profile?;
+        let key = profile.link.key.last().unwrap();
 
         // The user's username can conflict with it's own username
         if key

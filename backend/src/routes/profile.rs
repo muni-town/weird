@@ -309,13 +309,9 @@ async fn post_profile(
                 .unwrap_or(Value::Null),
         )
         .await?;
-
-        dbg!(&new_profile.tags);
     let tags = profile.get_key_or_init_map("tags").await?;
-    dbg!(&tags);
     // Clear existing tags
     tags.del_all_keys().await?;
-    dbg!("deleted");
     // Set tags from request
     for tag in &new_profile.tags {
         tags.set_key(tag.clone(), ()).await?;

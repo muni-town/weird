@@ -24,7 +24,7 @@
 
 		<label class="label">
 			<span>Email <span class="text-surface-500-400-token text-sm">( optional )</span></span>
-			<input class="input" type="text" placeholder="Email" bind:value={email} />
+			<input class="input" type="text" name="email" placeholder="Email" bind:value={email} />
 			<div class="text-surface-500-400-token ml-4 text-sm">
 				If you specify an email we may get back to you.
 			</div>
@@ -41,7 +41,6 @@
 			>
 			</textarea>
 		</label>
-		<input type="hidden" name="username" value={email || 'Anonymous'} />
 
 		<button class="variant-filled btn" type="submit" disabled={processing}> Send </button>
 	</form>

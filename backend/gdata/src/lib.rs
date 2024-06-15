@@ -563,9 +563,7 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
-    pub async fn list_items_recursive(
-        &self,
-    ) -> Result<impl Stream<Item = Result<Self>>> {
+    pub async fn list_items_recursive(&self) -> Result<impl Stream<Item = Result<Self>>> {
         match &self.value {
             Value::Map => Ok(self.store.clone().list(self.link.clone(), true).await?),
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
@@ -614,7 +612,10 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         futures::pin_mut!(stream);
         while let Some(result) = stream.next().await {
             let value = result?;
-            Box::pin(value.del_all_keys()).await?;
+            // TODO: determine whether recursively deleting makes sense by default.
+            if value.is_map() {
+                Box::pin(value.del_all_keys()).await?;
+            }
             self.store.del(value.link).await?;
         }
 
@@ -628,6 +629,9 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
     }
     pub fn is_null(&self) -> bool {
         matches!(self.value, Value::Null)
+    }
+    pub fn is_map(&self) -> bool {
+        matches!(self.value, Value::Map)
     }
 }
 impl<G: GStoreBackend> AsRef<Value> for GStoreValue<G> {

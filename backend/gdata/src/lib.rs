@@ -1,12 +1,12 @@
 //! Graph database on top of Iroh.
 
 use anyhow::Result;
-use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use quic_rpc::transport::flume::FlumeConnection;
 use quick_cache::sync::Cache;
+use smallstr::SmallString;
+use smallvec::SmallVec;
 use std::{future::Future, sync::Arc};
-use ulid::Ulid;
 
 use iroh::{
     client::RpcService,
@@ -14,6 +14,142 @@ use iroh::{
 };
 
 type Doc = iroh::client::docs::Doc<FlumeConnection<RpcService>>;
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Link {
+    pub namespace: NamespaceId,
+    pub key: Key,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+pub struct Key(pub SmallVec<[KeySegment; 8]>);
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum KeySegment {
+    Bool(bool),
+    Uint(u64),
+    Int(i64),
+    String(SmallString<[u8; 32]>),
+    Bytes(SmallVec<[u8; 32]>),
+}
+
+#[derive(Clone, PartialEq, PartialOrd, Debug)]
+pub enum Value {
+    Null,
+    Bool(bool),
+    Uint(u64),
+    Int(i64),
+    Float(f64),
+    String(SmallString<[u8; 32]>),
+    Bytes(SmallVec<[u8; 32]>),
+    Link(Box<Link>),
+    Map,
+}
+
+impl std::fmt::Display for Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.0.iter()).finish()
+    }
+}
+impl std::fmt::Debug for Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self}")
+    }
+}
+impl std::fmt::Display for KeySegment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            KeySegment::Bool(b) => write!(f, "{b}"),
+            KeySegment::Uint(i) => write!(f, "{i}"),
+            KeySegment::Int(i) => write!(f, "{i}"),
+            KeySegment::String(s) => write!(f, "{s:?}"),
+            KeySegment::Bytes(b) => {
+                write!(f, "0x")?;
+                for byte in b.iter() {
+                    write!(f, "{byte:X}")?;
+                }
+                Ok(())
+            }
+        }
+    }
+}
+impl std::fmt::Debug for KeySegment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self}")
+    }
+}
+impl std::ops::Deref for Key {
+    type Target = SmallVec<[KeySegment; 8]>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl std::ops::DerefMut for Key {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+macro_rules! impl_from_for_value {
+    ($from:ty, $e:expr) => {
+        impl From<$from> for Value {
+            fn from(value: $from) -> Self {
+                $e(value)
+            }
+        }
+    };
+}
+impl_from_for_value!((), |_| Value::Null);
+impl_from_for_value!(String, |x| Value::String(SmallString::from(x)));
+impl_from_for_value!(&str, |x| Value::String(SmallString::from(x)));
+impl_from_for_value!(Vec<u8>, |x| Value::Bytes(SmallVec::from(x)));
+impl_from_for_value!(u64, Value::Uint);
+impl_from_for_value!(i64, Value::Int);
+impl_from_for_value!(f64, Value::Float);
+impl<T: Into<Link>> From<T> for Value {
+    fn from(value: T) -> Self {
+        Self::Link(Box::new(value.into()))
+    }
+}
+macro_rules! impl_from_for_key_segment {
+    ($from:ty, $e:expr) => {
+        impl From<$from> for KeySegment {
+            fn from(value: $from) -> Self {
+                $e(value)
+            }
+        }
+    };
+}
+impl_from_for_key_segment!(&str, |x| KeySegment::String(SmallString::from(x)));
+impl_from_for_key_segment!(String, |x| KeySegment::String(SmallString::from(x)));
+impl_from_for_key_segment!(&[u8], |x| KeySegment::Bytes(SmallVec::from(x)));
+impl_from_for_key_segment!(bool, KeySegment::Bool);
+impl_from_for_key_segment!(u64, KeySegment::Uint);
+impl_from_for_key_segment!(i64, KeySegment::Int);
+impl KeySegment {
+    pub fn as_str(&self) -> Option<&str> {
+        if let Self::String(s) = self {
+            Some(s.as_str())
+        } else {
+            None
+        }
+    }
+}
+impl From<()> for Key {
+    fn from(_: ()) -> Self {
+        Default::default()
+    }
+}
+impl<T: Into<KeySegment>> From<T> for Key {
+    fn from(value: T) -> Self {
+        [value].into()
+    }
+}
+impl<T: Into<KeySegment>, const N: usize> From<[T; N]> for Key {
+    fn from(value: [T; N]) -> Self {
+        Key(value.into_iter().map(|x| x.into()).collect())
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct IrohGStore {
@@ -42,15 +178,185 @@ impl IrohGStore {
             docs: Arc::new(Cache::new(5)),
         }
     }
+    fn key_segment_byte_discriminant(seg: &KeySegment) -> u8 {
+        match seg {
+            KeySegment::Bool(_) => 0,
+            KeySegment::Uint(_) => 1,
+            KeySegment::Int(_) => 2,
+            KeySegment::String(_) => 3,
+            KeySegment::Bytes(_) => 4,
+        }
+    }
+    fn key_segment_to_bytes(seg: &KeySegment) -> SmallVec<[u8; 32]> {
+        let mut buf = SmallVec::<[u8; 32]>::new();
+        buf.push(Self::key_segment_byte_discriminant(seg));
+        match seg {
+            KeySegment::Bool(b) => buf.push(if *b { 1 } else { 0 }),
+            KeySegment::Uint(i) => buf.extend_from_slice(&i.to_le_bytes()),
+            KeySegment::Int(i) => buf.extend_from_slice(&i.to_le_bytes()),
+            KeySegment::String(s) => buf.extend_from_slice(s.as_bytes()),
+            KeySegment::Bytes(b) => buf.extend_from_slice(b),
+        }
+        let out_max_len = cobs::max_encoding_length(buf.len());
+        let mut out = SmallVec::from_elem(0, out_max_len);
+        let len = cobs::encode(&buf, &mut out);
+        out.truncate(len);
+        out
+    }
+    fn key_segment_from_bytes(bytes: &mut [u8]) -> Result<KeySegment, InvalidFormatError> {
+        let len = cobs::decode_in_place(bytes).map_err(|_| InvalidFormatError)?;
+        let bytes = &bytes[0..len];
+        let discriminant = bytes.first().ok_or(InvalidFormatError)?;
+        const INTSIZE: usize = std::mem::size_of::<u64>();
+        let seg = match discriminant {
+            0 if bytes.len() == 2 => KeySegment::Bool(bytes[1] != 0),
+            1 if bytes.len() == 1 + INTSIZE => {
+                KeySegment::Uint(u64::from_le_bytes(bytes[1..].try_into().unwrap()))
+            }
+            2 if bytes.len() == 1 + INTSIZE => {
+                KeySegment::Int(i64::from_le_bytes(bytes[1..].try_into().unwrap()))
+            }
+            3 => KeySegment::String(
+                std::str::from_utf8(&bytes[1..])
+                    .map_err(|_| InvalidFormatError)
+                    .map(SmallString::from)?,
+            ),
+            4 => KeySegment::Bytes(SmallVec::from(&bytes[1..])),
+            _ => return Err(InvalidFormatError),
+        };
+        Ok(seg)
+    }
+    fn key_to_bytes(key: &Key) -> SmallVec<[u8; 128]> {
+        let mut buf = SmallVec::<[u8; 128]>::new();
+        for seg in key.iter() {
+            let seg_bytes = Self::key_segment_to_bytes(seg);
+            let len: u16 = seg_bytes.len().try_into().expect("Key too long");
+            assert_ne!(len, 0, "Zero length key segment!?");
+            buf.extend_from_slice(&len.to_le_bytes());
+            buf.extend_from_slice(&seg_bytes);
+        }
+        buf.push(0); // Add null terminator
+        buf
+    }
+    fn key_from_bytes(bytes: &[u8]) -> Result<Key, InvalidFormatError> {
+        // Remove null terminator
+        let len = bytes.len() - 1;
+        if bytes[len] != 0 {
+            return Err(InvalidFormatError);
+        }
+        let mut bytes = &bytes[0..len];
+        if bytes.is_empty() {
+            return Ok(Key::default())
+        }
+
+        let mut segments = SmallVec::new();
+        loop {
+            match bytes {
+                [b0, b1, rest @ ..] => {
+                    let len = [*b0, *b1];
+                    let len = u16::from_le_bytes(len) as usize;
+                    if rest.len() < len {
+                        return Err(InvalidFormatError);
+                    }
+                    let seg_bytes = &rest[0..len];
+                    let seg =
+                        Self::key_segment_from_bytes(&mut SmallVec::<[u8; 32]>::from(seg_bytes))?;
+                    segments.push(seg);
+
+                    if rest.len() > len {
+                        bytes = &rest[len..];
+                    } else {
+                        break;
+                    }
+                }
+                _ => return Err(InvalidFormatError),
+            }
+        }
+        Ok(Key(segments))
+    }
+    fn link_from_bytes(bytes: &[u8]) -> Result<Link, InvalidFormatError> {
+        if bytes.len() < NAMESPACE_SIZE {
+            return Err(InvalidFormatError);
+        }
+        let (namespace, key) = bytes.split_at(NAMESPACE_SIZE);
+        let namespace: [u8; NAMESPACE_SIZE] = namespace[..].try_into().unwrap();
+        let namespace = NamespaceId::from(namespace);
+        Ok(Link {
+            namespace,
+            key: Self::key_from_bytes(key)?,
+        })
+    }
+    fn link_to_bytes(link: &Link) -> Vec<u8> {
+        let key_bytes = Self::key_to_bytes(&link.key);
+        let mut buf = Vec::with_capacity(32 + key_bytes.len());
+        buf.extend_from_slice(link.namespace.as_bytes());
+        buf.extend_from_slice(&key_bytes);
+        buf
+    }
+    fn value_byte_discriminant(value: &Value) -> u8 {
+        match value {
+            Value::Null => 0,
+            Value::Bool(_) => 1,
+            Value::Uint(_) => 2,
+            Value::Int(_) => 3,
+            Value::Float(_) => 4,
+            Value::String(_) => 5,
+            Value::Bytes(_) => 6,
+            Value::Link(_) => 7,
+            Value::Map => 8,
+        }
+    }
+    fn value_to_bytes(value: &Value) -> SmallVec<[u8; 64]> {
+        let mut buf = SmallVec::new();
+        buf.push(Self::value_byte_discriminant(value));
+        match value {
+            Value::Null => (),
+            Value::Bool(b) => buf.push(if *b { 1 } else { 0 }),
+            Value::Uint(i) => buf.extend_from_slice(&i.to_le_bytes()),
+            Value::Int(i) => buf.extend_from_slice(&i.to_le_bytes()),
+            Value::Float(f) => buf.extend_from_slice(&f.to_le_bytes()),
+            Value::String(s) => buf.extend_from_slice(s.as_bytes()),
+            Value::Bytes(b) => buf.extend_from_slice(b),
+            Value::Link(l) => buf.extend_from_slice(&Self::link_to_bytes(l)),
+            Value::Map => (),
+        }
+        buf
+    }
+    fn value_from_bytes(bytes: &[u8]) -> Result<Value, InvalidFormatError> {
+        Ok(match bytes {
+            [0] => Value::Null,
+            [1, 0] => Value::Bool(false),
+            [1, 1] => Value::Bool(true),
+            [2, b0, b1, b2, b3, b4, b5, b6, b7] => {
+                Value::Uint(u64::from_le_bytes([*b0, *b1, *b2, *b3, *b4, *b5, *b6, *b7]))
+            }
+            [3, b0, b1, b2, b3, b4, b5, b6, b7] => {
+                Value::Int(i64::from_le_bytes([*b0, *b1, *b2, *b3, *b4, *b5, *b6, *b7]))
+            }
+            [4, b0, b1, b2, b3, b4, b5, b6, b7] => {
+                Value::Float(f64::from_le_bytes([*b0, *b1, *b2, *b3, *b4, *b5, *b6, *b7]))
+            }
+            [5, rest @ ..] => Value::String(SmallString::from_str(
+                std::str::from_utf8(rest).map_err(|_| InvalidFormatError)?,
+            )),
+            [6, rest @ ..] => Value::Bytes(SmallVec::from(rest)),
+            [7, rest @ ..] => Value::Link(Box::new(Self::link_from_bytes(rest)?)),
+            [8] => Value::Map,
+            _ => return Err(InvalidFormatError),
+        })
+    }
 }
+
 impl GStoreBackend for IrohGStore {
     async fn get(&self, link: impl Into<Link>) -> Result<GStoreValue<Self>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
-        let entry = doc.get_one(Query::key_exact(&link.key)).await?;
+        let entry = doc
+            .get_one(Query::single_latest_per_key().key_exact(&Self::key_to_bytes(&link.key)))
+            .await?;
         if let Some(entry) = entry {
             let value = entry.content_bytes(&self.iroh).await?;
-            let value = Value::from_bytes(value)?;
+            let value = Self::value_from_bytes(&value)?;
             Ok(GStoreValue {
                 link,
                 store: self.clone(),
@@ -65,15 +371,20 @@ impl GStoreBackend for IrohGStore {
         }
     }
 
-    async fn get_map_idx(&self, link: impl Into<Link>, idx: u64) -> Result<GStoreValue<Self>> {
+    async fn get_idx(&self, link: impl Into<Link>, idx: u64) -> Result<GStoreValue<Self>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
         let entry = doc
-            .get_one(Query::key_exact(&link.key).offset(idx).limit(1))
+            .get_one(
+                Query::single_latest_per_key()
+                    .key_exact(&Self::key_to_bytes(&link.key))
+                    .offset(idx)
+                    .limit(1),
+            )
             .await?;
         if let Some(entry) = entry {
             let value = entry.content_bytes(&self.iroh).await?;
-            let value = Value::from_bytes(value)?;
+            let value = Self::value_from_bytes(&value)?;
             Ok(GStoreValue {
                 link,
                 store: self.clone(),
@@ -88,86 +399,76 @@ impl GStoreBackend for IrohGStore {
         }
     }
 
-    async fn get_map_key(
+    async fn set(
         &self,
         link: impl Into<Link>,
-        key: impl Into<Bytes>,
+        value: impl Into<Value>,
     ) -> Result<GStoreValue<Self>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
-        // TODO: use smallvec to avoid allocations for reasonable key lengths.
-        let key = [link.key.clone(), key.into()].concat();
-        let entry = doc.get_one(Query::key_exact(&key)).await?;
-        if let Some(entry) = entry {
-            let value = entry.content_bytes(&self.iroh).await?;
-            let value = Value::from_bytes(value)?;
-            Ok(GStoreValue {
-                link: (link.namespace, key).into(),
-                store: self.clone(),
-                value,
-            })
-        } else {
-            Ok(GStoreValue {
-                link: (link.namespace, key).into(),
-                store: self.clone(),
-                value: Value::Null,
-            })
-        }
+        let key_bytes = Self::key_to_bytes(&link.key);
+        let value = value.into();
+        doc.set_bytes(
+            self.author,
+            key_bytes.to_vec(),
+            Self::value_to_bytes(&value).to_vec(),
+        )
+        .await?;
+        Ok(GStoreValue {
+            link,
+            store: self.clone(),
+            value,
+        })
     }
 
-    async fn set(&self, link: impl Into<Link>, value: impl Into<Value>) -> Result<()> {
-        let link = link.into();
-        let doc = self.open(link.namespace).await?;
-        doc.set_bytes(self.author, link.key, value.into().to_bytes())
-            .await?;
-        Ok(())
-    }
-
-    async fn set_map_key(
-        &self,
-        link: impl Into<Link>,
-        key: impl Into<Bytes>,
-        value: impl Into<Value>,
-    ) -> Result<Link> {
-        let link = link.into();
-        let doc = self.open(link.namespace).await?;
-        // TODO: use smallvec to avoid allocations for reasonable key lengths.
-        let key = Bytes::from([link.key.clone(), key.into()].concat());
-        doc.set_bytes(self.author, key.clone(), value.into().to_bytes())
-            .await?;
-
-        Ok(Link::new(link.namespace, key))
-    }
-
-    async fn list_map_items(
+    async fn list(
         self,
         link: impl Into<Link>,
-    ) -> Result<impl Stream<Item = anyhow::Result<(Bytes, GStoreValue<Self>)>>> {
+    ) -> Result<impl Stream<Item = anyhow::Result<(KeySegment, GStoreValue<Self>)>>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
+        let mut key_bytes = Self::key_to_bytes(&link.key);
+        assert_eq!(
+            key_bytes.pop().unwrap(),
+            0,
+            "missing null terminator for key"
+        );
+
         let stream = doc
-            .get_many(Query::single_latest_per_key().key_prefix(&link.key))
+            .get_many(Query::single_latest_per_key().key_prefix(&key_bytes))
             .await?
-            .then(move |entry_result| {
+            .filter_map(move |entry_result| {
                 let store = self.clone();
                 let link = link.clone();
                 Box::pin(async move {
-                    match entry_result {
-                        Ok(entry) => {
-                            let key = Bytes::from(entry.key()[link.key.len()..].to_vec());
-                            let bytes = entry.content_bytes(&store.iroh).await?;
-                            let value = Value::from_bytes(bytes)?;
-                            Ok((
-                                key,
-                                GStoreValue {
-                                    link: link.clone(),
-                                    store: store.clone(),
-                                    value,
-                                },
-                            ))
+                    let result = async move {
+                        match entry_result {
+                            Ok(entry) => {
+                                dbg!(&entry);
+                                let key =
+                                    Self::key_from_bytes(&SmallVec::<[u8; 32]>::from(entry.key()))?;
+                                // Ignore keys that are not a direct child, i.e. grandchildren
+                                if key.len() != link.key.len() + 1 {
+                                    return Ok(None);
+                                }
+                                let key_segment = key.last().unwrap().clone();
+                                let bytes = entry.content_bytes(&store.iroh).await?;
+                                let value = Self::value_from_bytes(&bytes)?;
+                                Ok(Some((
+                                    key_segment,
+                                    GStoreValue {
+                                        link: (link.namespace, key).into(),
+                                        store: store.clone(),
+                                        value,
+                                    },
+                                )))
+                            }
+                            Err(e) => Err(e),
                         }
-                        Err(e) => Err(e),
                     }
+                    .await;
+
+                    result.transpose()
                 })
             });
 
@@ -177,102 +478,46 @@ impl GStoreBackend for IrohGStore {
     async fn del(&self, link: impl Into<Link>) -> Result<()> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
-        doc.del(self.author, link.key).await?;
-        Ok(())
-    }
-
-    async fn del_map_key(&self, link: impl Into<Link>, key: impl Into<Bytes>) -> Result<()> {
-        let link = link.into();
-        let doc = self.open(link.namespace).await?;
-        let key = Bytes::from([link.key.clone(), key.into()].concat());
-        doc.del(self.author, key).await?;
+        doc.del(self.author, Self::key_to_bytes(&link.key).to_vec())
+            .await?;
         Ok(())
     }
 }
 
-pub trait GStoreBackend: Sync + Send + Sized + Clone {
+pub trait GStoreBackend: Sync + Send + Sized + Clone + 'static {
     fn get(&self, link: impl Into<Link>) -> impl Future<Output = Result<GStoreValue<Self>>>;
     fn get_or_init_map(
         &self,
         link: impl Into<Link>,
-    ) -> impl Future<Output = Result<GStoreValue<Self>>>
-    where
-        Self: 'static,
-    {
+    ) -> impl Future<Output = Result<GStoreValue<Self>>> {
         let link = link.into();
         async move {
-            let value = self.get(link.clone()).await?;
+            let mut value = self.get(link.clone()).await?;
             if value.is_null() {
-                let new_map_link = Link::new(link.namespace, Ulid::new().to_bytes().to_vec());
-                self.set(link.clone(), Value::Map(new_map_link.clone()))
-                    .await?;
-                Ok(GStoreValue {
-                    link,
-                    store: self.clone(),
-                    value: Value::Map(new_map_link),
-                })
-            } else {
-                Ok(value)
-            }
+                value = self.set(link, Value::Map).await?
+            } else if !matches!(value.value, Value::Map) {
+                return Err(anyhow::format_err!(
+                    "Value is not null or a map, not initing map."
+                ));
+            };
+            Ok(value)
         }
     }
-    fn get_map_idx(
+    fn get_idx(
         &self,
         link: impl Into<Link>,
         idx: u64,
     ) -> impl Future<Output = Result<GStoreValue<Self>>>;
-    fn get_map_key(
-        &self,
-        link: impl Into<Link>,
-        key: impl Into<Bytes>,
-    ) -> impl Future<Output = Result<GStoreValue<Self>>>;
-    fn get_map_key_or_init_map(
-        &self,
-        link: impl Into<Link>,
-        key: impl Into<Bytes>,
-    ) -> impl Future<Output = Result<GStoreValue<Self>>>
-    where
-        Self: 'static,
-    {
-        let link = link.into();
-        let key = key.into();
-        async move {
-            let value = self.get_map_key(link.clone(), key.clone()).await?;
-            if value.is_null() {
-                let new_map_link = Link::new(link.namespace, Ulid::new().to_bytes().to_vec());
-                self.set_map_key(link.clone(), key.clone(), Value::Map(new_map_link.clone()))
-                    .await?;
-                Ok(GStoreValue {
-                    link: new_map_link.clone(),
-                    store: self.clone(),
-                    value: Value::Map(new_map_link),
-                })
-            } else {
-                Ok(value)
-            }
-        }
-    }
-    fn list_map_items(
+    fn list(
         self,
         link: impl Into<Link>,
-    ) -> impl Future<Output = Result<impl Stream<Item = Result<(Bytes, GStoreValue<Self>)>>>>;
+    ) -> impl Future<Output = Result<impl Stream<Item = Result<(KeySegment, GStoreValue<Self>)>>>>;
     fn set(
         &self,
         link: impl Into<Link>,
         value: impl Into<Value>,
-    ) -> impl Future<Output = Result<()>>;
+    ) -> impl Future<Output = Result<GStoreValue<Self>>>;
     fn del(&self, link: impl Into<Link>) -> impl Future<Output = Result<()>>;
-    fn set_map_key(
-        &self,
-        link: impl Into<Link>,
-        key: impl Into<Bytes>,
-        value: impl Into<Value>,
-    ) -> impl Future<Output = Result<Link>>;
-    fn del_map_key(
-        &self,
-        link: impl Into<Link>,
-        key: impl Into<Bytes>,
-    ) -> impl Future<Output = Result<()>>;
 }
 
 #[derive(Clone)]
@@ -292,44 +537,45 @@ impl<G: GStoreBackend> std::fmt::Debug for GStoreValue<G> {
 impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
     pub async fn get_idx(&self, idx: u64) -> Result<Self> {
         match &self.value {
-            Value::Map(map_link) => Ok(self.store.get_map_idx(map_link.clone(), idx).await?),
+            Value::Map => Ok(self.store.get_idx(self.link.clone(), idx).await?),
             _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
-    pub async fn get_key(&self, key: impl Into<Bytes>) -> Result<Self> {
+    pub async fn get_key(&self, key: impl Into<KeySegment>) -> Result<Self> {
+        let mut link = self.link.clone();
+        link.key.push(key.into());
         match &self.value {
-            Value::Map(map_link) => Ok(self.store.get_map_key(map_link.clone(), key).await?),
-            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+            Value::Map => Ok(self.store.get(link).await?),
+            v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
-    pub async fn get_key_or_init_map(&self, key: impl Into<Bytes>) -> Result<Self> {
+    pub async fn get_key_or_init_map(&self, key: impl Into<KeySegment>) -> Result<Self> {
+        let mut key_link = self.link.clone();
+        key_link.key.push(key.into());
         match &self.value {
-            Value::Map(map_link) => Ok(self
-                .store
-                .get_map_key_or_init_map(map_link.clone(), key)
-                .await?),
-            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+            Value::Map => Ok(self.store.get_or_init_map(key_link).await?),
+            v => Err(anyhow::format_err!(
+                "value is not a map or null, not initing map: {:?}",
+                v
+            )),
         }
     }
-    pub async fn list_items(&self) -> Result<impl Stream<Item = Result<(Bytes, Self)>>> {
+    pub async fn list_items(&self) -> Result<impl Stream<Item = Result<(KeySegment, Self)>>> {
         match &self.value {
-            Value::Map(map_link) => Ok(self.store.clone().list_map_items(map_link.clone()).await?),
-            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+            Value::Map => Ok(self.store.clone().list(self.link.clone()).await?),
+            v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
-    pub fn as_bytes(&self) -> Result<&Bytes> {
+    pub fn as_bytes(&self) -> Result<&SmallVec<[u8; 32]>> {
         match &self.value {
             Value::Bytes(b) => Ok(b),
-            _ => Err(anyhow::format_err!("item is not bytes: {:?}", self.value)),
+            v => Err(anyhow::format_err!("item is not bytes: {:?}", v)),
         }
     }
     pub fn as_str(&self) -> Result<&str> {
         match &self.value {
             Value::String(s) => Ok(s),
-            _ => Err(anyhow::format_err!(
-                "item is not a string: {:?}",
-                self.value
-            )),
+            v => Err(anyhow::format_err!("item is not a string: {:?}", v)),
         }
     }
     pub async fn set(&mut self, value: impl Into<Value>) -> Result<()> {
@@ -340,31 +586,38 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
     }
     pub async fn set_key(
         &self,
-        key: impl Into<Bytes>,
+        key: impl Into<KeySegment>,
         value: impl Into<Value>,
-    ) -> Result<Link> {
+    ) -> Result<GStoreValue<G>> {
+        let mut key_link = self.link.clone();
+        key_link.key.push(key.into());
         match &self.value {
-            Value::Map(map_link) => {
-                Ok(self.store.set_map_key(map_link.clone(), key, value).await?)
-            }
-            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+            Value::Map => Ok(self.store.set(key_link, value).await?),
+            v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
-    pub async fn del_key(&mut self, key: impl Into<Bytes>) -> Result<()> {
+    pub async fn del_key(&mut self, key: impl Into<KeySegment>) -> Result<()> {
+        let mut key_link = self.link.clone();
+        key_link.key.push(key.into());
         match &self.value {
-            Value::Map(map_link) => Ok(self.store.del_map_key(map_link.clone(), key).await?),
+            Value::Map => Ok(self.store.del(key_link).await?),
             _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
     pub async fn del_all_keys(&self) -> Result<()> {
-        match &self.value {
-            Value::Map(map_link) => Ok(self.store.del(map_link.clone()).await?),
-            _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
+        let stream = self.list_items().await?;
+        futures::pin_mut!(stream);
+        while let Some(result) = stream.next().await {
+            let (_, value) = result?;
+            Box::pin(value.del_all_keys()).await?;
+            self.store.del(value.link).await?;
         }
+
+        Ok(())
     }
     pub async fn follow_link(&self) -> Result<GStoreValue<G>> {
         match &self.value {
-            Value::Link(link) => self.store.get(link.clone()).await,
+            Value::Link(link) => self.store.get(*link.clone()).await,
             _ => Err(anyhow::format_err!("item is not a link: {:?}", self.value)),
         }
     }
@@ -389,240 +642,56 @@ impl<G: GStoreBackend> std::ops::DerefMut for GStoreValue<G> {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Link {
-    pub namespace: NamespaceId,
-    pub key: Bytes,
-}
 impl std::fmt::Debug for Link {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Link")
             .field("namespace", &self.namespace)
-            .field(
-                "key",
-                &String::from_utf8(self.key.to_vec())
-                    .unwrap_or_else(|_| format!("0x{:X}", self.key)),
-            )
+            .field("key", &self.key)
             .finish()
     }
 }
+
 const NAMESPACE_SIZE: usize = std::mem::size_of::<NamespaceId>();
 impl Link {
-    pub fn new(namespace: NamespaceId, key: impl Into<Bytes>) -> Self {
+    pub fn new(namespace: NamespaceId, key: impl Into<Key>) -> Self {
         Self {
             namespace,
             key: key.into(),
         }
     }
-    pub fn from_bytes(bytes: impl Into<Bytes>) -> Result<Self, ParseLinkError> {
-        let bytes = bytes.into();
-        if bytes.len() < NAMESPACE_SIZE {
-            return Err(ParseLinkError::TooShort);
-        }
-        let mut namespace = bytes;
-        let key = namespace.split_off(NAMESPACE_SIZE);
-        let namespace: [u8; NAMESPACE_SIZE] = namespace[..].try_into().unwrap();
-        let namespace = NamespaceId::from(namespace);
-        Ok(Self { namespace, key })
-    }
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut buf = Vec::with_capacity(32 + self.key.len());
-        buf.extend_from_slice(self.namespace.as_bytes());
-        buf.extend_from_slice(&self.key);
-        buf
-    }
 }
-impl<B: Into<Bytes>> From<(NamespaceId, B)> for Link {
-    fn from((namespace, bytes): (NamespaceId, B)) -> Self {
-        Link::new(namespace, bytes)
+impl<K: Into<Key>> From<(NamespaceId, K)> for Link {
+    fn from((namespace, key): (NamespaceId, K)) -> Self {
+        Link::new(namespace, key)
     }
 }
 
 #[derive(Clone, Debug)]
-pub enum ParseLinkError {
-    TooShort,
-    Utf8Error,
-}
-impl std::fmt::Display for ParseLinkError {
+pub struct InvalidFormatError;
+impl std::fmt::Display for InvalidFormatError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ParseLinkError::TooShort => f.write_str("not enough bytes ( 32 )"),
-            ParseLinkError::Utf8Error => f.write_str("utf8 error"),
-        }
+        write!(f, "Invalid format, could not parse bytes.")
     }
 }
-impl std::error::Error for ParseLinkError {}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[repr(u8)]
-pub enum Value {
-    Null,
-    String(String),
-    Bytes(Bytes),
-    Map(Link),
-    Link(Link),
-}
-impl From<()> for Value {
-    fn from(_: ()) -> Self {
-        Value::Null
-    }
-}
-impl From<String> for Value {
-    fn from(value: String) -> Self {
-        Value::String(value)
-    }
-}
-impl From<Vec<u8>> for Value {
-    fn from(value: Vec<u8>) -> Self {
-        Value::Bytes(value.into())
-    }
-}
-impl<'a> From<&'a str> for Value {
-    fn from(value: &'a str) -> Self {
-        Value::String(value.into())
-    }
-}
-impl std::fmt::Debug for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Null => write!(f, "Null"),
-            Self::String(arg0) => f.debug_tuple("String").field(arg0).finish(),
-            Self::Bytes(arg0) => f.debug_tuple("Bytes").field(arg0).finish(),
-            Self::Map(arg0) => f.debug_tuple("Map").field(arg0).finish(),
-            Self::Link(arg0) => f.debug_tuple("Link").field(arg0).finish(),
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum ParseValueError {
-    ZeroSizedBuffer,
-    InvalidTag(u8),
-    Utf8Error,
-    ParseLinkError(ParseLinkError),
-}
-impl std::fmt::Display for ParseValueError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ParseValueError::ZeroSizedBuffer => f.write_str("zero sized buffer"),
-            ParseValueError::InvalidTag(tag) => f.write_fmt(format_args!("invalid tag {tag}")),
-            ParseValueError::Utf8Error => f.write_str("utf8 error"),
-            ParseValueError::ParseLinkError(err) => {
-                f.write_fmt(format_args!("link parse error: {err:?}"))
-            }
-        }
-    }
-}
-impl std::error::Error for ParseValueError {}
-
-impl Value {
-    pub fn map(nsid: NamespaceId, key: impl Into<Bytes>) -> Self {
-        Value::Map(Link::new(nsid, key))
-    }
-    pub fn link(nsid: NamespaceId, key: impl Into<Bytes>) -> Self {
-        Value::Link(Link::new(nsid, key))
-    }
-
-    pub fn from_bytes(bytes: impl Into<Bytes>) -> Result<Self, ParseValueError> {
-        let bytes = bytes.into();
-        if bytes.is_empty() {
-            return Err(ParseValueError::ZeroSizedBuffer);
-        }
-        let mut tag = bytes;
-        let payload = tag.split_off(1);
-        let tag = tag[0];
-        match tag {
-            0 => Ok(Value::Null),
-            1 => Ok(Value::String(
-                String::from_utf8(payload.to_vec()).map_err(|_| ParseValueError::Utf8Error)?,
-            )),
-            2 => Ok(Value::Bytes(payload.to_vec().into())),
-            3..=4 => {
-                let link = Link::from_bytes(payload).map_err(ParseValueError::ParseLinkError)?;
-                Ok(match tag {
-                    3 => Value::Map(link),
-                    4 => Value::Link(link),
-                    _ => unreachable!(),
-                })
-            }
-            tag => Err(ParseValueError::InvalidTag(tag)),
-        }
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        match self {
-            Value::Null => vec![0],
-            Value::String(s) => {
-                let len = 1 + s.as_bytes().len();
-                let mut buf = Vec::with_capacity(len);
-                buf.push(1);
-                buf.extend_from_slice(s.as_bytes());
-                buf
-            }
-            Value::Bytes(bytes) => {
-                let len = 1 + bytes.len();
-                let mut buf = Vec::with_capacity(len);
-                buf.push(2);
-                buf.extend_from_slice(bytes);
-                buf
-            }
-            Value::Map(l) | Value::Link(l) => {
-                let link_data = l.to_bytes();
-                let len = link_data.len() + 1;
-                let mut buf = Vec::with_capacity(len);
-                buf.push(match self {
-                    Value::Map(_) => 3,
-                    Value::Link(_) => 4,
-                    _ => unreachable!(),
-                });
-                buf.extend_from_slice(&link_data);
-                buf
-            }
-        }
-    }
-}
+impl std::error::Error for InvalidFormatError {}
 
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
-    fn value_round_trip_ser_de() {
-        let nsid1 = NamespaceId::from([
-            0u8, 1, 6, 8, 20, 3, 5, 87, 58, 86, 20, 38, 5, 29, 47, 57, 75, 59, 59, 75, 78, 57, 28,
-            83, 83, 83, 84, 85, 83, 83, 83, 83,
-        ]);
-        fn round_trip(v: Value) {
-            let b = v.to_bytes();
-            let v2 = Value::from_bytes(b).unwrap();
-            assert_eq!(v, v2);
+    fn round_trip_key_segment() {
+        macro_rules! roundtrip {
+            ($v:expr) => {
+                assert_eq!(
+                    $v,
+                    IrohGStore::key_segment_from_bytes(&mut SmallVec::<[u8; 32]>::from(
+                        IrohGStore::key_segment_to_bytes(&$v)
+                    ))
+                    .unwrap()
+                )
+            };
         }
-        for v in [
-            Value::String("Hello world".to_string()),
-            Value::Bytes(vec![1, 2, 3, 255, 20, 49, 84].into()),
-            Value::Null,
-            Value::Map(Link::new(nsid1, "hello world")),
-        ] {
-            round_trip(v)
-        }
-    }
-
-    #[tokio::test]
-    async fn ux() {
-        let node = iroh::node::Node::memory().spawn().await.unwrap();
-        let ns = node.docs.create().await.unwrap().id();
-        let gstore = IrohGStore::new(node.client().clone(), node.authors.default().await.unwrap());
-
-        // Create a string entry
-        gstore.set(Link::new(ns, "hello"), "world").await.unwrap();
-        assert_eq!(
-            "world",
-            gstore
-                .get(Link::new(ns, "hello"))
-                .await
-                .unwrap()
-                .as_str()
-                .unwrap()
-        )
+        roundtrip!(KeySegment::Bool(true));
     }
 }

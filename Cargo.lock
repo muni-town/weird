@@ -1560,11 +1560,13 @@ name = "gdata"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bytes",
+ "cobs",
  "futures",
  "iroh",
  "quic-rpc",
  "quick_cache",
+ "smallstr",
+ "smallvec",
  "tokio",
  "ulid",
 ]
@@ -1574,6 +1576,7 @@ name = "gdata_explorer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "bytes",
  "clap",
  "crossterm",
@@ -2179,7 +2182,6 @@ dependencies = [
  "iroh-docs",
  "iroh-gossip",
  "iroh-io",
- "iroh-metrics",
  "iroh-net",
  "iroh-quinn",
  "num_cpus",
@@ -2260,7 +2262,6 @@ dependencies = [
  "hex",
  "iroh-base",
  "iroh-io",
- "iroh-metrics",
  "iroh-net",
  "num_cpus",
  "parking_lot",
@@ -4250,6 +4251,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f92a496fb766b417c996b9c5e57daf2f7ad3b0bebe1ccfca4856390e3d3bb67"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "smallstr"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b1aefdf380735ff8ded0b15f31aab05daf1f70216c01c02a12926badd1df9d"
+dependencies = [
+ "smallvec",
 ]
 
 [[package]]

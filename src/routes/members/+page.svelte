@@ -33,6 +33,7 @@
 		return profiles.filter((x) => {
 			if (search == '') return true;
 			for (const word of words) {
+				const wordLowercase = word.toLowerCase();
 				for (const field of [
 					x.bio,
 					x.username,
@@ -40,7 +41,8 @@
 					printWorkCompensation(x.work_compensation),
 					...x.tags
 				]) {
-					if (word && field && field.includes(word)) {
+					const fieldLowercase = field?.toLowerCase();
+					if (wordLowercase && fieldLowercase && fieldLowercase.includes(wordLowercase)) {
 						return true;
 					}
 				}

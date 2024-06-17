@@ -15,6 +15,7 @@ use crate::auth::AuthenticationError;
 
 mod auth;
 mod routes;
+mod utils;
 
 #[derive(clap::Parser)]
 pub struct Args {

@@ -5,7 +5,7 @@ edition = "2021"
 default-run = "backend"
 
 [dependencies]
-gdata = { path = "./gdata" }
+gdata = { path = "./gdata", features = ["serde"] }
 anyhow = "1.0.86"
 async-trait = "0.1.80"
 axum = "0.7.5"
@@ -28,3 +28,5 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["fmt", "env-filter"] }
 async-graphql = "7.0.5"
 async-graphql-axum = "7.0.5"
+serde_yaml = "0.9.34"
+bytes = "1.6.0"

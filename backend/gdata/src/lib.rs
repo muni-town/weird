@@ -16,15 +16,18 @@ use iroh::{
 type Doc = iroh::client::docs::Doc<FlumeConnection<RpcService>>;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Link {
     pub namespace: NamespaceId,
     pub key: Key,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Key(pub SmallVec<[KeySegment; 8]>);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum KeySegment {
     Bool(bool),
     Uint(u64),
@@ -34,6 +37,7 @@ pub enum KeySegment {
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Value {
     Null,
     Bool(bool),
@@ -178,7 +182,7 @@ impl IrohGStore {
             docs: Arc::new(Cache::new(5)),
         }
     }
-    fn key_segment_byte_discriminant(seg: &KeySegment) -> u8 {
+    pub fn key_segment_byte_discriminant(seg: &KeySegment) -> u8 {
         match seg {
             KeySegment::Bool(_) => 0,
             KeySegment::Uint(_) => 1,
@@ -187,7 +191,7 @@ impl IrohGStore {
             KeySegment::Bytes(_) => 4,
         }
     }
-    fn key_segment_to_bytes(seg: &KeySegment) -> SmallVec<[u8; 32]> {
+    pub fn key_segment_to_bytes(seg: &KeySegment) -> SmallVec<[u8; 32]> {
         let mut buf = SmallVec::<[u8; 32]>::new();
         buf.push(Self::key_segment_byte_discriminant(seg));
         match seg {
@@ -203,7 +207,7 @@ impl IrohGStore {
         out.truncate(len);
         out
     }
-    fn key_segment_from_bytes(bytes: &mut [u8]) -> Result<KeySegment, InvalidFormatError> {
+    pub fn key_segment_from_bytes(bytes: &mut [u8]) -> Result<KeySegment, InvalidFormatError> {
         let len = cobs::decode_in_place(bytes).map_err(|_| InvalidFormatError)?;
         let bytes = &bytes[0..len];
         let discriminant = bytes.first().ok_or(InvalidFormatError)?;
@@ -226,7 +230,7 @@ impl IrohGStore {
         };
         Ok(seg)
     }
-    fn key_to_bytes(key: &Key) -> SmallVec<[u8; 128]> {
+    pub fn key_to_bytes(key: &Key) -> SmallVec<[u8; 128]> {
         let mut buf = SmallVec::<[u8; 128]>::new();
         for seg in key.iter() {
             let seg_bytes = Self::key_segment_to_bytes(seg);
@@ -238,7 +242,7 @@ impl IrohGStore {
         buf.push(0); // Add null terminator
         buf
     }
-    fn key_from_bytes(bytes: &[u8]) -> Result<Key, InvalidFormatError> {
+    pub fn key_from_bytes(bytes: &[u8]) -> Result<Key, InvalidFormatError> {
         // Remove null terminator
         let len = bytes.len() - 1;
         if bytes[len] != 0 {
@@ -274,7 +278,7 @@ impl IrohGStore {
         }
         Ok(Key(segments))
     }
-    fn link_from_bytes(bytes: &[u8]) -> Result<Link, InvalidFormatError> {
+    pub fn link_from_bytes(bytes: &[u8]) -> Result<Link, InvalidFormatError> {
         if bytes.len() < NAMESPACE_SIZE {
             return Err(InvalidFormatError);
         }
@@ -286,14 +290,14 @@ impl IrohGStore {
             key: Self::key_from_bytes(key)?,
         })
     }
-    fn link_to_bytes(link: &Link) -> Vec<u8> {
+    pub fn link_to_bytes(link: &Link) -> Vec<u8> {
         let key_bytes = Self::key_to_bytes(&link.key);
         let mut buf = Vec::with_capacity(32 + key_bytes.len());
         buf.extend_from_slice(link.namespace.as_bytes());
         buf.extend_from_slice(&key_bytes);
         buf
     }
-    fn value_byte_discriminant(value: &Value) -> u8 {
+    pub fn value_byte_discriminant(value: &Value) -> u8 {
         match value {
             Value::Null => 0,
             Value::Bool(_) => 1,
@@ -306,7 +310,7 @@ impl IrohGStore {
             Value::Map => 8,
         }
     }
-    fn value_to_bytes(value: &Value) -> SmallVec<[u8; 64]> {
+    pub fn value_to_bytes(value: &Value) -> SmallVec<[u8; 64]> {
         let mut buf = SmallVec::new();
         buf.push(Self::value_byte_discriminant(value));
         match value {
@@ -322,7 +326,7 @@ impl IrohGStore {
         }
         buf
     }
-    fn value_from_bytes(bytes: &[u8]) -> Result<Value, InvalidFormatError> {
+    pub fn value_from_bytes(bytes: &[u8]) -> Result<Value, InvalidFormatError> {
         Ok(match bytes {
             [0] => Value::Null,
             [1, 0] => Value::Bool(false),

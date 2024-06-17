@@ -4,7 +4,7 @@
 
 	onMount(async () => {
 		const url = new URL(window.location.href);
-		const postLogoutUri = url.searchParams.get('post_logout_redirect_uri');
+		const postLogoutUri = decodeURIComponent(url.searchParams.get('post_logout_redirect_uri') || '/');
 		const token = url.searchParams.get('id_token_hint');
 		const state = url.searchParams.get('state');
 
@@ -12,7 +12,7 @@
 
 		const req = {
 			id_token_hint: token || undefined,
-			post_logout_redirect_uri: postLogoutUri || '/',
+			post_logout_redirect_uri: postLogoutUri,
 			state: state || undefined
 		};
 
@@ -27,7 +27,7 @@
 			console.log(e);
 		} finally {
 			localStorage.removeItem('csrfToken');
-			window.location.href = postLogoutUri || '/';
+			window.location.href = postLogoutUri;
 		}
 	});
 </script>

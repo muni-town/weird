@@ -76,9 +76,7 @@
 					localStorage.setItem(PKCE_VERIFIER, verifier);
 					const nonce = getKey(24);
 					const s = 'account';
-					const redirect_uri = `${window.location.origin}/auth/v1/oidc/callback`
-						.replaceAll(':', '%3A')
-						.replaceAll('/', '%2F');
+					const redirect_uri = encodeURIComponent(`${window.location.origin}/auth/v1/oidc/callback`);
 					window.location.href = `/auth/v1/oidc/logout?post_logout_redirect_uri=%2Fauth%2Fv1%2Foidc%2Fauthorize%3Fclient_id%3Drauthy%26redirect_uri%3D${redirect_uri}%26response_type%3Dcode%26code_challenge%3D${challenge}%26code_challenge_method%3DS256%26scope%3Dopenid%2Bprofile%2Bemail%26nonce%3D${nonce}%26state%3D${s}`;
 				}
 			});

@@ -5,7 +5,6 @@
 	onMount(async () => {
 		const url = new URL(window.location.href);
 		const postLogoutUri = decodeURIComponent(url.searchParams.get('post_logout_redirect_uri') || '/');
-		console.log(postLogoutUri)
 		const token = url.searchParams.get('id_token_hint');
 		const state = url.searchParams.get('state');
 

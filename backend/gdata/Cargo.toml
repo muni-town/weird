@@ -3,6 +3,10 @@ name = "gdata"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+serde = ["dep:serde", "smallvec/serde", "smallstr/serde"]
+
 [dependencies]
 anyhow = "1.0.86"
 cobs = "0.2.3"
@@ -13,6 +17,7 @@ quick_cache = "0.5.1"
 smallstr = "0.3.0"
 smallvec = "1.13.2"
 ulid = "1.1.2"
+serde = { version = "1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
 tokio = "1.38.0"

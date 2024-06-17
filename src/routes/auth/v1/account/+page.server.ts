@@ -1,6 +1,12 @@
 import type { PageServerLoad } from './$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
+import { checkResponse } from '$lib/utils';
+
+export interface Provider {
+	id: string;
+	name: string;
+}
 
 export interface Profile {
 	username?: string;
@@ -16,14 +22,23 @@ export interface Profile {
 export type WorkCapacity = 'full_time' | 'part_time';
 export type WorkCompensation = 'paid' | 'volunteer';
 
-export const load: PageServerLoad = async ({ fetch, request }): Promise<{ profile?: Profile }> => {
+export const load: PageServerLoad = async ({ fetch, request }): Promise<{ profile?: Profile, providers: Provider[] }> => {
+	let providers: Provider[] = [];
+	try {
+		const providersResp = await fetch('/auth/v1/providers/minimal');
+		await checkResponse(providersResp);
+		providers = await providersResp.json();
+	} catch (e) {
+		console.error('Error getting providers:', e);
+	}
+
 	let { userInfo } = await getSession(fetch, request);
 	if (userInfo) {
 		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
 		const profile: Profile = await resp.json();
 
-		return { profile };
+		return { profile, providers };
 	} else {
-		return {};
+		return {providers};
 	}
 };

@@ -8,6 +8,7 @@
 	import { env } from '$env/dynamic/public';
 
 	const { data }: { data: PageData } = $props();
+	const providers = data.providers;
 
 	const userInfo = getUserInfo();
 	const PKCE_VERIFIER = 'pkce_verifier';
@@ -64,6 +65,40 @@
 			});
 		}
 	});
+
+	const providerLinkPkce = async (provider_id: string, pkce_challenge: string) => {
+		const data = {
+			pkce_challenge,
+			redirect_uri: window.location.href,
+			client_id: 'rauthy',
+			email: userInfo?.email,
+			provider_id,
+		}
+		await fetch(`/auth/v1/providers/${provider_id}/link`, {
+			method: 'POST',
+			headers: [['csrf-token', localStorage.getItem('csrfToken')!]],
+			body: JSON.stringify(data),
+		}).then(() => {
+			getPkce(64, async (error, { challenge, verifier }) => {
+				if (!error) {
+					localStorage.setItem(PKCE_VERIFIER, verifier);
+					const nonce = getKey(24);
+					const s = 'account';
+					const redirect_uri = encodeURIComponent(`${window.location.origin}/auth/v1/oidc/callback`);
+					window.location.href = `/auth/v1/oidc/logout?post_logout_redirect_uri=%2Fauth%2Fv1%2Foidc%2Fauthorize%3Fclient_id%3Drauthy%26redirect_uri%3D${redirect_uri}%26response_type%3Dcode%26code_challenge%3D${challenge}%26code_challenge_method%3DS256%26scope%3Dopenid%2Bprofile%2Bemail%26nonce%3D${nonce}%26state%3D${s}`;
+				}
+			});
+		})
+		.catch(err => console.log(err, 'a'))
+	}
+	const AddProvider = (provider_id: string) => {
+		getPkce(64, (error, { challenge, verifier }) => {
+			if(!error){
+				localStorage.setItem('pkceVerifierUpstream', verifier);
+				providerLinkPkce(provider_id, challenge);
+			}
+		})
+	}
 </script>
 
 <svelte:head>
@@ -97,6 +132,15 @@
 					</span>
 				</div>
 			</div>
+			{#if providers && userInfo.account_type === 'password'}
+				{#each providers as provider}
+					<button onclick={(e) => {
+						e.preventDefault();
+						AddProvider(provider.id)
+					}} class="variant-ghost btn">Link my account with {provider.name}</button>
+				{/each}
+			{/if}
+			<!-- <button onclick={AddProvider} class="variant-ghost btn">Log in anyway</button> -->
 
 			<label class="label">
 				<span>Username</span>

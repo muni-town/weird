@@ -195,7 +195,7 @@
 					placeholder="Interest, skill, etc."
 				/>
 				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
-				<div class="ml-4 mt-1 flex gap-2">
+				<div class="ml-4 mt-1 flex gap-2 flex-wrap">
 					{#each tags as tag}
 						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
 					{/each}

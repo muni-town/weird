@@ -52,7 +52,7 @@
 				{#if profile.tags.length > 0}
 					<div class="flex items-center gap-2">
 						<strong>Tags: </strong>
-						<span class="flex gap-2 text-base">
+						<span class="flex gap-2 text-base flex-wrap">
 							{#each profile.tags as tag}
 								<a
 									class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"

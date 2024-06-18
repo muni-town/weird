@@ -1,3 +1,12 @@
 [workspace]
 resolver = "2"
 members = ["backend", "backend/gdata", "backend/gdata/gdata_explorer"]
+
+# [patch.crates-io]
+# iroh = { path = "../iroh/iroh" }
+# iroh-base = { path = "../iroh/iroh-base" }
+# iroh-blobs = { path = "../iroh/iroh-blobs" }
+# iroh-docs = { path = "../iroh/iroh-docs" }
+# iroh-gossip = { path = "../iroh/iroh-gossip" }
+# iroh-metrics = { path = "../iroh/iroh-metrics" }
+# iroh-net = { path = "../iroh/iroh-net" }

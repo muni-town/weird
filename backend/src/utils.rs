@@ -1,7 +1,12 @@
-use axum::response::{IntoResponse, Response};
-use bytes::{BufMut, BytesMut};
+use axum::{
+    extract::{FromRequest, Request},
+    response::{IntoResponse, Response},
+};
+use bytes::{BufMut, Bytes, BytesMut};
 use http::{header, HeaderValue, StatusCode};
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
+
+use crate::AppError;
 
 pub struct Yaml<T>(pub T);
 
@@ -32,5 +37,20 @@ where
             )
                 .into_response(),
         }
+    }
+}
+
+#[async_trait::async_trait]
+impl<T, S> FromRequest<S> for Yaml<T>
+where
+    T: DeserializeOwned,
+    S: Send + Sync,
+{
+    type Rejection = AppError;
+
+    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
+        let bytes = Bytes::from_request(req, state).await?;
+        let val: T = serde_yaml::from_slice(&bytes)?;
+        Ok(Yaml(val))
     }
 }

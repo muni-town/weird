@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use axum::extract::Path;
 use axum::{
     extract::State,
@@ -13,8 +11,8 @@ use serde::{Deserialize, Serialize, Serializer};
 
 use crate::{auth::RauthySession, AppError, AppResult, AppState};
 
-mod profile;
 mod db;
+mod profile;
 
 #[derive(Serialize)]
 pub struct InfoResponse {
@@ -27,8 +25,7 @@ fn display<S: Serializer>(id: &AuthorId, s: S) -> Result<S::Ok, S::Error> {
 }
 
 pub fn install(router: Router<AppState>) -> Router<AppState> {
-    profile::install(db::install(router))
-        .route("/server-info", get(server_info))
+    profile::install(db::install(router)).route("/server-info", get(server_info))
 }
 
 pub async fn server_info(
@@ -40,4 +37,3 @@ pub async fn server_info(
         session,
     }))
 }
-

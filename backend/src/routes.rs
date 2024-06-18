@@ -36,7 +36,7 @@ pub async fn server_info(
     session: RauthySession,
 ) -> AppResult<Json<InfoResponse>> {
     Ok(Json(InfoResponse {
-        server_author: state.node.authors.default().await?,
+        server_author: state.node.authors().default().await?,
         session,
     }))
 }

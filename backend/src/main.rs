@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .relay_mode(iroh::net::relay::RelayMode::Disabled)
         .spawn()
         .await?;
-    let node_author = node.authors.default().await?;
+    let node_author = node.authors().default().await?;
     let graph = IrohGStore::new(node.client().clone(), node_author);
     let profile_namespace_path = args.data_dir.join("weird-profile-namespace");
     let ns = if profile_namespace_path.exists() {
@@ -95,7 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })?;
         NamespaceId::from(bytes)
     } else {
-        let profiles = node.docs.create().await?;
+        let profiles = node.docs().create().await?;
         std::fs::write(profile_namespace_path, profiles.id())?;
         profiles.id()
     };

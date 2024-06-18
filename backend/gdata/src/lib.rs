@@ -166,7 +166,7 @@ impl IrohGStore {
         self.docs
             .get_or_insert_async(&ns, async {
                 self.iroh
-                    .docs
+                    .docs()
                     .open(ns)
                     .await?
                     .ok_or_else(|| anyhow::format_err!("doc does not exist"))

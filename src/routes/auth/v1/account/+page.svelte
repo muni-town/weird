@@ -72,33 +72,36 @@
 			redirect_uri: window.location.href,
 			client_id: 'rauthy',
 			email: userInfo?.email,
-			provider_id,
-		}
+			provider_id
+		};
 		await fetch(`/auth/v1/providers/${provider_id}/link`, {
 			method: 'POST',
 			headers: [['csrf-token', localStorage.getItem('csrfToken')!]],
-			body: JSON.stringify(data),
-		}).then(() => {
-			getPkce(64, async (error, { challenge, verifier }) => {
-				if (!error) {
-					localStorage.setItem(PKCE_VERIFIER, verifier);
-					const nonce = getKey(24);
-					const s = 'account';
-					const redirect_uri = encodeURIComponent(`${window.location.origin}/auth/v1/oidc/callback`);
-					window.location.href = `/auth/v1/oidc/logout?post_logout_redirect_uri=%2Fauth%2Fv1%2Foidc%2Fauthorize%3Fclient_id%3Drauthy%26redirect_uri%3D${redirect_uri}%26response_type%3Dcode%26code_challenge%3D${challenge}%26code_challenge_method%3DS256%26scope%3Dopenid%2Bprofile%2Bemail%26nonce%3D${nonce}%26state%3D${s}`;
-				}
-			});
+			body: JSON.stringify(data)
 		})
-		.catch(err => console.log(err, 'a'))
-	}
+			.then(() => {
+				getPkce(64, async (error, { challenge, verifier }) => {
+					if (!error) {
+						localStorage.setItem(PKCE_VERIFIER, verifier);
+						const nonce = getKey(24);
+						const s = 'account';
+						const redirect_uri = encodeURIComponent(
+							`${window.location.origin}/auth/v1/oidc/callback`
+						);
+						window.location.href = `/auth/v1/oidc/logout?post_logout_redirect_uri=%2Fauth%2Fv1%2Foidc%2Fauthorize%3Fclient_id%3Drauthy%26redirect_uri%3D${redirect_uri}%26response_type%3Dcode%26code_challenge%3D${challenge}%26code_challenge_method%3DS256%26scope%3Dopenid%2Bprofile%2Bemail%26nonce%3D${nonce}%26state%3D${s}`;
+					}
+				});
+			})
+			.catch((err) => console.log(err, 'a'));
+	};
 	const AddProvider = (provider_id: string) => {
 		getPkce(64, (error, { challenge, verifier }) => {
-			if(!error){
+			if (!error) {
 				localStorage.setItem('pkceVerifierUpstream', verifier);
 				providerLinkPkce(provider_id, challenge);
 			}
-		})
-	}
+		});
+	};
 </script>
 
 <svelte:head>
@@ -134,10 +137,14 @@
 			</div>
 			{#if providers && userInfo.account_type === 'password'}
 				{#each providers as provider}
-					<button onclick={(e) => {
-						e.preventDefault();
-						AddProvider(provider.id)
-					}} class="variant-ghost btn">Link my account with {provider.name}</button>
+					<button
+						type="button"
+						onclick={(e) => {
+							e.preventDefault();
+							AddProvider(provider.id);
+						}}
+						class="variant-ghost btn">Link my account with {provider.name}</button
+					>
 				{/each}
 			{/if}
 			<!-- <button onclick={AddProvider} class="variant-ghost btn">Log in anyway</button> -->
@@ -187,7 +194,7 @@
 					class="input"
 					placeholder="Interest, skill, etc."
 				/>
-				<div class="text-surface-600-300-token text-sm ml-3">Separate tags by commas.</div>
+				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
 				<div class="ml-4 mt-1 flex gap-2">
 					{#each tags as tag}
 						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>

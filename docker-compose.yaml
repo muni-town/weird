@@ -33,6 +33,9 @@ services:
       BOOTSTRAP_API_KEY: ewoJIm5hbWUiOiAidXNlcmF0dHJpYnV0ZXMiLAoJImFjY2VzcyI6IFsKCQl7CgkJCSJncm91cCI6ICJVc2VyQXR0cmlidXRlcyIsCgkJCSJhY2Nlc3NfcmlnaHRzIjogWyJyZWFkIiwgImNyZWF0ZSIsICJ1cGRhdGUiLCAiZGVsZXRlIl0KCQl9CgldCn0K
       BOOTSTRAP_API_KEY_SECRET: very_bad_secret_use_only_in_development_qH6udD97p1hEXOxqFWoZwxAjl
       EMAIL_SUB_PREFIX: Weird.One
+      LOG_LEVEL_ACCESS: Verbose
+      http_proxy:
+      https_proxy:
     ports:
       - 8921:8080
     volumes:

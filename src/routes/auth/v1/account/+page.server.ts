@@ -22,10 +22,15 @@ export interface Profile {
 export type WorkCapacity = 'full_time' | 'part_time';
 export type WorkCompensation = 'paid' | 'volunteer';
 
-export const load: PageServerLoad = async ({ fetch, request }): Promise<{ profile?: Profile, providers: Provider[] }> => {
+export const load: PageServerLoad = async ({
+	fetch,
+	request
+}): Promise<{ profile?: Profile; providers: Provider[] }> => {
 	let providers: Provider[] = [];
 	try {
-		const providersResp = await fetch('/auth/v1/providers/minimal');
+		const providersResp = await fetch('/auth/v1/providers/minimal', {
+			headers: [['x-forwarded-for', request.headers.get('x-forwarded-for')!]]
+		});
 		await checkResponse(providersResp);
 		providers = await providersResp.json();
 	} catch (e) {
@@ -39,6 +44,6 @@ export const load: PageServerLoad = async ({ fetch, request }): Promise<{ profil
 
 		return { profile, providers };
 	} else {
-		return {providers};
+		return { providers };
 	}
 };

@@ -18,7 +18,10 @@ async fn get_profiles(state: State<AppState>) -> AppResult<Json<Vec<Profile>>> {
     let stream = state.weird.profiles().await?;
     pin_mut!(stream);
     while let Some(profile) = stream.next().await {
-        profiles.push(profile?);
+        let profile = profile?;
+        if profile.username.is_some() {
+            profiles.push(profile);
+        }
     }
     Ok(Json(profiles))
 }

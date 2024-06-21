@@ -1,0 +1,14 @@
+[package]
+name = "weird"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+futures = "0.3.30"
+gdata = { path = "../gdata", features = ["serde"] }
+iroh = { version = "0.18.0", default-features = false, features = ["fs-store"] }
+once_cell = "1.19.0"
+quic-rpc = "0.10.1"
+serde = { version = "1.0.203", features = ["derive"] }
+tracing = "0.1.40"

@@ -158,10 +158,13 @@ impl<T: Into<KeySegment>, const N: usize> From<[T; N]> for Key {
 #[derive(Clone, Debug)]
 pub struct IrohGStore {
     pub iroh: iroh::client::MemIroh,
-    pub author: AuthorId,
+    pub default_author: AuthorId,
     pub docs: Arc<Cache<NamespaceId, Doc>>,
 }
 impl IrohGStore {
+    /// Open a document.
+    ///
+    /// This is a temporary workaround for <https://github.com/n0-computer/iroh/issues/2381>.
     pub async fn open(&self, ns: NamespaceId) -> anyhow::Result<Doc> {
         self.docs
             .get_or_insert_async(&ns, async {
@@ -175,10 +178,13 @@ impl IrohGStore {
     }
 }
 impl IrohGStore {
-    pub fn new(iroh: iroh::client::MemIroh, author: AuthorId) -> Self {
+    /// Create a new [`IrohGStore`] that wraps an iroh client.
+    /// 
+    /// The `default_author` is used when writing entries if another author is not specified.
+    pub fn new(iroh: iroh::client::MemIroh, default_author: AuthorId) -> Self {
         Self {
             iroh,
-            author,
+            default_author,
             docs: Arc::new(Cache::new(5)),
         }
     }
@@ -352,6 +358,9 @@ impl IrohGStore {
 }
 
 impl GStoreBackend for IrohGStore {
+    fn default_author(&self) -> AuthorId {
+        self.default_author
+    }
     async fn get(&self, link: impl Into<Link>) -> Result<GStoreValue<Self>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
@@ -365,12 +374,14 @@ impl GStoreBackend for IrohGStore {
                 link,
                 store: self.clone(),
                 value,
+                current_author: None,
             })
         } else {
             Ok(GStoreValue {
                 link,
                 store: self.clone(),
                 value: Value::Null,
+                current_author: None,
             })
         }
     }
@@ -393,27 +404,30 @@ impl GStoreBackend for IrohGStore {
                 link,
                 store: self.clone(),
                 value,
+                current_author: None,
             })
         } else {
             Ok(GStoreValue {
                 link,
                 store: self.clone(),
                 value: Value::Null,
+                current_author: None,
             })
         }
     }
 
-    async fn set(
+    async fn set_with_author(
         &self,
         link: impl Into<Link>,
         value: impl Into<Value>,
+        author: AuthorId,
     ) -> Result<GStoreValue<Self>> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
         let key_bytes = Self::key_to_bytes(&link.key);
         let value = value.into();
         doc.set_bytes(
-            self.author,
+            author,
             key_bytes.to_vec(),
             Self::value_to_bytes(&value).to_vec(),
         )
@@ -422,6 +436,7 @@ impl GStoreBackend for IrohGStore {
             link,
             store: self.clone(),
             value,
+            current_author: None,
         })
     }
 
@@ -461,6 +476,7 @@ impl GStoreBackend for IrohGStore {
                                     link: (link.namespace, key).into(),
                                     store: store.clone(),
                                     value,
+                                    current_author: None,
                                 }))
                             }
                             Err(e) => Err(e),
@@ -475,26 +491,34 @@ impl GStoreBackend for IrohGStore {
         Ok(stream)
     }
 
-    async fn del(&self, link: impl Into<Link>) -> Result<()> {
+    async fn del_with_author(&self, link: impl Into<Link>, author: AuthorId) -> Result<()> {
         let link = link.into();
         let doc = self.open(link.namespace).await?;
-        doc.del(self.author, Self::key_to_bytes(&link.key).to_vec())
+        doc.del(author, Self::key_to_bytes(&link.key).to_vec())
             .await?;
         Ok(())
     }
 }
 
 pub trait GStoreBackend: Sync + Send + Sized + Clone + 'static {
+    fn default_author(&self) -> AuthorId;
     fn get(&self, link: impl Into<Link>) -> impl Future<Output = Result<GStoreValue<Self>>>;
     fn get_or_init_map(
         &self,
         link: impl Into<Link>,
     ) -> impl Future<Output = Result<GStoreValue<Self>>> {
+        self.get_or_init_map_with_author(link, self.default_author())
+    }
+    fn get_or_init_map_with_author(
+        &self,
+        link: impl Into<Link>,
+        author: AuthorId,
+    ) -> impl Future<Output = Result<GStoreValue<Self>>> {
         let link = link.into();
         async move {
             let mut value = self.get(link.clone()).await?;
             if value.is_null() {
-                value = self.set(link, Value::Map).await?
+                value = self.set_with_author(link, Value::Map, author).await?
             } else if !matches!(value.value, Value::Map) {
                 return Err(anyhow::format_err!(
                     "Value is not null or a map, not initing map."
@@ -517,8 +541,23 @@ pub trait GStoreBackend: Sync + Send + Sized + Clone + 'static {
         &self,
         link: impl Into<Link>,
         value: impl Into<Value>,
+    ) -> impl Future<Output = Result<GStoreValue<Self>>> {
+        self.set_with_author(link, value, self.default_author())
+    }
+    fn set_with_author(
+        &self,
+        link: impl Into<Link>,
+        value: impl Into<Value>,
+        author: AuthorId,
     ) -> impl Future<Output = Result<GStoreValue<Self>>>;
-    fn del(&self, link: impl Into<Link>) -> impl Future<Output = Result<()>>;
+    fn del(&self, link: impl Into<Link>) -> impl Future<Output = Result<()>> {
+        self.del_with_author(link, self.default_author())
+    }
+    fn del_with_author(
+        &self,
+        link: impl Into<Link>,
+        author: AuthorId,
+    ) -> impl Future<Output = Result<()>>;
 }
 
 #[derive(Clone)]
@@ -526,6 +565,7 @@ pub struct GStoreValue<G: GStoreBackend> {
     pub link: Link,
     pub store: G,
     pub value: Value,
+    pub current_author: Option<AuthorId>,
 }
 impl<G: GStoreBackend> std::fmt::Debug for GStoreValue<G> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -536,9 +576,17 @@ impl<G: GStoreBackend> std::fmt::Debug for GStoreValue<G> {
     }
 }
 impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
+    pub fn with_author(mut self, author_id: Option<AuthorId>) -> Self {
+        self.current_author = author_id;
+        self
+    }
     pub async fn get_idx(&self, idx: u64) -> Result<Self> {
         match &self.value {
-            Value::Map => Ok(self.store.get_idx(self.link.clone(), idx).await?),
+            Value::Map => Ok(self
+                .store
+                .get_idx(self.link.clone(), idx)
+                .await?
+                .with_author(self.current_author)),
             _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
@@ -546,7 +594,7 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         let mut link = self.link.clone();
         link.key.push(key.into());
         match &self.value {
-            Value::Map => Ok(self.store.get(link).await?),
+            Value::Map => Ok(self.store.get(link).await?.with_author(self.current_author)),
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
@@ -554,7 +602,14 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         let mut key_link = self.link.clone();
         key_link.key.push(key.into());
         match &self.value {
-            Value::Map => Ok(self.store.get_or_init_map(key_link).await?),
+            Value::Map => Ok(self
+                .store
+                .get_or_init_map_with_author(
+                    key_link,
+                    self.current_author.unwrap_or(self.store.default_author()),
+                )
+                .await?
+                .with_author(self.current_author)),
             v => Err(anyhow::format_err!(
                 "value is not a map or null, not initing map: {:?}",
                 v
@@ -562,14 +617,26 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         }
     }
     pub async fn list_items(&self) -> Result<impl Stream<Item = Result<Self>>> {
+        let current_author = self.current_author;
         match &self.value {
-            Value::Map => Ok(self.store.clone().list(self.link.clone(), false).await?),
+            Value::Map => Ok(self
+                .store
+                .clone()
+                .list(self.link.clone(), false)
+                .await?
+                .map(move |item| item.map(|x| x.with_author(current_author)))),
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
     pub async fn list_items_recursive(&self) -> Result<impl Stream<Item = Result<Self>>> {
+        let current_author = self.current_author;
         match &self.value {
-            Value::Map => Ok(self.store.clone().list(self.link.clone(), true).await?),
+            Value::Map => Ok(self
+                .store
+                .clone()
+                .list(self.link.clone(), true)
+                .await?
+                .map(move |item| item.map(|x| x.with_author(current_author)))),
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
@@ -587,7 +654,14 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
     }
     pub async fn set(&mut self, value: impl Into<Value>) -> Result<()> {
         let value = value.into();
-        self.store.set(self.link.clone(), value.clone()).await?;
+        self.store
+            .set_with_author(
+                self.link.clone(),
+                value.clone(),
+                self.current_author.unwrap_or(self.store.default_author()),
+            )
+            .await?
+            .with_author(self.current_author);
         self.value = value;
         Ok(())
     }
@@ -599,7 +673,15 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         let mut key_link = self.link.clone();
         key_link.key.push(key.into());
         match &self.value {
-            Value::Map => Ok(self.store.set(key_link, value).await?),
+            Value::Map => Ok(self
+                .store
+                .set_with_author(
+                    key_link,
+                    value,
+                    self.current_author.unwrap_or(self.store.default_author()),
+                )
+                .await?
+                .with_author(self.current_author)),
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
@@ -607,7 +689,13 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         let mut key_link = self.link.clone();
         key_link.key.push(key.into());
         match &self.value {
-            Value::Map => Ok(self.store.del(key_link).await?),
+            Value::Map => Ok(self
+                .store
+                .del_with_author(
+                    key_link,
+                    self.current_author.unwrap_or(self.store.default_author()),
+                )
+                .await?),
             _ => Err(anyhow::format_err!("item is not a map: {:?}", self.value)),
         }
     }
@@ -616,18 +704,26 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         futures::pin_mut!(stream);
         while let Some(result) = stream.next().await {
             let value = result?;
-            // TODO: determine whether recursively deleting makes sense by default.
             if value.is_map() {
                 Box::pin(value.del_all_keys()).await?;
             }
-            self.store.del(value.link).await?;
+            self.store
+                .del_with_author(
+                    value.link,
+                    self.current_author.unwrap_or(self.store.default_author()),
+                )
+                .await?;
         }
 
         Ok(())
     }
     pub async fn follow_link(&self) -> Result<GStoreValue<G>> {
         match &self.value {
-            Value::Link(link) => self.store.get(*link.clone()).await,
+            Value::Link(link) => Ok(self
+                .store
+                .get(*link.clone())
+                .await?
+                .with_author(self.current_author)),
             _ => Err(anyhow::format_err!("item is not a link: {:?}", self.value)),
         }
     }

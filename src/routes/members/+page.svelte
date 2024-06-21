@@ -39,7 +39,7 @@
 					x.username,
 					printWorkCapacity(x.work_capacity),
 					printWorkCompensation(x.work_compensation),
-					...x.tags
+					...(x.tags || [])
 				]) {
 					const fieldLowercase = field?.toLowerCase();
 					if (wordLowercase && fieldLowercase && fieldLowercase.includes(wordLowercase)) {
@@ -64,17 +64,6 @@
 	<title>{env.PUBLIC_MEMBERS_TITLE} | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<style>
-	.card-link::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		right: 0;
-		left: 0;
-	}
-</style>
-
 <main class="flex max-w-full flex-col items-center">
 	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>
 
@@ -91,7 +80,9 @@
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
 		{#each filtered_profiles as profile}
-			<div class="w-120 card relative flex flex-col items-center p-5 hover:scale-105 transition-transform duration-200">
+			<div
+				class="w-120 card relative flex flex-col items-center p-5 transition-transform duration-200 hover:scale-105"
+			>
 				<div class="flex w-[15em] flex-col items-center text-center">
 					<div class="mb-3 flex flex-col flex-wrap items-center gap-4">
 						<Avatar width="w-[5em]" seed={profile.avatar_seed || profile.username || ''} />
@@ -108,7 +99,7 @@
 								{profile.location}
 							</div>
 						{/if}
-						{#if profile.tags.length > 0}
+						{#if profile.tags && profile.tags.length > 0}
 							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
 								{#each profile.tags as tag}<button
 										type="button"
@@ -141,3 +132,14 @@
 		{/each}
 	</div>
 </main>
+
+<style>
+	.card-link::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		left: 0;
+	}
+</style>

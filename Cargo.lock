@@ -468,10 +468,8 @@ dependencies = [
  "bytes",
  "clap",
  "futures",
- "gdata",
  "headers",
  "http 1.1.0",
- "iroh",
  "once_cell",
  "quic-rpc",
  "rand",
@@ -484,6 +482,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "weird",
 ]
 
 [[package]]
@@ -5312,6 +5311,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b3de34ae270483955a94f4b21bdaaeb83d508bb84a01435f393818edb0012009"
 dependencies = [
  "rustls-pki-types",
+]
+
+[[package]]
+name = "weird"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "gdata",
+ "iroh",
+ "once_cell",
+ "quic-rpc",
+ "serde",
+ "tracing",
 ]
 
 [[package]]

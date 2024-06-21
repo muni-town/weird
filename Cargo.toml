@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["backend", "backend/gdata", "backend/gdata/gdata_explorer"]
+members = ["backend", "backend/gdata", "backend/gdata/gdata_explorer", "backend/weird"]
 
 # [patch.crates-io]
 # iroh = { path = "../iroh/iroh" }

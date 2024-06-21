@@ -2,14 +2,13 @@ use std::{path::PathBuf, sync::Arc};
 
 use axum::{error_handling::HandleErrorLayer, response::IntoResponse, BoxError, Router};
 use clap::Parser;
-use gdata::IrohGStore;
 use headers::{authorization::Bearer, Authorization, Header};
 use http::StatusCode;
-use iroh::docs::{AuthorId, NamespaceId};
 use once_cell::sync::Lazy;
 use reqwest::Url;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use weird::{iroh::docs::NamespaceSecret, Weird};
 
 use crate::auth::AuthenticationError;
 
@@ -27,21 +26,17 @@ pub struct Args {
     pub rauthy_url: Url,
     #[arg(default_value = "7431", env)]
     pub port: u16,
+    #[arg(long, short = 'n', env)]
+    pub instance_namespace: Option<NamespaceSecret>,
 }
 
 pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
 pub static CLIENT: Lazy<reqwest::Client> =
     Lazy::new(|| reqwest::ClientBuilder::new().build().unwrap());
 
-pub type IrohNode = iroh::node::FsNode;
-pub type IrohClient = iroh::client::MemIroh;
-
 pub type AppState = Arc<AppStateInner>;
 pub struct AppStateInner {
-    pub node: IrohNode,
-    pub node_author: AuthorId,
-    pub graph: IrohGStore,
-    pub ns: NamespaceId,
+    weird: Weird,
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -79,26 +74,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse CLI args.
     let args = &*ARGS;
 
-    let node = iroh::node::FsNode::persistent(&args.data_dir)
-        .await?
-        .node_discovery(iroh::node::DiscoveryConfig::None)
-        .relay_mode(iroh::net::relay::RelayMode::Disabled)
-        .spawn()
-        .await?;
-    let node_author = node.authors().default().await?;
-    let graph = IrohGStore::new(node.client().clone(), node_author);
-    let profile_namespace_path = args.data_dir.join("weird-profile-namespace");
-    let ns = if profile_namespace_path.exists() {
-        let bytes = std::fs::read(profile_namespace_path)?;
-        let bytes: [u8; 32] = bytes.try_into().map_err(|_| {
-            anyhow::format_err!("weird-profile-namespace length not equal to 32 bytes")
-        })?;
-        NamespaceId::from(bytes)
-    } else {
-        let profiles = node.docs().create().await?;
-        std::fs::write(profile_namespace_path, profiles.id())?;
-        profiles.id()
-    };
+    let namespace = args.instance_namespace.clone().unwrap_or_else(|| {
+        tracing::error!(
+            "--instance-namespace argument not provided. \
+            Generating namespace secret and exiting. \
+            You may use this instance_namespace to start a new instance:"
+        );
+        println!("{}", NamespaceSecret::new(&mut rand::thread_rng()));
+        std::process::exit(1)
+    });
 
     // Construct router
     let router = routes::install(Router::new())
@@ -124,10 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // If you want to customize the behavior using closures here is how.
         .layer(TraceLayer::new_for_http())
         .with_state(Arc::new(AppStateInner {
-            node,
-            node_author,
-            graph,
-            ns,
+            weird: Weird::new(namespace, &args.data_dir).await?,
         }));
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", args.port)).await?;

@@ -49,7 +49,7 @@
 						{profile.location}
 					</div>
 				{/if}
-				{#if profile.tags.length > 0}
+				{#if profile.tags && profile.tags.length > 0}
 					<div class="flex items-center gap-2">
 						<strong>Tags: </strong>
 						<span class="flex gap-2 text-base flex-wrap">

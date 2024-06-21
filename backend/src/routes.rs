@@ -4,36 +4,12 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use futures::StreamExt;
-use iroh::docs::store::Query;
-use iroh::docs::AuthorId;
-use serde::{Deserialize, Serialize, Serializer};
 
-use crate::{auth::RauthySession, AppError, AppResult, AppState};
+use crate::{AppResult, AppState};
 
 mod db;
 mod profile;
 
-#[derive(Serialize)]
-pub struct InfoResponse {
-    #[serde(serialize_with = "display")]
-    server_author: AuthorId,
-    session: RauthySession,
-}
-fn display<S: Serializer>(id: &AuthorId, s: S) -> Result<S::Ok, S::Error> {
-    s.serialize_str(&id.to_string())
-}
-
 pub fn install(router: Router<AppState>) -> Router<AppState> {
-    profile::install(db::install(router)).route("/server-info", get(server_info))
-}
-
-pub async fn server_info(
-    state: State<AppState>,
-    session: RauthySession,
-) -> AppResult<Json<InfoResponse>> {
-    Ok(Json(InfoResponse {
-        server_author: state.node.authors().default().await?,
-        session,
-    }))
+    profile::install(db::install(router))
 }

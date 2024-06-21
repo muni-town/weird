@@ -20,7 +20,6 @@ async fn get_profiles(state: State<AppState>) -> AppResult<Json<Vec<Profile>>> {
     while let Some(profile) = stream.next().await {
         profiles.push(profile?);
     }
-    dbg!(&profiles);
     Ok(Json(profiles))
 }
 

@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({
 	fetch,
 	request,
 	params
-}): Promise<{ profile?: Profile }> => {
+}): Promise<{ profile: Profile | { error: string }; params: typeof params }> => {
 	let { userInfo } = await getSession(fetch, request);
 	const loggedIn = !!userInfo;
 
@@ -18,5 +18,5 @@ export const load: PageServerLoad = async ({
 		profile.contact_info = undefined;
 	}
 
-	return { profile };
+	return { profile, params };
 };

@@ -420,6 +420,20 @@ impl<S> Weird<S> {
             .get_or_init_map((self.ns, &*USERNAMES_KEY))
             .await?;
 
+        let delete_previous_username_mapping = || async {
+            // See if there was a previous username
+            let previous_username = profiles
+                .get_key(&author.as_bytes()[..])
+                .await?
+                .get_key("username")
+                .await?;
+            if let Ok(previous_username) = previous_username.as_str() {
+                // Delete the username reservation
+                usernames.del_key(previous_username).await?;
+            }
+            Ok::<_, anyhow::Error>(())
+        };
+
         // If there is a username set
         if let Some(new_username) = &new_profile.username {
             if new_username.domain != self.domain {
@@ -443,14 +457,13 @@ impl<S> Weird<S> {
                 usernames
                     .set_key(&new_username_string, &author.as_bytes()[..])
                     .await?;
+
+                // Free the old username mapping
+                delete_previous_username_mapping().await?;
             }
         } else {
-            // See if there was a previous username
-            let previous_username = profiles.get_key(&author.as_bytes()[..]).await?;
-            if let Ok(previous_username) = previous_username.as_str() {
-                // Delete the username reservation
-                usernames.del_key(previous_username).await?;
-            }
+            // Free the old username mapping
+            delete_previous_username_mapping().await?;
         }
 
         // If the username claim goes fine

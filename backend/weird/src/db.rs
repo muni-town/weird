@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::profile::{Profile, Username, PROFILES_KEY, USERNAMES_KEY, USER_IDS_KEY};
-use crate::Weird;
+use crate::{Weird, INSTANCE_DATA_KEY};
 use futures::StreamExt;
 use gdata::{GStoreBackend, IrohGStore};
 use gdata::{Key, Value};
@@ -25,6 +25,15 @@ impl<S> Weird<S> {
                 .expect("Has default author"),
         );
 
+        let mut stream = self.node.authors().list().await?;
+        while let Some(result) = stream.next().await {
+            let author_id = result?;
+            let author = self.node.authors().export(author_id).await?;
+            if let Some(author) = author {
+                export.authors.push(StringSerde(author));
+            }
+        }
+
         let user_ids = self
             .graph
             .get_or_init_map((self.ns, &*USER_IDS_KEY))
@@ -35,13 +44,7 @@ impl<S> Weird<S> {
             let user_id = value.link.key.last().unwrap().clone();
             let author_id_bytes: [u8; 32] = value.as_bytes()?[..].try_into()?;
             let author_id = AuthorId::from(author_id_bytes);
-            let author = self
-                .node
-                .authors()
-                .export(author_id)
-                .await?
-                .ok_or_else(|| anyhow::format_err!("Missing author"))?;
-            export.user_ids.insert(user_id, StringSerde(author));
+            export.user_ids.insert(user_id, StringSerde(author_id));
         }
 
         let usernames = self
@@ -92,22 +95,50 @@ impl<S> Weird<S> {
     }
 
     /// Import database from the semi-stable [`ImportExportFormat`].
-    pub async fn import_db(&self, _data: ImportExportFormat) -> anyhow::Result<()> {
-        anyhow::bail!("TODO: import database");
-        let profiles = self
+    pub async fn import_db(&self, import: ImportExportFormat) -> anyhow::Result<()> {
+        if import.version != IMPORT_EXPORT_FORMAT_VERSION {
+            anyhow::bail!(
+                "Unsupported import/export format version {}, expected {}",
+                import.version,
+                IMPORT_EXPORT_FORMAT_VERSION
+            );
+        }
+
+        // Clear instance data
+        {
+            let instance_data = self
+                .graph
+                .get_or_init_map((self.ns, &*INSTANCE_DATA_KEY))
+                .await?;
+            instance_data.del_all_keys().await?;
+        }
+
+        let user_ids = self
             .graph
-            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .get_or_init_map((self.ns, &*USER_IDS_KEY))
+            .await?;
+        let usernames = self
+            .graph
+            .get_or_init_map((self.ns, &*USERNAMES_KEY))
             .await?;
 
-        // Clear profiles
-        profiles.del_all_keys().await?;
+        for author in import.authors {
+            self.node.authors().import(author.0).await?;
+        }
 
-        // // Import namespaces
-        // for profile in data.profiles {
-        //     self.node.authors().import(profile.author.0).await?;
-        //     self.set_profile(profile.author.0.id(), profile.info)
-        //         .await?;
-        // }
+        for (user_id, author_id) in import.user_ids {
+            user_ids
+                .set_key(user_id, &author_id.0.as_bytes()[..])
+                .await?;
+        }
+        for (username, author_id) in import.usernames {
+            usernames
+                .set_key(username.to_string(), &author_id.0.as_bytes()[..])
+                .await?;
+        }
+        for (author_id, profile) in import.profiles {
+            self.set_profile(author_id.0, profile).await?;
+        }
 
         Ok(())
     }
@@ -216,8 +247,9 @@ mod format {
     pub struct ImportExportFormat {
         pub version: u32,
         pub instance_author: StringSerde<Author>,
+        pub authors: Vec<StringSerde<Author>>,
         pub profiles: HashMap<StringSerde<AuthorId>, Profile>,
-        pub user_ids: HashMap<KeySegment, StringSerde<Author>>,
+        pub user_ids: HashMap<KeySegment, StringSerde<AuthorId>>,
         pub usernames: HashMap<Username, StringSerde<AuthorId>>,
     }
     impl ImportExportFormat {
@@ -225,6 +257,7 @@ mod format {
             Self {
                 version: IMPORT_EXPORT_FORMAT_VERSION,
                 instance_author: StringSerde(instance_author),
+                authors: Default::default(),
                 profiles: Default::default(),
                 user_ids: Default::default(),
                 usernames: Default::default(),

@@ -28,11 +28,11 @@
 
 <svelte:head>
 	<title>
-		{profile ? profile.display_name || profile.username : 'Profile'} | {env.PUBLIC_INSTANCE_NAME}
+		{!('error' in profile) ? profile.display_name || profile.username : 'Profile'} | {env.PUBLIC_INSTANCE_NAME}
 	</title>
 </svelte:head>
 
-{#if profile}
+{#if !('error' in profile)}
 	<main class="flex flex-col items-center">
 		<div class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl">
 			<div class="flex items-center gap-4">
@@ -52,7 +52,7 @@
 				{#if profile.tags && profile.tags.length > 0}
 					<div class="flex items-center gap-2">
 						<strong>Tags: </strong>
-						<span class="flex gap-2 text-base flex-wrap">
+						<span class="flex flex-wrap gap-2 text-base">
 							{#each profile.tags as tag}
 								<a
 									class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
@@ -90,5 +90,13 @@
 				{/if}
 			</div>
 		</div>
+	</main>
+{:else}
+	<main class="flex flex-col items-center">
+		<aside class="alert variant-ghost-error w-80 mt-8">
+			<div class="alert-message">
+				<p>Error loading user: {profile.error}</p>
+			</div>
+		</aside>
 	</main>
 {/if}

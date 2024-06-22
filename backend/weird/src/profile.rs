@@ -399,6 +399,9 @@ impl<S> Weird<S> {
         let usernames = self.graph.get_or_init_map((ns, &*USERNAMES_KEY)).await?;
 
         let author = usernames.get_key(&username.to_string()).await?;
+        if author.is_null() {
+            anyhow::bail!("User not found");
+        }
         let author_bytes: [u8; 32] = author.as_bytes()?[..].try_into()?;
 
         let profile = profiles.get_key(&author_bytes[..]).await?;

@@ -3,17 +3,21 @@
 use std::{path::Path, str::FromStr};
 
 use gdata::{GStoreBackend, IrohGStore, Key};
+use hickory_resolver::{
+    config::{ResolverConfig, ResolverOpts},
+    TokioAsyncResolver,
+};
 use iroh::{
     docs::{NamespaceId, NamespaceSecret},
     node::Node,
 };
 use once_cell::sync::Lazy;
 
-pub use iroh;
 pub use gdata;
+pub use iroh;
 
-pub mod profile;
 pub mod db;
+pub mod profile;
 
 /// This is the namespace that is used to store all globally writable records for this version of
 /// weird.
@@ -34,11 +38,11 @@ pub static PREV_GLOBAL_NAMESPACE: () = ();
 ///
 /// When there are breaking changes to this configuration, the key will be updated, and the old one
 /// will be migrated when the server starts up.
-pub static INSTANCE_CONFIG_KEY: Lazy<Key> = Lazy::new(|| ["config", "v1"].into());
+pub static INSTANCE_DATA_KEY: Lazy<Key> = Lazy::new(|| ["data", "v1"].into());
 
 /// This is a placeholder representing that in future versions we will have the previous instance
 /// config key here, and the data will be migrated from the previous key to the current key.
-pub static PREV_INSTANCE_CONFIG_KEY: () = ();
+pub static PREV_INSTANCE_DATA_KEY: () = ();
 
 pub struct Weird<Store = iroh::blobs::store::fs::Store> {
     /// The instance namespace used to store this instance's data.
@@ -51,6 +55,10 @@ pub struct Weird<Store = iroh::blobs::store::fs::Store> {
     pub node: Node<Store>,
     /// The graph store wrapper around the iroh node.
     pub graph: IrohGStore,
+    /// The domain that this instance is running under.
+    pub domain: String,
+    /// DNS resolver used to lookup username tables.
+    pub resolver: TokioAsyncResolver,
 }
 
 impl Weird<iroh::blobs::store::fs::Store> {
@@ -59,6 +67,7 @@ impl Weird<iroh::blobs::store::fs::Store> {
     pub async fn new(
         instance_namespace: NamespaceSecret,
         storage_path: impl AsRef<Path>,
+        domain: &str,
     ) -> anyhow::Result<Self> {
         // Initialize node
         let node = Node::persistent(storage_path).await?.spawn().await?;
@@ -68,13 +77,21 @@ impl Weird<iroh::blobs::store::fs::Store> {
             .await?;
         let graph = IrohGStore::new(node.client().clone(), node.authors().default().await?);
 
-        // Run configuration migrations ( we don't have any because this is the first version )
+        // Run instance data migrations ( we don't have any because this is the first version )
         graph
-            .get_or_init_map((ns, INSTANCE_CONFIG_KEY.clone()))
+            .get_or_init_map((ns, INSTANCE_DATA_KEY.clone()))
             .await?;
 
         // Run global namespace migrations ( we don't have any because this is the first version )
 
-        Ok(Self { ns, node, graph })
+        tracing::info!(instance_id = %ns, "Started wierd instance");
+
+        Ok(Self {
+            ns,
+            node,
+            graph,
+            domain: domain.to_string(),
+            resolver: TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default()),
+        })
     }
 }

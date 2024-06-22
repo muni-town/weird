@@ -1,4 +1,6 @@
-use crate::profile::{Profile, PROFILES_KEY};
+use std::str::FromStr;
+
+use crate::profile::{Profile, Username, PROFILES_KEY, USERNAMES_KEY, USER_IDS_KEY};
 use crate::Weird;
 use futures::StreamExt;
 use gdata::{GStoreBackend, IrohGStore};
@@ -14,52 +16,98 @@ use serde::{Deserialize, Serialize};
 impl<S> Weird<S> {
     /// Export database to the semi-stable [`ImportExportFormat`].
     pub async fn export_db(&self) -> anyhow::Result<ImportExportFormat> {
-        let mut export = ImportExportFormat::default();
+        let instance_author_id = self.node.authors().default().await?;
+        let mut export = ImportExportFormat::new(
+            self.node
+                .authors()
+                .export(instance_author_id)
+                .await?
+                .expect("Has default author"),
+        );
 
-        let author = self
-            .node
-            .authors()
-            .export(self.node.authors().default().await?)
-            .await?
-            .ok_or_else(|| anyhow::format_err!("Missing author"))?;
+        let user_ids = self
+            .graph
+            .get_or_init_map((self.ns, &*USER_IDS_KEY))
+            .await?;
+        let mut stream = user_ids.list_items().await?;
+        while let Some(result) = stream.next().await {
+            let value = result?;
+            let user_id = value.link.key.last().unwrap().clone();
+            let author_id_bytes: [u8; 32] = value.as_bytes()?[..].try_into()?;
+            let author_id = AuthorId::from(author_id_bytes);
+            let author = self
+                .node
+                .authors()
+                .export(author_id)
+                .await?
+                .ok_or_else(|| anyhow::format_err!("Missing author"))?;
+            export.user_ids.insert(user_id, StringSerde(author));
+        }
 
-        let profiles = self.graph.get((self.ns, "profiles")).await?;
+        let usernames = self
+            .graph
+            .get_or_init_map((self.ns, &*USERNAMES_KEY))
+            .await?;
+        let mut stream = usernames.list_items().await?;
+        while let Some(result) = stream.next().await {
+            let value = result?;
+            let username = value
+                .link
+                .key
+                .last()
+                .unwrap()
+                .as_str()
+                .ok_or_else(|| anyhow::format_err!("Username not string"))?;
+            let username = Username::from_str(username)?;
+
+            let author_id_bytes: [u8; 32] = value.as_bytes()?[..].try_into()?;
+            let author_id = AuthorId::from(author_id_bytes);
+
+            export.usernames.insert(username, StringSerde(author_id));
+        }
+
+        let profiles = self
+            .graph
+            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .await?;
         let mut stream = profiles.list_items().await?;
         while let Some(profile) = stream.next().await {
             let value = profile?;
             let profile = Profile::from_value(&value).await?;
-            export.profiles.push(ProfileWrapper {
-                author: StringSerde(author.clone()),
-                rauthy_user_id: value
-                    .link
-                    .key
-                    .clone()
-                    .last()
-                    .unwrap()
-                    .as_str()
-                    .ok_or_else(|| anyhow::format_err!("User ID not string"))?
-                    .to_string(),
-                info: profile,
-            });
+            let author_id_bytes: [u8; 32] = value
+                .link
+                .key
+                .clone()
+                .last()
+                .unwrap()
+                .as_bytes()
+                .ok_or_else(|| anyhow::format_err!("User key not bytes"))?
+                .try_into()?;
+            export
+                .profiles
+                .insert(StringSerde(AuthorId::from(author_id_bytes)), profile);
         }
 
         Ok(export)
     }
 
     /// Import database from the semi-stable [`ImportExportFormat`].
-    pub async fn import_db(&self, data: ImportExportFormat) -> anyhow::Result<()> {
-        let profiles = self.graph.get_or_init_map((self.ns, PROFILES_KEY)).await?;
+    pub async fn import_db(&self, _data: ImportExportFormat) -> anyhow::Result<()> {
+        anyhow::bail!("TODO: import database");
+        let profiles = self
+            .graph
+            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .await?;
 
         // Clear profiles
         profiles.del_all_keys().await?;
 
-        // Import namespaces
-        for profile in data.profiles {
-            self.node.authors().import(profile.author.0).await?;
-
-            let value = profiles.get_key_or_init_map(profile.rauthy_user_id).await?;
-            profile.info.write_to_value(&value).await?;
-        }
+        // // Import namespaces
+        // for profile in data.profiles {
+        //     self.node.authors().import(profile.author.0).await?;
+        //     self.set_profile(profile.author.0.id(), profile.info)
+        //         .await?;
+        // }
 
         Ok(())
     }
@@ -154,17 +202,41 @@ impl<S> Weird<S> {
 
 pub use self::format::*;
 mod format {
+    use std::collections::HashMap;
+
+    use gdata::KeySegment;
+
+    use crate::profile::Username;
+
     use super::*;
 
-    #[derive(Serialize, Deserialize, Default)]
+    pub static IMPORT_EXPORT_FORMAT_VERSION: u32 = 1;
+
+    #[derive(Serialize, Deserialize)]
     pub struct ImportExportFormat {
-        pub profiles: Vec<ProfileWrapper>,
+        pub version: u32,
+        pub instance_author: StringSerde<Author>,
+        pub profiles: HashMap<StringSerde<AuthorId>, Profile>,
+        pub user_ids: HashMap<KeySegment, StringSerde<Author>>,
+        pub usernames: HashMap<Username, StringSerde<AuthorId>>,
+    }
+    impl ImportExportFormat {
+        pub fn new(instance_author: Author) -> Self {
+            Self {
+                version: IMPORT_EXPORT_FORMAT_VERSION,
+                instance_author: StringSerde(instance_author),
+                profiles: Default::default(),
+                user_ids: Default::default(),
+                usernames: Default::default(),
+            }
+        }
     }
 
     #[derive(Serialize, Deserialize)]
     pub struct ProfileWrapper {
         pub author: StringSerde<Author>,
-        pub rauthy_user_id: String,
+        pub user_id: String,
+        pub username: String,
         pub info: Profile,
     }
 
@@ -212,7 +284,7 @@ mod ser_de {
     use super::*;
 
     /// String-based serialize/deserialize wrapper.
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, Hash, PartialEq, Eq)]
     pub struct StringSerde<T>(pub T);
     impl<T: std::fmt::Display> serde::Serialize for StringSerde<T> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -232,6 +304,30 @@ mod ser_de {
             Ok(Self(
                 s.parse().map_err(|e| D::Error::custom(format!("{e}")))?,
             ))
+        }
+    }
+
+    /// Base32 serialize/deserialize wrapper.
+    #[derive(Debug, Clone, Hash, PartialEq, Eq)]
+    pub struct Base32Serde<T>(pub T);
+    impl<T: AsRef<[u8]>> serde::Serialize for Base32Serde<T> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            serializer.serialize_str(&iroh::base::base32::fmt(self.0.as_ref()))
+        }
+    }
+    impl<'de, T: for<'a> From<&'a [u8]>> serde::Deserialize<'de> for Base32Serde<T> {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            use serde::de::Error;
+            let s = String::deserialize(deserializer)?;
+            Ok(Self(T::from(
+                &iroh::base::base32::parse_vec(&s).map_err(|e| D::Error::custom(format!("{e}")))?,
+            )))
         }
     }
 

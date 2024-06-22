@@ -5320,6 +5320,7 @@ dependencies = [
  "anyhow",
  "futures",
  "gdata",
+ "hickory-resolver",
  "iroh",
  "once_cell",
  "quic-rpc",

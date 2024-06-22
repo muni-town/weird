@@ -6,6 +6,7 @@
 	import { page } from '$app/stores';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { env } from '$env/dynamic/public';
+	import { parseUsername } from '$lib/utils';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
@@ -13,7 +14,11 @@
 	const userInfo = getUserInfo();
 	const PKCE_VERIFIER = 'pkce_verifier';
 
-	let username = $state(data.profile?.username || '');
+	/** The username without the `@` 		*/
+	const parsedUsername =
+		(data.profile?.username && parseUsername(data.profile.username)) || undefined;
+
+	let username = $state(parsedUsername?.name || '');
 	let display_name = $state(data.profile?.display_name || '');
 	let avatar_seed = $state(data.profile?.avatar_seed || data.profile?.username || '');
 	let location = $state(data.profile?.location || '');
@@ -127,9 +132,9 @@
 				<div>
 					<strong class="pr-2">Public Profile:</strong>
 					<span class="text-base">
-						{#if data.profile?.username}
-							<a class="underline" href={`${baseUrl}u/${data.profile?.username}`}>
-								{`${baseUrl}u/${data.profile?.username}`}
+						{#if parsedUsername}
+							<a class="underline" href={`${baseUrl}u/${parsedUsername.name}`}>
+								{`${baseUrl}u/${parsedUsername.name}`}
 							</a>
 						{:else}<span class="text-surface-400">Username Not Set</span>{/if}
 					</span>
@@ -195,7 +200,7 @@
 					placeholder="Interest, skill, etc."
 				/>
 				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
-				<div class="ml-4 mt-1 flex gap-2 flex-wrap">
+				<div class="ml-4 mt-1 flex flex-wrap gap-2">
 					{#each tags as tag}
 						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
 					{/each}

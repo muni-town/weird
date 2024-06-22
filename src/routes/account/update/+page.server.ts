@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/public';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
@@ -14,6 +15,8 @@ export const actions = {
 		let username = data.get('username');
 		if (username === '') {
 			username = null;
+		} else {
+			username = `${username}@${env.PUBLIC_DOMAIN}`;
 		}
 		let display_name = data.get('display_name');
 		if (display_name === '') {

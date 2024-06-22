@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { PUBLIC_MEMBERS_TITLE } from '$env/static/public';
 	import Avatar from '$lib/components/Avatar.svelte';
+	import { parseUsername } from '$lib/utils';
 	import type { WorkCapacity, WorkCompensation } from '../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
 
@@ -30,25 +30,35 @@
 
 	let filtered_profiles = $derived.by(() => {
 		const words = search.split(' ');
-		return profiles.filter((x) => {
-			if (search == '') return true;
-			for (const word of words) {
-				const wordLowercase = word.toLowerCase();
-				for (const field of [
-					x.bio,
-					x.username,
-					printWorkCapacity(x.work_capacity),
-					printWorkCompensation(x.work_compensation),
-					...(x.tags || [])
-				]) {
-					const fieldLowercase = field?.toLowerCase();
-					if (wordLowercase && fieldLowercase && fieldLowercase.includes(wordLowercase)) {
-						return true;
+		return profiles
+			.filter((x) => {
+				if (search == '') return true;
+				for (const word of words) {
+					const wordLowercase = word.toLowerCase();
+					for (const field of [
+						x.bio,
+						x.username,
+						printWorkCapacity(x.work_capacity),
+						printWorkCompensation(x.work_compensation),
+						...(x.tags || [])
+					]) {
+						const fieldLowercase = field?.toLowerCase();
+						if (wordLowercase && fieldLowercase && fieldLowercase.includes(wordLowercase)) {
+							return true;
+						}
 					}
 				}
-			}
-			return false;
-		});
+				return false;
+			})
+			.map((profile) => {
+				// Remove the domain for local usernames
+				const parsedUsername = profile.username && parseUsername(profile.username);
+				const username =
+					parsedUsername && parsedUsername.domain == env.PUBLIC_DOMAIN
+						? parsedUsername.name
+						: profile.username;
+				return { ...profile, username };
+			});
 	});
 
 	let searchBox: HTMLInputElement;

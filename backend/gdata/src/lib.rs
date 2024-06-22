@@ -16,7 +16,6 @@ use iroh::{
 type Doc = iroh::client::docs::Doc<FlumeConnection<RpcService>>;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Link {
     pub namespace: NamespaceId,
     pub key: Key,
@@ -27,7 +26,6 @@ pub struct Link {
 pub struct Key(pub SmallVec<[KeySegment; 8]>);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum KeySegment {
     Bool(bool),
     Uint(u64),
@@ -37,7 +35,6 @@ pub enum KeySegment {
 }
 
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Value {
     Null,
     Bool(bool),
@@ -105,8 +102,12 @@ macro_rules! impl_from_for_value {
 }
 impl_from_for_value!((), |_| Value::Null);
 impl_from_for_value!(String, |x| Value::String(SmallString::from(x)));
+impl_from_for_value!(&String, |x: &String| Value::String(SmallString::from(
+    x.as_str()
+)));
 impl_from_for_value!(&str, |x| Value::String(SmallString::from(x)));
 impl_from_for_value!(Vec<u8>, |x| Value::Bytes(SmallVec::from(x)));
+impl_from_for_value!(&[u8], |x| Value::Bytes(SmallVec::from(x)));
 impl_from_for_value!(u64, Value::Uint);
 impl_from_for_value!(i64, Value::Int);
 impl_from_for_value!(f64, Value::Float);
@@ -126,6 +127,9 @@ macro_rules! impl_from_for_key_segment {
 }
 impl_from_for_key_segment!(&str, |x| KeySegment::String(SmallString::from(x)));
 impl_from_for_key_segment!(String, |x| KeySegment::String(SmallString::from(x)));
+impl_from_for_key_segment!(&String, |x: &String| KeySegment::String(SmallString::from(
+    x.as_str()
+)));
 impl_from_for_key_segment!(&[u8], |x| KeySegment::Bytes(SmallVec::from(x)));
 impl_from_for_key_segment!(bool, KeySegment::Bool);
 impl_from_for_key_segment!(u64, KeySegment::Uint);
@@ -137,6 +141,21 @@ impl KeySegment {
         } else {
             None
         }
+    }
+    pub fn as_bytes(&self) -> Option<&[u8]> {
+        if let Self::Bytes(s) = self {
+            Some(&s[..])
+        } else {
+            None
+        }
+    }
+}
+impl Key {
+    /// Create a new key by appending an additional segment to the current key.
+    pub fn join(&self, segment: impl Into<KeySegment>) -> Self {
+        let mut new = self.clone();
+        new.push(segment.into());
+        new
     }
 }
 impl From<()> for Key {
@@ -179,7 +198,7 @@ impl IrohGStore {
 }
 impl IrohGStore {
     /// Create a new [`IrohGStore`] that wraps an iroh client.
-    /// 
+    ///
     /// The `default_author` is used when writing entries if another author is not specified.
     pub fn new(iroh: iroh::client::MemIroh, default_author: AuthorId) -> Self {
         Self {
@@ -576,8 +595,8 @@ impl<G: GStoreBackend> std::fmt::Debug for GStoreValue<G> {
     }
 }
 impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
-    pub fn with_author(mut self, author_id: Option<AuthorId>) -> Self {
-        self.current_author = author_id;
+    pub fn with_author(mut self, author_id: impl Into<Option<AuthorId>>) -> Self {
+        self.current_author = author_id.into();
         self
     }
     pub async fn get_idx(&self, idx: u64) -> Result<Self> {
@@ -598,7 +617,7 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
-    pub async fn get_key_or_init_map(&self, key: impl Into<KeySegment>) -> Result<Self> {
+    pub async fn get_or_init_map(&self, key: impl Into<KeySegment>) -> Result<Self> {
         let mut key_link = self.link.clone();
         key_link.key.push(key.into());
         match &self.value {
@@ -685,7 +704,7 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
             v => Err(anyhow::format_err!("item is not a map: {:?}", v)),
         }
     }
-    pub async fn del_key(&mut self, key: impl Into<KeySegment>) -> Result<()> {
+    pub async fn del_key(&self, key: impl Into<KeySegment>) -> Result<()> {
         let mut key_link = self.link.clone();
         key_link.key.push(key.into());
         match &self.value {
@@ -774,6 +793,11 @@ impl<K: Into<Key>> From<(NamespaceId, K)> for Link {
         Link::new(namespace, key)
     }
 }
+impl From<(NamespaceId, &Key)> for Link {
+    fn from((namespace, key): (NamespaceId, &Key)) -> Self {
+        Link::new(namespace, key.clone())
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct InvalidFormatError;
@@ -802,5 +826,291 @@ mod test {
             };
         }
         roundtrip!(KeySegment::Bool(true));
+    }
+}
+
+#[cfg(feature = "serde")]
+mod ser_de {
+    use super::*;
+    use serde::{de::Visitor, ser::SerializeStruct, Deserialize, Serialize};
+
+    impl Serialize for Link {
+        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            let human_readable = serializer.is_human_readable();
+            let mut s = serializer.serialize_struct("Link", 2)?;
+            if human_readable {
+                s.serialize_field("namespace", &self.namespace.to_string())?;
+            } else {
+                s.serialize_field("namespace", &self.namespace.as_bytes())?;
+            }
+            s.serialize_field("key", &self.key)?;
+
+            s.end()
+        }
+    }
+    impl<'de> Deserialize<'de> for Link {
+        fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            let human_readable = deserializer.is_human_readable();
+            deserializer.deserialize_struct(
+                "Link",
+                &["namespace", "key"],
+                LinkVisitor { human_readable },
+            )
+        }
+    }
+    struct LinkVisitor {
+        human_readable: bool,
+    }
+    impl<'de> Visitor<'de> for LinkVisitor {
+        type Value = Link;
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(formatter, "a link formatted as [namespace, key]")
+        }
+        fn visit_map<A>(self, mut map: A) -> std::result::Result<Self::Value, A::Error>
+        where
+            A: serde::de::MapAccess<'de>,
+        {
+            let mut namespace = None;
+            let mut key = None;
+            for _ in 0..2 {
+                if let Some(k) = map.next_key::<String>()? {
+                    match k.as_str() {
+                        "namespace" => {
+                            if self.human_readable {
+                                let s = map.next_value::<String>()?;
+                                let bytes: [u8; 32] = iroh::base::base32::parse_array(&s)
+                                    .map_err(|e| serde::de::Error::custom(format!("{e}")))?;
+                                namespace = Some(NamespaceId::from(bytes));
+                            } else {
+                                let bytes: [u8; 32] = map.next_value()?;
+                                namespace = Some(NamespaceId::from(bytes));
+                            }
+                        }
+                        "key" => {
+                            key = Some(map.next_value::<Key>()?);
+                        }
+                        x => return Err(serde::de::Error::unknown_field(x, &["namespace", "key"])),
+                    }
+                }
+            }
+            let namespace =
+                namespace.ok_or_else(|| serde::de::Error::missing_field("namespace"))?;
+            let key = key.ok_or_else(|| serde::de::Error::missing_field("key"))?;
+
+            Ok(Link { namespace, key })
+        }
+    }
+
+    impl Serialize for KeySegment {
+        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            match self {
+                KeySegment::Bool(b) => {
+                    serializer.serialize_newtype_variant("KeySegment", 0, "Bool", b)
+                }
+                KeySegment::Uint(u) => {
+                    serializer.serialize_newtype_variant("KeySegment", 1, "Uint", u)
+                }
+                KeySegment::Int(i) => {
+                    serializer.serialize_newtype_variant("KeySegment", 2, "Int", i)
+                }
+                KeySegment::String(s) => {
+                    serializer.serialize_newtype_variant("KeySegment", 3, "String", s)
+                }
+                KeySegment::Bytes(b) => {
+                    if serializer.is_human_readable() {
+                        serializer.serialize_newtype_variant(
+                            "KeySegment",
+                            4,
+                            "Bytes",
+                            &iroh::base::base32::fmt(&b[..]),
+                        )
+                    } else {
+                        serializer.serialize_newtype_variant("KeySegment", 4, "Bytes", b)
+                    }
+                }
+            }
+        }
+    }
+
+    impl KeySegment {
+        pub const VARIANT_NAMES: &'static [&'static str] =
+            &["Bool", "Uint", "Int", "String", "Bytes"];
+    }
+    impl<'de> Deserialize<'de> for KeySegment {
+        fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            let human_readable = deserializer.is_human_readable();
+            deserializer.deserialize_enum(
+                "KeySegment",
+                Self::VARIANT_NAMES,
+                KeySegmentVisitor { human_readable },
+            )
+        }
+    }
+    struct KeySegmentVisitor {
+        human_readable: bool,
+    }
+    impl<'de> serde::de::Visitor<'de> for KeySegmentVisitor {
+        type Value = KeySegment;
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(formatter, "a key segment enum variant")
+        }
+
+        fn visit_enum<A>(self, access: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::EnumAccess<'de>,
+        {
+            use serde::de::{Error, VariantAccess};
+            let (variant_name, variant) = access.variant::<String>()?;
+            match variant_name.as_str() {
+                "Bool" => {
+                    let x = variant.newtype_variant::<bool>()?;
+                    Ok(KeySegment::Bool(x))
+                }
+                "Uint" => {
+                    let x = variant.newtype_variant::<u64>()?;
+                    Ok(KeySegment::Uint(x))
+                }
+                "Int" => {
+                    let x = variant.newtype_variant::<i64>()?;
+                    Ok(KeySegment::Int(x))
+                }
+                "String" => {
+                    let x = variant.newtype_variant::<String>()?;
+                    Ok(KeySegment::String(x.into()))
+                }
+                "Bytes" => {
+                    if self.human_readable {
+                        let x = variant.newtype_variant::<String>()?;
+                        Ok(KeySegment::String(x.into()))
+                    } else {
+                        let x = variant.newtype_variant::<Vec<u8>>()?;
+                        Ok(KeySegment::Bytes(x.into()))
+                    }
+                }
+                x => Err(A::Error::unknown_variant(x, KeySegment::VARIANT_NAMES)),
+            }
+        }
+    }
+
+    impl Serialize for Value {
+        fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            match self {
+                Value::Null => serializer.serialize_unit_variant("Value", 0, "Null"),
+                Value::Bool(x) => serializer.serialize_newtype_variant("Value", 1, "Bool", x),
+                Value::Uint(x) => serializer.serialize_newtype_variant("Value", 2, "Uint", x),
+                Value::Int(x) => serializer.serialize_newtype_variant("Value", 3, "Int", x),
+                Value::Float(x) => serializer.serialize_newtype_variant("Value", 4, "Float", x),
+                Value::String(x) => serializer.serialize_newtype_variant("Value", 5, "String", x),
+                Value::Bytes(x) => {
+                    if serializer.is_human_readable() {
+                        serializer.serialize_newtype_variant(
+                            "Value",
+                            6,
+                            "Bytes",
+                            &iroh::base::base32::fmt(&x[..]),
+                        )
+                    } else {
+                        serializer.serialize_newtype_variant("Value", 6, "Bytes", x)
+                    }
+                }
+                Value::Link(x) => serializer.serialize_newtype_variant("Value", 8, "Link", x),
+                Value::Map => serializer.serialize_unit_variant("Value", 8, "Map"),
+            }
+        }
+    }
+
+    impl Value {
+        pub const VARIANT_NAMES: &'static [&'static str] = &[
+            "Null", "Bool", "Uint", "Int", "Float", "String", "Bytes", "Link", "Map",
+        ];
+    }
+    impl<'de> Deserialize<'de> for Value {
+        fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de>,
+        {
+            let human_readable = deserializer.is_human_readable();
+            deserializer.deserialize_enum(
+                "Value",
+                Self::VARIANT_NAMES,
+                ValueVisitor { human_readable },
+            )
+        }
+    }
+    struct ValueVisitor {
+        human_readable: bool,
+    }
+    impl<'de> serde::de::Visitor<'de> for ValueVisitor {
+        type Value = Value;
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(formatter, "a value variant")
+        }
+
+        fn visit_enum<A>(self, access: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::EnumAccess<'de>,
+        {
+            use serde::de::{Error, VariantAccess};
+            let (variant_name, variant) = access.variant::<String>()?;
+            match variant_name.as_str() {
+                "Null" => {
+                    variant.unit_variant()?;
+                    Ok(Value::Null)
+                }
+                "Bool" => {
+                    let x = variant.newtype_variant::<bool>()?;
+                    Ok(Value::Bool(x))
+                }
+                "Uint" => {
+                    let x = variant.newtype_variant::<u64>()?;
+                    Ok(Value::Uint(x))
+                }
+                "Int" => {
+                    let x = variant.newtype_variant::<i64>()?;
+                    Ok(Value::Int(x))
+                }
+                "Float" => {
+                    let x = variant.newtype_variant::<f64>()?;
+                    Ok(Value::Float(x))
+                }
+                "String" => {
+                    let x = variant.newtype_variant::<String>()?;
+                    Ok(Value::String(x.into()))
+                }
+                "Bytes" => {
+                    if self.human_readable {
+                        let x = variant.newtype_variant::<String>()?;
+                        Ok(Value::String(x.into()))
+                    } else {
+                        let x = variant.newtype_variant::<Vec<u8>>()?;
+                        Ok(Value::Bytes(x.into()))
+                    }
+                }
+                "Link" => {
+                    let x = variant.newtype_variant::<Link>()?;
+                    Ok(Value::Link(Box::new(x)))
+                }
+                "Map" => {
+                    variant.unit_variant()?;
+                    Ok(Value::Map)
+                }
+                x => Err(A::Error::unknown_variant(x, KeySegment::VARIANT_NAMES)),
+            }
+        }
     }
 }

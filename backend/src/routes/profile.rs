@@ -1,6 +1,10 @@
+use std::str::FromStr;
+
 use axum::routing::delete;
 use futures::{pin_mut, StreamExt};
-use weird::profile::Profile;
+use weird::profile::{Profile, Username};
+
+use crate::ARGS;
 
 use super::*;
 
@@ -30,6 +34,10 @@ async fn get_profile_by_name(
     state: State<AppState>,
     Path(username): Path<String>,
 ) -> AppResult<Json<Profile>> {
+    let username = Username::from_str(&username).unwrap_or_else(|_| Username {
+        name: username,
+        domain: ARGS.domain.clone(),
+    });
     Ok(Json(state.weird.get_profile_by_name(&username).await?))
 }
 
@@ -41,7 +49,8 @@ async fn get_profile(
     state: State<AppState>,
     Path(user_id): Path<String>,
 ) -> AppResult<Json<Profile>> {
-    Ok(Json(state.weird.get_profile(&user_id).await?))
+    let author = state.weird.get_or_init_author(user_id).await?;
+    Ok(Json(state.weird.get_profile(author).await?))
 }
 
 async fn post_profile(
@@ -49,7 +58,8 @@ async fn post_profile(
     Path(user_id): Path<String>,
     new_profile: Json<Profile>,
 ) -> AppResult<()> {
-    state.weird.set_profile(&user_id, new_profile.0).await?;
+    let author = state.weird.get_or_init_author(user_id).await?;
+    state.weird.set_profile(author, new_profile.0).await?;
 
     Ok(())
 }

@@ -1,14 +1,14 @@
 import { env } from '$env/dynamic/public';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
-import { checkResponse } from '$lib/utils';
+import { checkResponse, type CheckResponseError } from '$lib/utils';
 import { fail, type Actions, redirect } from '@sveltejs/kit';
 
 export const actions = {
 	default: async ({ fetch, request }) => {
 		let { userInfo } = await getSession(fetch, request);
 		if (!userInfo) {
-			return fail(400, { message: 'Must be logged in to set username' });
+			return fail(400, { error: 'Must be logged in to update profile.' });
 		}
 		const data = await request.formData();
 
@@ -76,7 +76,9 @@ export const actions = {
 			});
 			await checkResponse(resp);
 		} catch (e) {
-			return fail(400, { message: `Error updating profile: ${e}` });
+			console.error('Error updating profile:', e)
+			const data = JSON.parse((e as CheckResponseError).data);
+			return fail(400, { error: `Error updating profile: ${data.error}` });
 		}
 
 		return redirect(301, '/auth/v1/account');

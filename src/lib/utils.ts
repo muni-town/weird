@@ -1,6 +1,12 @@
 import { env } from '$env/dynamic/public';
 import type { SessionInfo, UserInfo } from './rauthy';
 
+export interface CheckResponseError {
+	status: number;
+	statusText: string;
+	data: string;
+}
+
 /** Throw an exception if the response is not OK. */
 export async function checkResponse(response: Response | Promise<Response>): Promise<Response> {
 	const resp = response instanceof Promise ? await response : response;

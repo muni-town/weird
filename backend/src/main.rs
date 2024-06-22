@@ -26,6 +26,8 @@ pub struct Args {
     pub rauthy_url: Url,
     #[arg(default_value = "7431", env)]
     pub port: u16,
+    #[arg(default_value = "localhost:9523", env)]
+    pub domain: String,
     #[arg(long, short = 'n', env)]
     pub instance_namespace: Option<NamespaceSecret>,
 }
@@ -65,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
                 // axum logs rejections from built-in extractors with the `axum::rejection`
                 // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
-                "backend=debug,tower_http=debug,axum::rejection=trace".into()
+                "weird=debug,backend=debug,tower_http=debug,axum::rejection=trace".into()
             }),
         )
         .with(tracing_subscriber::fmt::layer())
@@ -108,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // If you want to customize the behavior using closures here is how.
         .layer(TraceLayer::new_for_http())
         .with_state(Arc::new(AppStateInner {
-            weird: Weird::new(namespace, &args.data_dir).await?,
+            weird: Weird::new(namespace, &args.data_dir, &args.domain).await?,
         }));
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", args.port)).await?;

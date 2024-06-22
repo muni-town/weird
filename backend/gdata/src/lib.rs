@@ -719,6 +719,8 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
         }
     }
     pub async fn del_all_keys(&self) -> Result<()> {
+        // TODO: we can implement this more performantly by doing a full prefix delete at the
+        // backend.
         let stream = self.list_items().await?;
         futures::pin_mut!(stream);
         while let Some(result) = stream.next().await {

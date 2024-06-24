@@ -16,9 +16,9 @@ jobs:
   CLCAssistant:
     runs-on: ubuntu-latest
     steps:
-      - name: "CLA Assistant"
+      - name: "CLC Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLC Document and I hereby sign the CLC') || github.event_name == 'pull_request_target'
-        uses: contributor-assistant/github-action@v2.4.0
+        uses: commune-os/clc-assistant@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

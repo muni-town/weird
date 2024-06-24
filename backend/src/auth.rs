@@ -75,7 +75,7 @@ impl<S: Sync + Send> FromRequest<S> for RauthySession {
             .map_err(|_| {
                 (
                     StatusCode::UNAUTHORIZED,
-                    r#"{"error": "valid user session required to access this endpiont."}"#,
+                    r#"{"error": "valid user session required to access this endpoint."}"#,
                 )
             })
     }

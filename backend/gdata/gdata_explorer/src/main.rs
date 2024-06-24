@@ -43,7 +43,7 @@ enum AppState {
     // Temporary state
     #[default]
     None,
-    /// The app has been intialized and is on the home page.
+    /// The app has been initialized and is on the home page.
     Home(HomePage),
     Doc(NamespaceView),
 }

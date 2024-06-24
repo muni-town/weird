@@ -1,11 +1,11 @@
-# Arhcitecture
+# Architecture
 
-This describes the current architecture in weird. This is probalby going to change a lot as we go,
-but right now we're starting with what's familar and easy to get going with.
+This describes the current architecture in weird. This is probably going to change a lot as we go,
+but right now we're starting with what's familiar and easy to get going with.
 
 ## Overview
 
-The overal arhcitecture is pictured below:
+The overall architecture is pictured below:
 
 ![image](https://github.com/commune-os/weird/assets/25393315/94e7f25f-a7a5-4712-b2b5-8dc5c6a151e7)
 

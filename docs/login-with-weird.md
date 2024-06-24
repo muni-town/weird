@@ -91,7 +91,7 @@ Note that the client_id must be the exact public URL to the JSON file. Also, tak
 the redirect URI, the `Weird` name, between `oauth2` and `callback` must match the "Authentication
 name" in the next step.
 
-Once you've commited the client JSON file, go to the Forgejo auth administration page
+Once you've committed the client JSON file, go to the Forgejo auth administration page
 `https://exmapleforgejo.com/admin/auths`, and click "Add authentication source".
 
 Set the following options:

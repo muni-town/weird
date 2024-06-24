@@ -82,6 +82,13 @@
 						{printWorkCompensation(profile.work_compensation)}
 					</div>
 				{/if}
+				{#if profile.links}
+					{#each profile.links as link}
+						<a class="btn variant-ghost" href={link.url}>
+							{link.label || link.url}
+						</a>
+					{/each}
+				{/if}
 				{#if profile.bio}
 					<div>
 						<pre

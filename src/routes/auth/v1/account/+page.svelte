@@ -26,6 +26,8 @@
 	let work_capacity = $state(data.profile?.work_capacity);
 	let work_compensation = $state(data.profile?.work_compensation);
 	let bio = $state(data.profile?.bio || '');
+	let links = $state(data.profile?.links || []);
+	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
 
 	let tags = $state(data.profile?.tags || []);
 	let tagsString = $state((data.profile?.tags || []).join(', '));
@@ -222,6 +224,72 @@
 					<option value="volunteer">Volunteer</option>
 				</select>
 			</label>
+
+			<label>
+				<span>Links</span>
+				<div class="flex flex-col gap-2">
+					{#each links as link, index}
+						<div class="row flex gap-2">
+							<input bind:value={link.label} name="link-label" class="input" placeholder="Label" />
+							<input
+								bind:value={link.url}
+								name="link-url"
+								class="input"
+								placeholder="https://example.com"
+							/>
+							<button
+								type="button"
+								title="Remove Link"
+								class="variant-ghost-surface btn btn-icon flex-shrink-0"
+								onclick={() => {
+									links.splice(index, 1);
+								}}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="16"
+									height="16"
+									fill="currentColor"
+									class="bi bi-trash"
+									viewBox="0 0 16 16"
+								>
+									<path
+										d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"
+									/>
+									<path
+										d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"
+									/>
+								</svg>
+							</button>
+						</div>
+					{/each}
+					<div class="row flex gap-2">
+						<input
+							name="link-label"
+							bind:value={nextLink.label}
+							class="input"
+							placeholder="Label"
+						/>
+						<input
+							name="link-url"
+							bind:value={nextLink.url}
+							class="input"
+							placeholder="https://example.com"
+						/>
+						<button
+							type="button"
+							title="Add Link"
+							class="variant-ghost-surface btn btn-icon flex-shrink-0 text-2xl"
+							onclick={() => {
+								links.push({ ...nextLink });
+								nextLink.label = '';
+								nextLink.url = '';
+							}}>+</button
+						>
+					</div>
+				</div>
+			</label>
+
 			<label class="label">
 				<span>Bio</span>
 				<textarea

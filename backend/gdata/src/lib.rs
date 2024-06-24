@@ -135,18 +135,18 @@ impl_from_for_key_segment!(bool, KeySegment::Bool);
 impl_from_for_key_segment!(u64, KeySegment::Uint);
 impl_from_for_key_segment!(i64, KeySegment::Int);
 impl KeySegment {
-    pub fn as_str(&self) -> Option<&str> {
+    pub fn as_str(&self) -> Result<&str> {
         if let Self::String(s) = self {
-            Some(s.as_str())
+            Ok(s.as_str())
         } else {
-            None
+            anyhow::bail!("Key segment not string: {self:?}")
         }
     }
-    pub fn as_bytes(&self) -> Option<&[u8]> {
+    pub fn as_bytes(&self) -> Result<&[u8]> {
         if let Self::Bytes(s) = self {
-            Some(&s[..])
+            Ok(&s[..])
         } else {
-            None
+            anyhow::bail!("Key segment not Bytes: {self:?}")
         }
     }
 }
@@ -595,6 +595,11 @@ impl<G: GStoreBackend> std::fmt::Debug for GStoreValue<G> {
     }
 }
 impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
+    /// # Panics
+    /// Panics if the key is empty: `[]`.
+    pub fn last_key_segment(&self) -> KeySegment {
+        self.link.key.last().cloned().unwrap()
+    }
     pub fn with_author(mut self, author_id: impl Into<Option<AuthorId>>) -> Self {
         self.current_author = author_id.into();
         self
@@ -747,6 +752,9 @@ impl<G: GStoreBackend + Sync + Send + 'static> GStoreValue<G> {
                 .with_author(self.current_author)),
             _ => Err(anyhow::format_err!("item is not a link: {:?}", self.value)),
         }
+    }
+    pub fn not_null(&self) -> bool {
+        !self.is_null()
     }
     pub fn is_null(&self) -> bool {
         matches!(self.value, Value::Null)

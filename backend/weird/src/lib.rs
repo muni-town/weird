@@ -84,7 +84,7 @@ impl Weird<iroh::blobs::store::fs::Store> {
 
         // Run global namespace migrations ( we don't have any because this is the first version )
 
-        tracing::info!(instance_id = %ns, "Started wierd instance");
+        tracing::info!(instance_id = %ns, "Started weird instance");
 
         Ok(Self {
             ns,

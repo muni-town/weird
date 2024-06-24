@@ -13,3 +13,4 @@ once_cell = "1.19.0"
 quic-rpc = "0.10.1"
 serde = { version = "1.0.203", features = ["derive"] }
 tracing = { version = "0.1.40", features = ["attributes"] }
+ulid = "1.1.2"

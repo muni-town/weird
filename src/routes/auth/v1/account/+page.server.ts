@@ -18,6 +18,7 @@ export interface Profile {
 	work_capacity?: WorkCapacity;
 	work_compensation?: WorkCompensation;
 	bio: string;
+	links?: { label?: string; url: string }[];
 }
 export type WorkCapacity = 'full_time' | 'part_time';
 export type WorkCompensation = 'paid' | 'volunteer';

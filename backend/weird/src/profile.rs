@@ -1,13 +1,14 @@
 //! User profile operations for [`Weird`].
 
-use std::{fmt::Debug, str::FromStr};
+use std::{collections::HashMap, fmt::Debug, str::FromStr};
 
 use anyhow::Result;
-use futures::{Stream, StreamExt};
+use futures::{pin_mut, Stream, StreamExt};
 use gdata::{GStoreBackend, GStoreValue, Key, KeySegment, Value};
 use iroh::docs::{AuthorId, NamespaceId};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use ulid::Ulid;
 
 use crate::{Weird, INSTANCE_DATA_KEY};
 
@@ -48,6 +49,53 @@ pub struct Profile {
     pub work_compensation: Option<WorkCompensation>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bio: Option<String>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub links: Vec<WebLink>,
+    #[serde(default)]
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    pub lists: HashMap<String, Vec<WebLink>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct WebLink {
+    pub label: Option<String>,
+    pub url: String,
+}
+
+impl WebLink {
+    pub async fn from_value<T: GStoreBackend + 'static>(value: &GStoreValue<T>) -> Result<Self> {
+        let url = value.get_key("url").await?;
+        if url.is_null() {
+            anyhow::bail!("Link is missing url")
+        }
+        let url = url.as_str()?;
+        let label = value.get_key("label").await?;
+        let label = if label.is_null() {
+            None
+        } else {
+            Some(label.as_str()?)
+        };
+        Ok(WebLink {
+            label: label.map(ToOwned::to_owned),
+            url: url.to_owned(),
+        })
+    }
+
+    /// Stores the profile in the provided [`GStoreValue`].
+    pub async fn write_to_value<T: GStoreBackend + 'static>(
+        &self,
+        value: &GStoreValue<T>,
+    ) -> Result<()> {
+        value.set_key("url", &self.url).await?;
+        if let Some(label) = &self.label {
+            value.set_key("label", label).await?;
+        } else {
+            value.set_key("label", ()).await?;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -159,6 +207,7 @@ impl Profile {
             .as_str()
             .ok()
             .map(|x| x.to_owned());
+
         let tags_stream = profile
             .get_or_init_map("tags".to_string())
             .await?
@@ -167,10 +216,7 @@ impl Profile {
             .then(|result| async {
                 let value = result?;
                 let key = value.link.key.last().unwrap();
-                let key = key
-                    .as_str()
-                    .ok_or_else(|| anyhow::format_err!("Tag not a string"))?
-                    .to_string();
+                let key = key.as_str()?.to_string();
                 Ok::<_, anyhow::Error>(key)
             });
         futures::pin_mut!(tags_stream);
@@ -179,6 +225,48 @@ impl Profile {
             let tag = tag?;
             tags.push(tag);
         }
+
+        let mut links = Vec::new();
+        let stream = profile.get_or_init_map("links").await?.list_items().await?;
+        pin_mut!(stream);
+        while let Some(result) = stream.next().await {
+            let value = result?;
+            links.push(WebLink::from_value(&value).await?);
+        }
+
+        let mut lists = HashMap::default();
+        let stream = profile.get_or_init_map("lists").await?.list_items().await?;
+        pin_mut!(stream);
+        while let Some(result) = stream.next().await {
+            let value = result?;
+            let name = value.last_key_segment();
+            let name = name.as_str()?;
+
+            let mut links = Vec::new();
+            let stream = value.list_items().await?;
+            pin_mut!(stream);
+            while let Some(result) = stream.next().await {
+                let value = result?;
+                let url = value.get_key("url").await?;
+                if url.is_null() {
+                    continue;
+                }
+                let url = url.as_str()?;
+                let label = value.get_key("label").await?;
+                let label = if label.is_null() {
+                    None
+                } else {
+                    Some(label.as_str()?)
+                };
+                links.push(WebLink {
+                    label: label.map(ToOwned::to_owned),
+                    url: url.to_owned(),
+                })
+            }
+
+            lists.insert(name.to_string(), links);
+        }
+
         Ok(Profile {
             username,
             display_name,
@@ -189,6 +277,8 @@ impl Profile {
             work_capacity,
             work_compensation,
             bio,
+            links,
+            lists,
         })
     }
 
@@ -273,12 +363,34 @@ impl Profile {
                 self.bio.clone().map(|x| x.into()).unwrap_or(Value::Null),
             )
             .await?;
+
         let tags = value.get_or_init_map("tags").await?;
         // Clear existing tags
         tags.del_all_keys().await?;
         // Set tags from request
         for tag in &self.tags {
             tags.set_key(tag.clone(), ()).await?;
+        }
+
+        let links = value.get_or_init_map("links").await?;
+        links.del_all_keys().await?;
+        for link in &self.links {
+            let link_value = links
+                .get_or_init_map(&u128::to_le_bytes(Ulid::new().0)[..])
+                .await?;
+            link.write_to_value(&link_value).await?;
+        }
+
+        let lists = value.get_or_init_map("lists").await?;
+        lists.del_all_keys().await?;
+        for (list_name, links) in &self.lists {
+            let list_value = lists.get_or_init_map(list_name).await?;
+            for link in links {
+                let link_value = list_value
+                    .get_or_init_map(&u128::to_le_bytes(Ulid::new().0)[..])
+                    .await?;
+                link.write_to_value(&link_value).await?;
+            }
         }
 
         Ok(())
@@ -411,6 +523,7 @@ impl<S> Weird<S> {
     /// Set a user profile.
     #[tracing::instrument(skip(self))]
     pub async fn set_profile(&self, author: AuthorId, new_profile: Profile) -> Result<()> {
+        dbg!(&new_profile);
         let profiles = self
             .graph
             .get_or_init_map((self.ns, &*PROFILES_KEY))

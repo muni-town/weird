@@ -54,13 +54,7 @@ impl<S> Weird<S> {
         let mut stream = usernames.list_items().await?;
         while let Some(result) = stream.next().await {
             let value = result?;
-            let username = value
-                .link
-                .key
-                .last()
-                .unwrap()
-                .as_str()
-                .ok_or_else(|| anyhow::format_err!("Username not string"))?;
+            let username = value.link.key.last().unwrap().as_str()?;
             let username = Username::from_str(username)?;
 
             let author_id_bytes: [u8; 32] = value.as_bytes()?[..].try_into()?;
@@ -83,8 +77,7 @@ impl<S> Weird<S> {
                 .clone()
                 .last()
                 .unwrap()
-                .as_bytes()
-                .ok_or_else(|| anyhow::format_err!("User key not bytes"))?
+                .as_bytes()?
                 .try_into()?;
             export
                 .profiles

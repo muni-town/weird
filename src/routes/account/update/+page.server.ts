@@ -43,6 +43,16 @@ export const actions = {
 				.map((x) => x.trim())
 				.filter((x) => x.length > 0);
 		}
+		let linkUrlsInput = data.getAll('link-url');
+		let linkLabelsInput = data.getAll('link-label');
+		let links: { label: string; url: string }[] = [];
+		for (let i = 0; i < linkUrlsInput.length; i++) {
+			let url = linkUrlsInput[i].toString();
+			if (url.length == 0) continue;
+			let label = linkLabelsInput[i].toString();
+			links.push({ url, label });
+		}
+
 		let work_capacity = data.get('work_capacity');
 		if (work_capacity == '') {
 			work_capacity = null;
@@ -63,6 +73,7 @@ export const actions = {
 			location,
 			contact_info,
 			tags,
+			links,
 			work_capacity,
 			work_compensation,
 			bio
@@ -76,7 +87,7 @@ export const actions = {
 			});
 			await checkResponse(resp);
 		} catch (e) {
-			console.error('Error updating profile:', e)
+			console.error('Error updating profile:', e);
 			const data = JSON.parse((e as CheckResponseError).data);
 			return fail(400, { error: `Error updating profile: ${data.error}` });
 		}

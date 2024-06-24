@@ -5326,6 +5326,7 @@ dependencies = [
  "quic-rpc",
  "serde",
  "tracing",
+ "ulid",
 ]
 
 [[package]]

@@ -536,7 +536,7 @@ impl<S> Weird<S> {
         let delete_previous_username_mapping = || async {
             // See if there was a previous username
             let previous_username = profiles
-                .get_key(&author.as_bytes()[..])
+                .get_or_init_map(&author.as_bytes()[..])
                 .await?
                 .get_key("username")
                 .await?;

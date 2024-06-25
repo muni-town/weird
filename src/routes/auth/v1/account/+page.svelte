@@ -178,51 +178,15 @@
 				<div class="pl-3 text-sm">Your avatar is randomly generated from this text.</div>
 			</label>
 			<label class="label">
-				<span>Location</span>
-				<input name="location" class="input" bind:value={location} />
-			</label>
-			<label class="label">
-				<span>Contact Info</span>
-				<input
-					name="contact_info"
-					class="input"
-					placeholder="Email, phone, etc."
-					bind:value={contact_info}
-				/>
-
-				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
-			</label>
-			<!-- svelte-ignore a11y_label_has_associated_control -->
-			<label class="label">
-				<span>Tags</span>
-				<input
-					bind:value={tagsString}
-					name="tags"
-					class="input"
-					placeholder="Interest, skill, etc."
-				/>
-				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
-				<div class="ml-4 mt-1 flex flex-wrap gap-2">
-					{#each tags as tag}
-						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
-					{/each}
-				</div>
-			</label>
-			<label class="label">
-				<span>Work Capacity</span>
-				<select class="select" name="work_capacity" bind:value={work_capacity}>
-					<option value={null}>Not Specified</option>
-					<option value="part_time">Part Time</option>
-					<option value="full_time">Full Time</option>
-				</select>
-			</label>
-			<label class="label">
-				<span>Work Compensation</span>
-				<select class="select" name="work_compensation" bind:value={work_compensation}>
-					<option value={null}>Not Specified</option>
-					<option value="paid">Paid</option>
-					<option value="volunteer">Volunteer</option>
-				</select>
+				<span>Bio</span>
+				<textarea
+					name="bio"
+					class="textarea"
+					placeholder="Tell people more about you..."
+					rows="5"
+					bind:value={bio}
+				>
+				</textarea>
 			</label>
 
 			<label>
@@ -290,16 +254,53 @@
 				</div>
 			</label>
 
+			<!-- svelte-ignore a11y_label_has_associated_control -->
 			<label class="label">
-				<span>Bio</span>
-				<textarea
-					name="bio"
-					class="textarea"
-					placeholder="Tell people more about you..."
-					rows="5"
-					bind:value={bio}
-				>
-				</textarea>
+				<span>Tags</span>
+				<input
+					bind:value={tagsString}
+					name="tags"
+					class="input"
+					placeholder="Interest, skill, etc."
+				/>
+				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
+				<div class="ml-4 mt-1 flex flex-wrap gap-2">
+					{#each tags as tag}
+						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
+					{/each}
+				</div>
+			</label>
+
+			<label class="label">
+				<span>Location</span>
+				<input name="location" class="input" bind:value={location} />
+			</label>
+			<label class="label">
+				<span>Contact Info</span>
+				<input
+					name="contact_info"
+					class="input"
+					placeholder="Email, phone, etc."
+					bind:value={contact_info}
+				/>
+
+				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
+			</label>
+			<label class="label">
+				<span>Work Capacity</span>
+				<select class="select" name="work_capacity" bind:value={work_capacity}>
+					<option value={null}>Not Specified</option>
+					<option value="part_time">Part Time</option>
+					<option value="full_time">Full Time</option>
+				</select>
+			</label>
+			<label class="label">
+				<span>Work Compensation</span>
+				<select class="select" name="work_compensation" bind:value={work_compensation}>
+					<option value={null}>Not Specified</option>
+					<option value="paid">Paid</option>
+					<option value="volunteer">Volunteer</option>
+				</select>
 			</label>
 
 			<button class="variant-filled btn mt-4"> Save </button>

@@ -72,8 +72,15 @@ impl Weird<iroh::blobs::store::fs::Store> {
         // Initialize node
         let node = Node::persistent(storage_path).await?.spawn().await?;
         let ns = instance_namespace.id();
-        node.docs()
+        let doc = node
+            .docs()
             .import_namespace(iroh::docs::Capability::Write(instance_namespace))
+            .await?;
+        let instance_ticket = doc
+            .share(
+                iroh::client::docs::ShareMode::Read,
+                iroh::base::node_addr::AddrInfoOptions::Addresses,
+            )
             .await?;
         let graph = IrohGStore::new(node.client().clone(), node.authors().default().await?);
 
@@ -84,7 +91,7 @@ impl Weird<iroh::blobs::store::fs::Store> {
 
         // Run global namespace migrations ( we don't have any because this is the first version )
 
-        tracing::info!(instance_id = %ns, "Started weird instance");
+        tracing::info!(instance_id = %ns, %instance_ticket, "Started weird instance");
 
         Ok(Self {
             ns,

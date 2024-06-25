@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt::Debug, str::FromStr};
 use anyhow::Result;
 use futures::{pin_mut, Stream, StreamExt};
 use gdata::{GStoreBackend, GStoreValue, Key, KeySegment, Value};
-use iroh::docs::{AuthorId, NamespaceId};
+use iroh::docs::{AuthorId, DocTicket};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
@@ -504,7 +504,10 @@ impl<S> Weird<S> {
                 .first()
                 .ok_or_else(lookup_err)?;
             let lookup = std::str::from_utf8(&lookup[..])?;
-            NamespaceId::from_str(lookup)?
+            let ticket = DocTicket::from_str(lookup)?;
+            let ns = ticket.capability.id();
+            self.node.docs().import(ticket).await?;
+            ns
         };
 
         let profiles = self.graph.get_or_init_map((ns, &*PROFILES_KEY)).await?;

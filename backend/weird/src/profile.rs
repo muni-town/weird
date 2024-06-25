@@ -523,7 +523,6 @@ impl<S> Weird<S> {
     /// Set a user profile.
     #[tracing::instrument(skip(self))]
     pub async fn set_profile(&self, author: AuthorId, new_profile: Profile) -> Result<()> {
-        dbg!(&new_profile);
         let profiles = self
             .graph
             .get_or_init_map((self.ns, &*PROFILES_KEY))

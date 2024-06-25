@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: "CLC Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLC Document and I hereby sign the CLC') || github.event_name == 'pull_request_target'
-        uses: commune-os/clc-assistant@main
+        uses: commune-os/clc-assistant@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

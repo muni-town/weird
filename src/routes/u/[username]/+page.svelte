@@ -43,11 +43,18 @@
 			<hr class="mb-4" />
 
 			<div class="flex flex-col gap-4">
-				{#if profile.location}
+				{#if profile.bio}
 					<div>
-						<strong>Location: </strong>
-						{profile.location}
+						<pre
+							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
 					</div>
+				{/if}
+				{#if profile.links}
+					{#each profile.links as link}
+						<a class="btn variant-ghost" href={link.url}>
+							{link.label || link.url}
+						</a>
+					{/each}
 				{/if}
 				{#if profile.tags && profile.tags.length > 0}
 					<div class="flex items-center gap-2">
@@ -62,6 +69,12 @@
 								</a>
 							{/each}
 						</span>
+					</div>
+				{/if}
+				{#if profile.location}
+					<div>
+						<strong>Location: </strong>
+						{profile.location}
 					</div>
 				{/if}
 				{#if profile.contact_info}
@@ -80,19 +93,6 @@
 					<div>
 						<strong>Work Compensation: </strong>
 						{printWorkCompensation(profile.work_compensation)}
-					</div>
-				{/if}
-				{#if profile.links}
-					{#each profile.links as link}
-						<a class="btn variant-ghost" href={link.url}>
-							{link.label || link.url}
-						</a>
-					{/each}
-				{/if}
-				{#if profile.bio}
-					<div>
-						<pre
-							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
 					</div>
 				{/if}
 			</div>

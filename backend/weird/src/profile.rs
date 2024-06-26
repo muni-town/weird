@@ -59,6 +59,27 @@ pub struct Profile {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(deny_unknown_fields)]
+pub struct ProfileAvatar {
+    pub data: Vec<u8>,
+    pub content_type: String,
+}
+
+impl ProfileAvatar {
+    pub async fn from_value<G: GStoreBackend>(value: &GStoreValue<G>) -> Result<Self> {
+        let data = value.get_key("data").await?.as_bytes()?.to_vec();
+        let content_type = value.get_key("content_type").await?.as_str()?.to_string();
+        Ok(Self { data, content_type })
+    }
+
+    pub async fn write_to_value<G: GStoreBackend>(&self, value: &GStoreValue<G>) -> Result<()> {
+        value.set_key("data", &self.data[..]).await?;
+        value.set_key("content_type", &self.content_type).await?;
+        Ok(())
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct WebLink {
     pub label: Option<String>,
     pub url: String,
@@ -471,6 +492,31 @@ impl<S> Weird<S> {
         let profile = profiles.get_or_init_map(&author.as_bytes()[..]).await?;
         let profile = Profile::from_value(&profile).await?;
         Ok(profile)
+    }
+
+    pub async fn get_profile_avatar(&self, author: AuthorId) -> Result<Option<ProfileAvatar>> {
+        let avatar_value = self
+            .graph
+            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .await?
+            .get_or_init_map(&author.as_bytes()[..])
+            .await?
+            .get_or_init_map("avatar")
+            .await?;
+        Ok(ProfileAvatar::from_value(&avatar_value).await.ok())
+    }
+
+    pub async fn set_profile_avatar(&self, author: AuthorId, avatar: ProfileAvatar) -> Result<()> {
+        let avatar_value = self
+            .graph
+            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .await?
+            .get_or_init_map(&author.as_bytes()[..])
+            .await?
+            .get_or_init_map("avatar")
+            .await?;
+        avatar.write_to_value(&avatar_value).await?;
+        Ok(())
     }
 
     /// Get profile by name.

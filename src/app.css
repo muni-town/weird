@@ -2,3 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 @tailwind variants;
+
+.invisible{
+    visibility: hidden;
+    display: none;
+}
+
+.ellipsis::after {
+    content: '...';
+    display: inline-block;
+    width: 1em;
+    overflow: hidden;
+    vertical-align: bottom;
+    animation: ellipsis 1s infinite steps(4, end);
+}

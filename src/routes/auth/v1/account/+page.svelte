@@ -28,6 +28,8 @@
 	let bio = $state(data.profile?.bio || '');
 	let links = $state(data.profile?.links || []);
 	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
+	let mastodon_server = $state(data.profile?.mastodon_server || '');
+	let mastodon_username = $state(data.profile?.mastodon_username || '');
 
 	let tags = $state(data.profile?.tags || []);
 	let tagsString = $state((data.profile?.tags || []).join(', '));

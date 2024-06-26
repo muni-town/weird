@@ -65,6 +65,14 @@ export const actions = {
 		if (bio == '') {
 			bio = null;
 		}
+		let mastodon_server = data.get('mastodon_server');
+		if (mastodon_server == '') {
+			mastodon_server = null;
+		}
+		let mastodon_username = data.get('mastodon_username');
+		if (mastodon_username == '') {
+			mastodon_username = null;
+		}
 
 		const json = JSON.stringify({
 			username,
@@ -76,7 +84,9 @@ export const actions = {
 			links,
 			work_capacity,
 			work_compensation,
-			bio
+			bio,
+			mastodon_server,
+			mastodon_username
 		});
 
 		try {

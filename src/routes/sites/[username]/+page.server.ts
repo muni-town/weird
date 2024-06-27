@@ -2,27 +2,8 @@ import type { PageServerLoad } from './$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import type { Profile } from '../../auth/v1/account/proxy+page.server';
+import type { MastodonProfile } from './mastodon.d';
 
-interface MastodonField {
-	name: string;
-	value: string;
-	verified_at: string;
-}
-interface MastodonProfile {
-	id: string;
-	username: string;
-	display_name: string;
-	description: string;
-	uri: string;
-	avatar: string;
-	header: string;
-	followers_count: number;
-	following_count: number;
-	statuses_count: number;
-	fields: MastodonField[];
-	statuses: any[];
-	mastodon_server: string;
-}
 export const load: PageServerLoad = async ({
 	fetch,
 	request,
@@ -53,10 +34,6 @@ export const load: PageServerLoad = async ({
 		}
 	).then((r) => r.json());
 
-	const statuses = await fetch(`${mastodon_server}/api/v1/accounts/${mastodon_data.id}/statuses`, {
-		method: 'GET'
-	}).then((r) => r.json());
-
 	const mastodon_profile = {
 		id: mastodon_data.id,
 		username: mastodon_data.acct,
@@ -69,8 +46,7 @@ export const load: PageServerLoad = async ({
 		following_count: mastodon_data.following_count,
 		statuses_count: mastodon_data.statuses_count,
 		fields: mastodon_data.fields,
-		mastodon_server: mastodon_server.replace('https://', ''),
-		statuses: statuses
+		mastodon_server: mastodon_server.replace('https://', '')
 	};
 
 	return { profile, params, mastodon_profile };

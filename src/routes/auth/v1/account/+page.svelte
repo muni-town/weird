@@ -292,6 +292,7 @@
 				</div>
 			</label>
 
+
 			<label class="label">
 				<span>Bio</span>
 				<textarea

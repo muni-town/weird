@@ -1,31 +1,43 @@
 <script lang="ts">
-	let layout = false;
-	import { env } from '$env/dynamic/public';
-	import Avatar from '$lib/components/Avatar.svelte';
-	import type { WorkCapacity, WorkCompensation } from '../../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
+	import Pin from '$lib/icons/Pin.svelte';
+	import Reply from '$lib/icons/Reply.svelte';
+	import Reblog from '$lib/icons/Reblog.svelte';
+	import Favorite from '$lib/icons/Favorite.svelte';
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
 	const mastodon_profile = data.mastodon_profile;
+	let statuses: any[] = $state([]);
+	let show_blogs = $state('blogs');
 
-	const printWorkCapacity = (c: WorkCapacity): string => {
-		if (c == 'full_time') {
-			return 'Full Time';
-		} else if (c == 'part_time') {
-			return 'Part Time';
-		} else {
-			return 'Not Specified';
+	$effect(() => {
+		let reblog_flag = '';
+		switch (show_blogs) {
+			case 'blogs':
+				reblog_flag = '&exclude_reblogs=true';
+				break;
 		}
-	};
-	const printWorkCompensation = (c: WorkCompensation): string => {
-		if (c == 'paid') {
-			return 'Paid';
-		} else if (c == 'volunteer') {
-			return 'Volunteer';
-		} else {
-			return 'Not Specified';
-		}
-	};
+		fetch(
+			`https://${mastodon_profile.mastodon_server}/api/v1/accounts/${mastodon_profile.id}/statuses?limit=80&pinned=false${reblog_flag}`,
+			{
+				method: 'GET'
+			}
+		)
+			.then((r) => r.json())
+			.then((stt) => {
+				statuses = stt;
+				fetch(
+					`https://${mastodon_profile.mastodon_server}/api/v1/accounts/${mastodon_profile.id}/statuses?limit=5&pinned=true${reblog_flag}`,
+					{
+						method: 'GET'
+					}
+				)
+					.then((r) => r.json())
+					.then((pinned_statuses) => {
+						statuses = [...pinned_statuses.map((s: any) => ({ ...s, pinned: true })), ...stt];
+					});
+			});
+	});
 </script>
 
 <svelte:head>
@@ -80,7 +92,7 @@
 					</div>
 				</div>
 			</div>
-			<span class="block p-6 text-sm md:text-base lg:text-lg"
+			<span class="mastodon block p-6 text-sm md:text-base lg:text-lg"
 				>{@html mastodon_profile.description}</span
 			>
 			<div class="justify-start md:flex md:flex-wrap md:items-center">
@@ -98,15 +110,27 @@
 		</div>
 	</section>
 	<div class="container mx-auto p-4">
+		<div class="m-2">
+			<select class="form-select w-44 border border-gray-300 px-2 py-1" bind:value={show_blogs}>
+				<option value="blogs">Blogs</option>
+				<option value="all">All</option>
+			</select>
+		</div>
 		<div class="columns-1 md:columns-2 lg:columns-3 xl:columns-4">
-			{#each mastodon_profile.statuses as status}
-				<span class="w-full p-2 no-underline">
+			{#each statuses as status}
+				<div class="w-full p-2 no-underline">
 					<div
 						class="border-gray-00 flex h-full flex-col items-start overflow-hidden rounded-lg border-2 border-opacity-60"
 					>
 						<div class="w-full flex-shrink-0">
-							{#if status.reblog}
-								<div class="items-center gap-2 p-2">
+							<div class="items-center gap-2 p-2 px-5">
+								{#if status.pinned}
+									<div class="pb-2">
+										<Pin />
+										<span class="my-0 mb-1 inline-block text-xs text-gray-500">Pinned</span>
+									</div>
+								{/if}
+								{#if show_blogs && status.reblog}
 									<p class="mb-2 text-xs text-gray-500">Quoted from</p>
 									<div class="flex">
 										<div class="relative">
@@ -117,7 +141,7 @@
 											/>
 											<img
 												src={status.account.avatar}
-												alt="Reblogged by"
+												alt="User avatar"
 												class="absolute left-5 top-5 h-6 w-6 rounded-full"
 											/>
 										</div>
@@ -126,15 +150,13 @@
 											<span class="text-xs text-gray-500">{status.reblog.account.acct}</span>
 										</div>
 									</div>
-									<p>{@html status.reblog.content}</p>
-								</div>
-							{/if}
-							{#if status.content.length > 0}
-								<div class="items-center gap-2 p-2">
+									<p class="mastodon">{@html status.reblog.content}</p>
+								{/if}
+								{#if status.content.length > 0}
 									<div class="flex">
 										<img
 											src={status.account.avatar}
-											alt="Reblogged by"
+											alt="User avatar"
 											class="h-10 w-10 rounded-md"
 										/>
 										<div class="ml-3">
@@ -142,16 +164,40 @@
 											<span class="text-xs text-gray-500">{status.account.acct}</span>
 										</div>
 									</div>
-									<p>{@html status.content}</p>
+									<p class="mastodon">{@html status.content}</p>
+								{/if}
+								<div class="mastodon py-1">
+									{#if status.media_attachments.length > 0}
+										{#each status.media_attachments as media}
+											{#if media.type == 'image'}
+												<img src={media.preview_url} alt={media.description} class="w-full" />
+											{:else if media.type == 'video'}
+												<video src={media.url} controls class="w-full"></video>
+											{:else if media.type == 'gifv'}
+												<video src={media.url} autoplay loop class="w-full"></video>
+											{/if}
+										{/each}
+									{/if}
 								</div>
-							{/if}
-						</div>
-						<div class="flex-grow p-4">
-							<h2 class="text-xl font-medium">{status.title}</h2>
-							<p class="text-base">{status.description}</p>
+
+								<div class="columns-3 gap-2">
+									<div>
+										<Reply />
+										<span class="pl-1 pt-3 text-gray-500">{status.replies_count}</span>
+									</div>
+									<div>
+										<Reblog />
+										<span class="pl-1 pt-3 text-gray-500">{status.reblogs_count}</span>
+									</div>
+									<div>
+										<Favorite />
+										<span class="pl-1 pt-3 text-gray-500">{status.favourites_count}</span>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
-				</span>
+				</div>
 			{/each}
 		</div>
 	</div>
@@ -164,3 +210,79 @@
 		</aside>
 	</main>
 {/if}
+
+<style>
+	.mastodon :global(a) {
+		color: #1e85c3;
+	}
+	.mastodon :global(a:hover) {
+		text-decoration: underline;
+	}
+	.mastodon :global(p) {
+		margin: 0.5rem 0;
+	}
+	.mastodon :global(.invisible) {
+		visibility: hidden;
+		display: none;
+	}
+
+	.mastodon :global(.ellipsis::after) {
+		content: '...';
+		display: inline-block;
+		width: 1em;
+		overflow: hidden;
+		vertical-align: bottom;
+		animation: ellipsis 1s infinite steps(4, end);
+	}
+
+	.mastodon :global(ul),
+	.mastodon :global(ol) {
+		padding-left: 1.5em;
+		list-style: circle;
+	}
+
+	.mastodon :global(.hashtag) {
+		-webkit-text-size-adjust: 100%;
+		tab-size: 4;
+		font-feature-settings: normal;
+		font-variation-settings: normal;
+		-webkit-tap-highlight-color: rgba(128, 128, 128, 0.5);
+		scrollbar-color: rgba(128, 128, 128, 0.5) rgba(0, 0, 0, 0.1);
+		font-size: 1rem;
+		line-height: 1.5rem;
+		font-family: var(--theme-font-family-base);
+		box-sizing: border-box;
+		border-width: 0;
+		border-style: solid;
+		border-color: #e5e7eb;
+		color: inherit;
+		text-decoration: inherit;
+		display: inline-block;
+		--tw-bg-opacity: 1;
+		background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+		padding-left: 0.75rem;
+		padding-right: 0.75rem;
+		padding-top: 0.25rem;
+		padding-bottom: 0.25rem;
+		--tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+		--tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
+		box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+			var(--tw-shadow);
+		margin-left: 0.25rem;
+		margin-right: 0.25rem;
+		margin-top: 0.25rem;
+		margin-bottom: 0.25rem;
+		border-radius: 0.75rem;
+	}
+
+	.mastodon :global(blockquote) {
+		border-left: 4px solid #e5e7eb;
+		padding-left: 1rem;
+		margin-left: 0;
+	}
+
+	:global(svg) {
+		width: 1em;
+		display: inline-block;
+	}
+</style>

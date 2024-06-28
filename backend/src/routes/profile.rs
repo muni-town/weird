@@ -1,8 +1,12 @@
 use std::str::FromStr;
 
-use axum::{extract::Multipart, response::Response, routing::delete};
+use axum::{
+    extract::{DefaultBodyLimit, Multipart},
+    response::Response,
+    routing::delete,
+};
 use futures::{pin_mut, StreamExt};
-use weird::profile::{Profile, ProfileAvatar, Username};
+use weird::profile::{Profile, Username};
 
 use crate::ARGS;
 
@@ -12,9 +16,12 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
     router
         .route("/profiles", get(get_profiles))
         .route("/profile/username/:username", get(get_profile_by_name))
-        .route("/profile/username/:username", get(get_profile_by_name))
+        .route("/profile/username/:username/avatar", get(get_profile_avatar_by_name))
         .route("/profile/:user_id/avatar", get(get_profile_avatar))
-        .route("/profile/:user_id/avatar", post(post_profile_avatar))
+        .route(
+            "/profile/:user_id/avatar",
+            post(post_profile_avatar).layer(DefaultBodyLimit::max(10 * 1024 * 1024)),
+        )
         .route("/profile/:user_id", get(get_profile))
         .route("/profile/:user_id", post(post_profile))
         .route("/profile/:user_id", delete(delete_profile))
@@ -85,6 +92,24 @@ async fn get_profile_avatar(
     }
 }
 
+async fn get_profile_avatar_by_name(
+    state: State<AppState>,
+    Path(username): Path<Username>,
+) -> AppResult<Response> {
+    let avatar = state.weird.get_avatar_by_name(&username).await?;
+    if let Some(avatar) = avatar {
+        Ok(Response::builder()
+            .header("content-type", avatar.content_type)
+            .body(avatar.data.into())
+            .unwrap())
+    } else {
+        Ok(Response::builder()
+            .status(404)
+            .body("No avatar found".into())
+            .unwrap())
+    }
+}
+
 async fn post_profile_avatar(
     state: State<AppState>,
     Path(user_id): Path<String>,
@@ -95,13 +120,7 @@ async fn post_profile_avatar(
     let mut avatar = None;
     while let Some(field) = data.next_field().await? {
         if field.name() == Some("avatar") {
-            avatar = Some(ProfileAvatar {
-                content_type: field
-                    .content_type()
-                    .ok_or_else(|| anyhow::format_err!("Missing content type on avatar field"))?
-                    .to_string(),
-                data: field.bytes().await?.to_vec(),
-            });
+            avatar = Some(field.bytes().await?.to_vec());
         }
     }
 

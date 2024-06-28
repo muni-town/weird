@@ -1,11 +1,11 @@
 //! User profile operations for [`Weird`].
 
-use std::{collections::HashMap, fmt::Debug, str::FromStr};
+use std::{collections::HashMap, fmt::Debug, io::Cursor, str::FromStr};
 
 use anyhow::Result;
 use futures::{pin_mut, Stream, StreamExt};
 use gdata::{GStoreBackend, GStoreValue, Key, KeySegment, Value};
-use iroh::docs::{AuthorId, DocTicket};
+use iroh::docs::{AuthorId, DocTicket, NamespaceId};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
@@ -36,8 +36,6 @@ pub struct Profile {
     pub display_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contact_info: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_seed: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location: Option<String>,
     #[serde(default)]
@@ -184,12 +182,6 @@ impl Profile {
             .as_str()
             .ok()
             .map(|x| x.to_owned());
-        let avatar_seed = profile
-            .get_key("avatar_seed")
-            .await?
-            .as_str()
-            .ok()
-            .map(|x| x.to_owned());
         let location = profile
             .get_key("location")
             .await?
@@ -291,7 +283,6 @@ impl Profile {
         Ok(Profile {
             username,
             display_name,
-            avatar_seed,
             location,
             contact_info,
             tags,
@@ -324,16 +315,6 @@ impl Profile {
                     .clone()
                     .map(|x| x.into())
                     .unwrap_or(Value::Null),
-            )
-            .await?;
-        value
-            .set_key(
-                "avatar_seed",
-                self.avatar_seed
-                    .clone()
-                    .or_else(|| self.username.clone().map(|x| x.to_string()))
-                    .map(|x| x.into())
-                    .unwrap_or_else(|| Value::Null),
             )
             .await?;
         value
@@ -503,44 +484,82 @@ impl<S> Weird<S> {
             .await?
             .get_or_init_map("avatar")
             .await?;
-        Ok(ProfileAvatar::from_value(&avatar_value).await.ok())
+        if !avatar_value.is_null() {
+            Ok(Some(ProfileAvatar::from_value(&avatar_value).await?))
+        } else {
+            Ok(None)
+        }
     }
 
-    pub async fn set_profile_avatar(&self, author: AuthorId, avatar: ProfileAvatar) -> Result<()> {
+    pub async fn get_avatar_by_name(&self, username: &Username) -> Result<Option<ProfileAvatar>> {
+        let (author, ns) = self.get_author_and_namespace_for_username(username).await?;
         let avatar_value = self
             .graph
-            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .get_or_init_map((ns, &*PROFILES_KEY))
             .await?
             .get_or_init_map(&author.as_bytes()[..])
             .await?
             .get_or_init_map("avatar")
             .await?;
-        avatar.write_to_value(&avatar_value).await?;
+        if !avatar_value.is_null() {
+            Ok(Some(ProfileAvatar::from_value(&avatar_value).await?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub async fn set_profile_avatar(&self, author: AuthorId, avatar: Vec<u8>) -> Result<()> {
+        // Parse, resize, and convert avatar to webp
+        let mut avatar = Cursor::new(avatar);
+        let image = image::io::Reader::new(&mut avatar)
+            .with_guessed_format()?
+            .decode()?;
+        let mut avatar = avatar.into_inner();
+        avatar.clear();
+        if image.width() > 256 || image.height() > 256 {
+            image.resize(256, 256, image::imageops::FilterType::Gaussian);
+        }
+        let mut avatar = Cursor::new(avatar);
+        image.write_to(&mut avatar, image::ImageFormat::WebP)?;
+        let avatar = avatar.into_inner();
+
+        let avatar_value = self
+            .graph
+            .get_or_init_map((self.ns, &*PROFILES_KEY))
+            .await?
+            .with_author(author)
+            .get_or_init_map(&author.as_bytes()[..])
+            .await?
+            .get_or_init_map("avatar")
+            .await?;
+        ProfileAvatar {
+            data: avatar,
+            content_type: "image/webp".into(),
+        }
+        .write_to_value(&avatar_value)
+        .await?;
         Ok(())
     }
 
-    /// Get profile by name.
-    #[tracing::instrument(skip(self))]
-    pub async fn get_profile_by_name(&self, username: &Username) -> Result<Profile> {
+    pub async fn resolve_instance_namespace(&self, domain: &str) -> Result<NamespaceId> {
         // Resolve the namespace associated to the username
-        let ns = if username.domain == self.domain {
+        if domain == self.domain {
             // Use our own namespace
-            self.ns
+            Ok(self.ns)
         } else {
             // Lookup the `instance.weird.domain` TXT record to find the namespace of the weird
             // instance.
             let lookup_err = || {
                 anyhow::format_err!(
                     "Failed to query/parse DNS query `TXT instance.weird.{}.` \
-                    when looking up username `{}`. \
-                    Expected public weird Instance ID.",
-                    username.domain,
-                    username
+                    when attempting to resolve instance ID. \
+                    expected a DocTicket for the instance namespace",
+                    domain,
                 )
             };
             let txt_lookup = self
                 .resolver
-                .txt_lookup(format!("instance.weird.{}.", username.domain))
+                .txt_lookup(format!("instance.weird.{}.", domain))
                 .await?;
             let lookup = txt_lookup
                 .iter()
@@ -552,20 +571,38 @@ impl<S> Weird<S> {
             let lookup = std::str::from_utf8(&lookup[..])?;
             let ticket = DocTicket::from_str(lookup)?;
             let ns = ticket.capability.id();
+            // TODO: Wait Until Remote Instance Has Been Synced
+            //
+            // Currently there will be an error looking up a user the first time we connect to a
+            // remote instance beause we haven't waited until the instance is synced before trying
+            // to access the profile data.
             self.node.docs().import(ticket).await?;
-            ns
-        };
+            Ok(ns)
+        }
+    }
 
-        let profiles = self.graph.get_or_init_map((ns, &*PROFILES_KEY)).await?;
+    #[tracing::instrument(skip(self))]
+    pub async fn get_author_and_namespace_for_username(
+        &self,
+        username: &Username,
+    ) -> Result<(AuthorId, NamespaceId)> {
+        let ns = self.resolve_instance_namespace(&username.domain).await?;
         let usernames = self.graph.get_or_init_map((ns, &*USERNAMES_KEY)).await?;
-
         let author = usernames.get_key(&username.to_string()).await?;
         if author.is_null() {
             anyhow::bail!("User not found");
         }
         let author_bytes: [u8; 32] = author.as_bytes()?[..].try_into()?;
+        Ok((AuthorId::from(author_bytes), ns))
+    }
 
-        let profile = profiles.get_key(&author_bytes[..]).await?;
+    /// Get profile by name.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_profile_by_name(&self, username: &Username) -> Result<Profile> {
+        let (author, ns) = self.get_author_and_namespace_for_username(username).await?;
+        let profiles = self.graph.get_or_init_map((ns, &*PROFILES_KEY)).await?;
+
+        let profile = profiles.get_key(&author.as_bytes()[..]).await?;
         Profile::from_value(&profile).await
     }
 

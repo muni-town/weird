@@ -4,9 +4,9 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
-	import Avatar from '$lib/components/Avatar.svelte';
 	import { env } from '$env/dynamic/public';
 	import { parseUsername } from '$lib/utils';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
@@ -20,7 +20,6 @@
 
 	let username = $state(parsedUsername?.name || '');
 	let display_name = $state(data.profile?.display_name || '');
-	let avatar_seed = $state(data.profile?.avatar_seed || data.profile?.username || '');
 	let location = $state(data.profile?.location || '');
 	let contact_info = $state(data.profile?.contact_info || '');
 	let work_capacity = $state(data.profile?.work_capacity);
@@ -120,10 +119,11 @@
 		<form
 			method="post"
 			action="/account/update"
+			enctype="multipart/form-data"
 			class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
 		>
 			<div class="mb-4 flex items-center gap-3">
-				<Avatar seed={avatar_seed} />
+				<Avatar user_id={userInfo.id} username={`${username}@${env.PUBLIC_DOMAIN}`} width="w-32" />
 				<div>
 					<h1 class="my-3 text-4xl">Edit Profile</h1>
 					<div class="text-surface-300">{userInfo.email}</div>
@@ -167,15 +167,9 @@
 				<span>Display Name</span>
 				<input name="display_name" class="input" placeholder={username} bind:value={display_name} />
 			</label>
-			<label class="label">
-				<span>Avatar Seed</span>
-				<input
-					name="avatar_seed"
-					class="input"
-					placeholder="I am a robot..."
-					bind:value={avatar_seed}
-				/>
-				<div class="pl-3 text-sm">Your avatar is randomly generated from this text.</div>
+			<label>
+				<span>Avatar</span>
+				<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
 			</label>
 			<label class="label">
 				<span>Bio</span>

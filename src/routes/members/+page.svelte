@@ -95,7 +95,7 @@
 			>
 				<div class="flex w-[15em] flex-col items-center text-center">
 					<div class="mb-3 flex flex-col flex-wrap items-center gap-4">
-						<Avatar width="w-[5em]" seed={profile.avatar_seed || profile.username || ''} />
+						<Avatar width="w-[5em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
 						<h2 class="text-2xl font-semibold">
 							<a href={`/u/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}

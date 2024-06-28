@@ -22,10 +22,6 @@ export const actions = {
 		if (display_name === '') {
 			display_name = null;
 		}
-		let avatar_seed = data.get('avatar_seed');
-		if (avatar_seed == '') {
-			avatar_seed = null;
-		}
 		let location = data.get('location');
 		if (location == '') {
 			location = null;
@@ -69,7 +65,6 @@ export const actions = {
 		const json = JSON.stringify({
 			username,
 			display_name,
-			avatar_seed,
 			location,
 			contact_info,
 			tags,
@@ -90,6 +85,23 @@ export const actions = {
 			console.error('Error updating profile:', e);
 			const data = JSON.parse((e as CheckResponseError).data);
 			return fail(400, { error: `Error updating profile: ${data.error}` });
+		}
+
+		try {
+			const avatarData = data.get('avatar') as File;
+			if (avatarData.name != '') {
+				const body = new FormData();
+				body.append('avatar', avatarData);
+				const resp = await backendFetch(fetch, `/profile/${userInfo.id}/avatar`, {
+					method: 'post',
+					body
+				});
+				await checkResponse(resp);
+			}
+		} catch (e) {
+			console.error('Error updating profile:', e);
+			const data = JSON.parse((e as CheckResponseError).data);
+			return fail(400, { error: `Error updating profile avatar: ${data.error}` });
 		}
 
 		return redirect(301, '/auth/v1/account');

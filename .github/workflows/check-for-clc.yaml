@@ -22,7 +22,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          path-to-signatures: 'signatures/version1/cla.json'
+          path-to-signatures: 'assets/clc/signatures.json'
           path-to-document: 'https://github.com/commune-os/weird/blob/a583615a9d34d913f5e63065768cdbe02750ae43/CONTRIBUTING.md' # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: 'clc-signatures'

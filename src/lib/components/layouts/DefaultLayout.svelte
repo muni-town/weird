@@ -71,15 +71,16 @@
 	</svelte:fragment>
 </AppBar>
 
-<slot></slot>
+<div class="flex min-h-screen flex-col">
+	<div class="flex-grow">
+		<slot></slot>
+	</div>
 
-<div class="mt-12 text-center text-xs text-surface-500">
-	Avatars generated with
-	<a class="underline" href="https://dicebear.com">DiceBear</a> and the
-	<a class="underline" href={`https://dicebear.com/styles/${env.PUBLIC_DICEBEAR_STYLE}`}
-		>{env.PUBLIC_DICEBEAR_STYLE}</a
-	> style.
+	<footer class="sticky bottom-0 p-4 text-center text-xs text-surface-500">
+		Avatars generated with
+		<a class="underline" href="https://dicebear.com">DiceBear</a> and the
+		<a class="underline" href={`https://dicebear.com/styles/${env.PUBLIC_DICEBEAR_STYLE}`}
+			>{env.PUBLIC_DICEBEAR_STYLE}</a
+		> style.
+	</footer>
 </div>
-
-<style>
-</style>

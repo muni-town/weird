@@ -9,7 +9,37 @@
 	const mastodon_profile = data.mastodon_profile;
 	let statuses: any[] = $state([]);
 	let show_blogs = $state('blogs');
+	let showing_blogs_count = 0;
+	let last_fetched_status_id = 0;
 
+	const fetchStatuses = (reblog_flag: string, fetch_from_id?: any) => {
+		const fetch_from_tag = fetch_from_id ? `&max_id=${fetch_from_id}` : '';
+		fetch(
+			`https://${mastodon_profile.mastodon_server}/api/v1/accounts/${mastodon_profile.id}/statuses?limit=80&pinned=false${reblog_flag}${fetch_from_tag}`,
+			{
+				method: 'GET'
+			}
+		)
+			.then((r) => r.json())
+			.then((stt) => {
+				if (!fetch_from_tag) statuses = stt;
+				fetch(
+					`https://${mastodon_profile.mastodon_server}/api/v1/accounts/${mastodon_profile.id}/statuses?limit=5&pinned=true${reblog_flag}${fetch_from_tag}`,
+					{
+						method: 'GET'
+					}
+				)
+					.then((r) => r.json())
+					.then((pinned_statuses) => {
+						const extend_from = fetch_from_tag
+							? statuses
+							: pinned_statuses.map((s: any) => ({ ...s, pinned: true }));
+						statuses = [...extend_from, ...stt];
+						showing_blogs_count = statuses.length;
+						last_fetched_status_id = statuses[statuses.length - 1].id;
+					});
+			});
+	};
 	$effect(() => {
 		let reblog_flag = '';
 		switch (show_blogs) {
@@ -17,27 +47,18 @@
 				reblog_flag = '&exclude_reblogs=true';
 				break;
 		}
-		fetch(
-			`https://${mastodon_profile.mastodon_server}/api/v1/accounts/${mastodon_profile.id}/statuses?limit=80&pinned=false${reblog_flag}`,
-			{
-				method: 'GET'
-			}
-		)
-			.then((r) => r.json())
-			.then((stt) => {
-				statuses = stt;
-				fetch(
-					`https://${mastodon_profile.mastodon_server}/api/v1/accounts/${mastodon_profile.id}/statuses?limit=5&pinned=true${reblog_flag}`,
-					{
-						method: 'GET'
-					}
-				)
-					.then((r) => r.json())
-					.then((pinned_statuses) => {
-						statuses = [...pinned_statuses.map((s: any) => ({ ...s, pinned: true })), ...stt];
-					});
-			});
+		fetchStatuses(reblog_flag);
 	});
+
+	const fetchMore = () => {
+		let reblog_flag = '';
+		switch (show_blogs) {
+			case 'blogs':
+				reblog_flag = '&exclude_reblogs=true';
+				break;
+		}
+		fetchStatuses(reblog_flag, last_fetched_status_id);
+	};
 </script>
 
 <svelte:head>
@@ -200,6 +221,35 @@
 				</div>
 			{/each}
 		</div>
+		<button class="w-full p-2 no-underline" on:click={fetchMore}>
+			<div
+				class="border-gray-00 flex h-full flex-col items-start overflow-hidden rounded-lg border-2 border-opacity-60"
+			>
+				<div class="w-full flex-shrink-0">
+					<div class="items-center gap-2 p-2 px-5">
+						<div class="flex justify-center">
+							<div class="flex items-center gap-2">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-6 w-6 text-gray-500"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 5l7 7-7 7"
+									/>
+								</svg>
+								<span class="text-gray-500">Load more</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</button>
 	</div>
 {:else}
 	<main class="flex flex-col items-center">

@@ -89,7 +89,7 @@
 	</div>
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
-		{#each filtered_profiles as profile}
+		{#each filtered_profiles as profile (profile.username)}
 			<div
 				class="w-120 card relative flex flex-col items-center p-5 transition-transform duration-200 hover:scale-105"
 			>

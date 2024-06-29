@@ -49,7 +49,7 @@
 			</h2>
 		</div>
 		<div class="grid gap-4 lg:grid-cols-2 lg:gap-8">
-			<div class="grid place-items-stretch card p-2">
+			<div class="card grid place-items-stretch p-2">
 				<div class="flex p-3">
 					<h3 class="text-2xl font-semibold leading-none tracking-tight">
 						✨ Magic website creation
@@ -57,25 +57,19 @@
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
-						<p>
-							The simplest possible way to create your own personal space on the web. Self-sovereign
-							internet passport
-						</p>
+						<p>The simplest possible way to create your own personal space on the web.</p>
 					</div>
 				</div>
 			</div>
-			<div class="grid place-items-stretch card p-2">
+			<div class="card grid place-items-stretch p-2">
 				<div class="flex flex-col p-3">
 					<h3 class="text-2xl font-semibold leading-none tracking-tight">
-						🌿 Independent 'social sign-in' for the alt-web
+						🌿 Self-sovereign internet passport
 					</h3>
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
-						<p>
-							Weird wants to be "the Google-login button of the people's web", powered by people's
-							websites instead of totalitarian mega-platforms.
-						</p>
+						<p>Independent 'social sign-in' for the alt-web. 🥛🍯🥰</p>
 					</div>
 				</div>
 			</div>
@@ -91,19 +85,26 @@
 			<div class="grid gap-2 p-3">
 				<p class="text-muted-foreground">
 					<span class="mb-4 block">
-						By making (or connecting) your website with Weird you will soon be able to access and
-						interact with the <a
-							href="https://ar.al/2020/08/07/what-is-the-small-web/"
-							class="underline"
-							target="_blank"
+						<span class="mb-4 block"
+							>Weird wants to be "the Google-login button of the people's web", powered by people's
+							websites instead of totalitarian mega-platforms.</span
 						>
-							small
-						</a>,
-						<a class="underline" target="_blank" href="https://openalternative.co/"> open </a>
-						and <a class="underline" target="_blank" href="https://indieweb.org/"> indie </a>
-						web just as easily as the regular web works today. Same conveniences, without the dark patterns,
-						spying and data theft For more on why this matters, fellow internet nerds are welcome to
-						read on:
+						<span>
+							By making (or connecting) your website with Weird you will soon be able to access and
+							interact with the
+							<a
+								href="https://ar.al/2020/08/07/what-is-the-small-web/"
+								class="underline"
+								target="_blank"
+							>
+								small
+							</a>,
+							<a class="underline" target="_blank" href="https://openalternative.co/"> open </a>
+							and <a class="underline" target="_blank" href="https://indieweb.org/"> indie </a>
+							web just as easily as the regular web works today. Same conveniences, without the dark
+							patterns, spying and data theft For more on why this matters, fellow internet nerds are
+							welcome to read on:
+						</span>
 					</span>
 
 					<a class="block underline" target="_blank" href="https://blog.erlend.sh/weird-web-pages">

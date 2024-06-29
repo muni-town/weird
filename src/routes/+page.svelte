@@ -49,30 +49,30 @@
 			</h2>
 		</div>
 		<div class="grid gap-4 lg:grid-cols-2 lg:gap-8">
-			<div class="card p-2">
-				<div class="flex flex-col space-y-1.5 p-3">
-					<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">
+			<div class="grid place-items-stretch card p-2">
+				<div class="flex p-3">
+					<h3 class="text-2xl font-semibold leading-none tracking-tight">
 						✨ Magic website creation
 					</h3>
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
-						<p class="text-muted-foreground">
+						<p>
 							The simplest possible way to create your own personal space on the web. Self-sovereign
 							internet passport
 						</p>
 					</div>
 				</div>
 			</div>
-			<div class="card p-2">
-				<div class="flex flex-col space-y-1.5 p-3">
-					<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">
+			<div class="grid place-items-stretch card p-2">
+				<div class="flex flex-col p-3">
+					<h3 class="text-2xl font-semibold leading-none tracking-tight">
 						🌿 Independent 'social sign-in' for the alt-web
 					</h3>
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
-						<p class="text-muted-foreground">
+						<p>
 							Weird wants to be "the Google-login button of the people's web", powered by people's
 							websites instead of totalitarian mega-platforms.
 						</p>

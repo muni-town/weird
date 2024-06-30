@@ -9,7 +9,6 @@
 	const mastodon_profile = data.mastodon_profile;
 	let statuses: any[] = $state([]);
 	let show_blogs = $state('blogs');
-	let showing_blogs_count = 0;
 	let last_fetched_status_id = 0;
 
 	const fetchStatuses = (reblog_flag: string, fetch_from_id?: any) => {
@@ -35,7 +34,6 @@
 							? statuses
 							: pinned_statuses.map((s: any) => ({ ...s, pinned: true }));
 						statuses = [...extend_from, ...stt];
-						showing_blogs_count = statuses.length;
 						last_fetched_status_id = statuses[statuses.length - 1].id;
 					});
 			});
@@ -132,7 +130,10 @@
 	</section>
 	<div class="container mx-auto p-4">
 		<div class="m-2">
-			<select class="form-select w-44 border border-gray-300 px-2 py-1" bind:value={show_blogs}>
+			<select
+				class="form-select w-44 border border-gray-300 px-2 py-1 dark:bg-gray-800"
+				bind:value={show_blogs}
+			>
 				<option value="blogs">Blogs</option>
 				<option value="all">All</option>
 			</select>
@@ -309,7 +310,7 @@
 		text-decoration: inherit;
 		display: inline-block;
 		--tw-bg-opacity: 1;
-		background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+		/* background-color: rgb(255 255 255 / var(--tw-bg-opacity)); */
 		padding-left: 0.75rem;
 		padding-right: 0.75rem;
 		padding-top: 0.25rem;

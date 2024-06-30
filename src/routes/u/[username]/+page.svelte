@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/Avatar.svelte';
+	import { parseUsername } from '$lib/utils';
 	import type { WorkCapacity, WorkCompensation } from '../../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
 	const { data }: { data: PageData } = $props();
@@ -84,7 +85,7 @@
 				{/if}
 				{#if profile.links}
 					{#each profile.links as link}
-						<a class="btn variant-ghost" href={link.url}>
+						<a class="variant-ghost btn" href={link.url}>
 							{link.label || link.url}
 						</a>
 					{/each}
@@ -95,12 +96,20 @@
 							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
 					</div>
 				{/if}
+				{#if profile.mastodon_server && profile.username}
+					<a
+						class="variant-ghost btn"
+						href={`/u/${parseUsername(profile.username!).name}/mastodon`}
+					>
+						View Mastodon Profile
+					</a>
+				{/if}
 			</div>
 		</div>
 	</main>
 {:else}
 	<main class="flex flex-col items-center">
-		<aside class="alert variant-ghost-error w-80 mt-8">
+		<aside class="alert variant-ghost-error mt-8 w-80">
 			<div class="alert-message">
 				<p>Error loading user: {profile.error}</p>
 			</div>

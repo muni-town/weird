@@ -1,8 +1,8 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from '../$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
-import type { Profile } from '../../auth/v1/account/proxy+page.server';
-import type { MastodonProfile } from './mastodon.d';
+import type { Profile } from '../../../auth/v1/account/proxy+page.server';
+import type { MastodonProfile } from './mastodon';
 
 export const load: PageServerLoad = async ({
 	fetch,
@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({
 		following_count: mastodon_data.following_count,
 		statuses_count: mastodon_data.statuses_count,
 		fields: mastodon_data.fields,
-		mastodon_server: mastodon_server.replace('https://', '')
+		mastodon_server: mastodon_server ? mastodon_server.replace('https://', '') : ''
 	};
 
 	return { profile, params, mastodon_profile };

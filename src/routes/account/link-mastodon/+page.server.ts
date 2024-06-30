@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from '../../sites/$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
@@ -35,7 +35,6 @@ export const load: PageServerLoad = async ({
 	providers: Provider[];
 	params: typeof params;
 	profiles: Profile[];
-	search?: string;
 }> => {
 	let providers: Provider[] = [];
 	try {
@@ -59,13 +58,12 @@ export const load: PageServerLoad = async ({
 			x.contact_info = undefined;
 		});
 	}
-	profiles = profiles.filter((x) => x.mastodon_server);
 	if (userInfo) {
 		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
 		const profile: Profile = await resp.json();
 
-		return { profile, providers, params, profiles, search: url.searchParams.get('q') || undefined };
+		return { profile, providers, params, profiles };
 	} else {
-		return { providers, params, profiles, search: url.searchParams.get('q') || undefined };
+		return { providers, params, profiles };
 	}
 };

@@ -28,7 +28,6 @@
 	<svelte:fragment slot="trail">
 		<div class="hidden items-center gap-3 sm:flex">
 			<a href="/members" class="variant-ghost btn">Members</a>
-			<a href="/sites" class="variant-ghost btn">Sites</a>
 			{#if !userInfo}
 				<a href="/auth/v1/account" class="variant-ghost btn">Login</a>
 				<a href="/auth/v1/users/register" class="variant-ghost btn">Register</a>

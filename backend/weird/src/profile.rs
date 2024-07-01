@@ -53,6 +53,10 @@ pub struct Profile {
     #[serde(default)]
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub lists: HashMap<String, Vec<WebLink>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mastodon_server: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mastodon_username: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -232,6 +236,21 @@ impl Profile {
                 let key = key.as_str()?.to_string();
                 Ok::<_, anyhow::Error>(key)
             });
+
+        let mastodon_server = profile
+            .get_key("mastodon_server")
+            .await?
+            .as_str()
+            .ok()
+            .map(|x| x.to_owned());
+
+        let mastodon_username = profile
+            .get_key("mastodon_username")
+            .await?
+            .as_str()
+            .ok()
+            .map(|x| x.to_owned());
+
         futures::pin_mut!(tags_stream);
         let mut tags = Vec::new();
         while let Some(tag) = tags_stream.next().await {
@@ -291,6 +310,8 @@ impl Profile {
             bio,
             links,
             lists,
+            mastodon_server,
+            mastodon_username,
         })
     }
 
@@ -363,6 +384,24 @@ impl Profile {
             .set_key(
                 "bio",
                 self.bio.clone().map(|x| x.into()).unwrap_or(Value::Null),
+            )
+            .await?;
+        value
+            .set_key(
+                "mastodon_server",
+                self.mastodon_server
+                    .clone()
+                    .map(|x| x.into())
+                    .unwrap_or(Value::Null),
+            )
+            .await?;
+        value
+            .set_key(
+                "mastodon_username",
+                self.mastodon_username
+                    .clone()
+                    .map(|x| x.into())
+                    .unwrap_or(Value::Null),
             )
             .await?;
 

@@ -27,6 +27,8 @@
 	let bio = $state(data.profile?.bio || '');
 	let links = $state(data.profile?.links || []);
 	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
+	let mastodon_server = $state(data.profile?.mastodon_server || '');
+	let mastodon_username = $state(data.profile?.mastodon_username || '');
 
 	let tags = $state(data.profile?.tags || []);
 	let tagsString = $state((data.profile?.tags || []).join(', '));
@@ -107,6 +109,41 @@
 				providerLinkPkce(provider_id, challenge);
 			}
 		});
+	};
+
+	const LinkWithMastodon = async (e: Event) => {
+		e.preventDefault();
+		mastodon_server = mastodon_server.startsWith('https://')
+			? mastodon_server
+			: `https://${mastodon_server}`;
+		mastodon_server = mastodon_server.endsWith('/')
+			? mastodon_server.slice(0, -1)
+			: mastodon_server;
+		fetch(mastodon_server + '/api/v1/apps', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				client_name: 'Weird Ones',
+				redirect_uris: window.location.origin + '/account/link-mastodon',
+				scopes: 'read',
+				website: window.location.origin
+			})
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				let client_id = data.client_id;
+				let client_secret = data.client_secret;
+				let redirect_uri = data.redirect_uri;
+				localStorage.setItem(
+					'app_data',
+					JSON.stringify({ client_id, client_secret, redirect_uri, mastodon_server })
+				);
+				let redirect_url = `${mastodon_server}/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=read`;
+				window.location.href = redirect_url;
+			})
+			.catch((err) => console.log(err));
 	};
 </script>
 
@@ -295,6 +332,21 @@
 					<option value="paid">Paid</option>
 					<option value="volunteer">Volunteer</option>
 				</select>
+			</label>
+
+			<label class="label">
+				<span>Sub-Profiles</span>
+				<div class="row flex gap-2">
+					<input
+						name="mastodon_server"
+						class="input"
+						placeholder="Mastodon Server"
+						bind:value={mastodon_server}
+					/>
+					<button type="button" class="variant-ghost-surface btn" onclick={LinkWithMastodon}
+						>Link With Mastodon</button
+					>
+				</div>
 			</label>
 
 			<button class="variant-filled btn mt-4"> Save </button>

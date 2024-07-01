@@ -349,6 +349,8 @@
 				</div>
 			</label>
 
+			<input type="hidden" name="mastodon_username" bind:value={mastodon_username} />
+
 			<button class="variant-filled btn mt-4"> Save </button>
 		</form>
 	</main>

@@ -62,12 +62,12 @@
 			<div class="card grid place-items-stretch p-2">
 				<div class="flex flex-col p-3">
 					<h3 class="text-2xl font-semibold leading-none tracking-tight">
-						Self-sovereign internet passport.
+						Self-sovereign internet passport
 					</h3>
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
-						<p>Independent 'social sign-in' for the alt-web</p>
+						<p>Independent 'social sign-in' for the alt-web.</p>
 					</div>
 				</div>
 			</div>

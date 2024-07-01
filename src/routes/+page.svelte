@@ -13,7 +13,7 @@
 
 <main class="container mx-auto">
 	<!-- <h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_INSTANCE_NAME}</h1> -->
-	<div class="p-8">
+	<div class="p-8 pb-1">
 		<div class="grid place-items-center gap-4 lg:grid-cols-[1fr_auto] lg:place-items-stretch">
 			<div class="flex flex-col justify-center">
 				<h1 class="text-5xl font-bold tracking-tighter">Weird</h1>
@@ -41,7 +41,7 @@
 			<img src={bannerImage.src} width={bannerImage.width} alt={bannerImage.alt} />
 		</div>
 	</div>
-	<div class="p-8">
+	<div class="p-8 pb-1">
 		<div class="pb-5">
 			<span class="text-xs">just like milk & honey...</span>
 			<h2 class="py-2 text-2xl font-bold tracking-tight sm:text-3xl xl:text-4xl">
@@ -51,9 +51,7 @@
 		<div class="grid gap-4 lg:grid-cols-2 lg:gap-8">
 			<div class="card grid place-items-stretch p-2">
 				<div class="flex p-3">
-					<h3 class="text-2xl font-semibold leading-none tracking-tight">
-						✨ Magic website creation
-					</h3>
+					<h3 class="text-2xl font-semibold leading-none tracking-tight">Magic website creation</h3>
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
@@ -64,22 +62,25 @@
 			<div class="card grid place-items-stretch p-2">
 				<div class="flex flex-col p-3">
 					<h3 class="text-2xl font-semibold leading-none tracking-tight">
-						🌿 Self-sovereign internet passport
+						Self-sovereign internet passport
 					</h3>
 				</div>
 				<div class="p-3">
 					<div class="grid gap-2">
-						<p>Independent 'social sign-in' for the alt-web. 🥛🍯🥰</p>
+						<p>Independent 'social sign-in' for the alt-web.</p>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="p-8">
+	<div class="pb-4 pl-8 pr-8 pt-4">
+		<span> 🥛🍯🥰 </span>
+	</div>
+	<div class="p-8 pt-1">
 		<div class="card p-2">
 			<div class="p-3">
 				<h3 class="whitespace-nowrap text-2xl font-semibold leading-none tracking-tight">
-					🤔 Why Weird?
+					Why Weird?
 				</h3>
 			</div>
 			<div class="grid gap-2 p-3">
@@ -102,7 +103,7 @@
 							<a class="underline" target="_blank" href="https://openalternative.co/"> open </a>
 							and <a class="underline" target="_blank" href="https://indieweb.org/"> indie </a>
 							web just as easily as the regular web works today. Same conveniences, without the dark
-							patterns, spying and data theft For more on why this matters, fellow internet nerds are
+							patterns, spying and data theft. For more on why this matters, fellow internet nerds are
 							welcome to read on:
 						</span>
 					</span>

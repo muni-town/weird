@@ -103,7 +103,7 @@
 							<a class="underline" target="_blank" href="https://openalternative.co/"> open </a>
 							and <a class="underline" target="_blank" href="https://indieweb.org/"> indie </a>
 							web just as easily as the regular web works today. Same conveniences, without the dark
-							patterns, spying and data theft For more on why this matters, fellow internet nerds are
+							patterns, spying and data theft. For more on why this matters, fellow internet nerds are
 							welcome to read on:
 						</span>
 					</span>

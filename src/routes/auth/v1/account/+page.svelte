@@ -4,9 +4,9 @@
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
-	import Avatar from '$lib/components/Avatar.svelte';
 	import { env } from '$env/dynamic/public';
 	import { parseUsername } from '$lib/utils';
+	import Avatar from '$lib/components/Avatar.svelte';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
@@ -20,7 +20,6 @@
 
 	let username = $state(parsedUsername?.name || '');
 	let display_name = $state(data.profile?.display_name || '');
-	let avatar_seed = $state(data.profile?.avatar_seed || data.profile?.username || '');
 	let location = $state(data.profile?.location || '');
 	let contact_info = $state(data.profile?.contact_info || '');
 	let work_capacity = $state(data.profile?.work_capacity);
@@ -157,10 +156,11 @@
 		<form
 			method="post"
 			action="/account/update"
+			enctype="multipart/form-data"
 			class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
 		>
 			<div class="mb-4 flex items-center gap-3">
-				<Avatar seed={avatar_seed} />
+				<Avatar user_id={userInfo.id} username={`${username}@${env.PUBLIC_DOMAIN}`} width="w-32" />
 				<div>
 					<h1 class="my-3 text-4xl">Edit Profile</h1>
 					<div class="text-surface-300">{userInfo.email}</div>
@@ -204,62 +204,20 @@
 				<span>Display Name</span>
 				<input name="display_name" class="input" placeholder={username} bind:value={display_name} />
 			</label>
-			<label class="label">
-				<span>Avatar Seed</span>
-				<input
-					name="avatar_seed"
-					class="input"
-					placeholder="I am a robot..."
-					bind:value={avatar_seed}
-				/>
-				<div class="pl-3 text-sm">Your avatar is randomly generated from this text.</div>
+			<label>
+				<span>Avatar</span>
+				<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
 			</label>
 			<label class="label">
-				<span>Location</span>
-				<input name="location" class="input" bind:value={location} />
-			</label>
-			<label class="label">
-				<span>Contact Info</span>
-				<input
-					name="contact_info"
-					class="input"
-					placeholder="Email, phone, etc."
-					bind:value={contact_info}
-				/>
-
-				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
-			</label>
-			<!-- svelte-ignore a11y_label_has_associated_control -->
-			<label class="label">
-				<span>Tags</span>
-				<input
-					bind:value={tagsString}
-					name="tags"
-					class="input"
-					placeholder="Interest, skill, etc."
-				/>
-				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
-				<div class="ml-4 mt-1 flex flex-wrap gap-2">
-					{#each tags as tag}
-						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
-					{/each}
-				</div>
-			</label>
-			<label class="label">
-				<span>Work Capacity</span>
-				<select class="select" name="work_capacity" bind:value={work_capacity}>
-					<option value={null}>Not Specified</option>
-					<option value="part_time">Part Time</option>
-					<option value="full_time">Full Time</option>
-				</select>
-			</label>
-			<label class="label">
-				<span>Work Compensation</span>
-				<select class="select" name="work_compensation" bind:value={work_compensation}>
-					<option value={null}>Not Specified</option>
-					<option value="paid">Paid</option>
-					<option value="volunteer">Volunteer</option>
-				</select>
+				<span>Bio</span>
+				<textarea
+					name="bio"
+					class="textarea"
+					placeholder="Tell people more about you..."
+					rows="5"
+					bind:value={bio}
+				>
+				</textarea>
 			</label>
 
 			<label>
@@ -327,16 +285,53 @@
 				</div>
 			</label>
 
+			<!-- svelte-ignore a11y_label_has_associated_control -->
 			<label class="label">
-				<span>Bio</span>
-				<textarea
-					name="bio"
-					class="textarea"
-					placeholder="Tell people more about you..."
-					rows="5"
-					bind:value={bio}
-				>
-				</textarea>
+				<span>Tags</span>
+				<input
+					bind:value={tagsString}
+					name="tags"
+					class="input"
+					placeholder="Interest, skill, etc."
+				/>
+				<div class="text-surface-600-300-token ml-3 text-sm">Separate tags by commas.</div>
+				<div class="ml-4 mt-1 flex flex-wrap gap-2">
+					{#each tags as tag}
+						<div class="bg-surface-200-700-token rounded-md p-1 text-sm">{tag}</div>
+					{/each}
+				</div>
+			</label>
+
+			<label class="label">
+				<span>Location</span>
+				<input name="location" class="input" bind:value={location} />
+			</label>
+			<label class="label">
+				<span>Contact Info</span>
+				<input
+					name="contact_info"
+					class="input"
+					placeholder="Email, phone, etc."
+					bind:value={contact_info}
+				/>
+
+				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
+			</label>
+			<label class="label">
+				<span>Work Capacity</span>
+				<select class="select" name="work_capacity" bind:value={work_capacity}>
+					<option value={null}>Not Specified</option>
+					<option value="part_time">Part Time</option>
+					<option value="full_time">Full Time</option>
+				</select>
+			</label>
+			<label class="label">
+				<span>Work Compensation</span>
+				<select class="select" name="work_compensation" bind:value={work_compensation}>
+					<option value={null}>Not Specified</option>
+					<option value="paid">Paid</option>
+					<option value="volunteer">Volunteer</option>
+				</select>
 			</label>
 
 			<label class="label">

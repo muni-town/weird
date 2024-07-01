@@ -89,13 +89,13 @@
 	</div>
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
-		{#each filtered_profiles as profile}
+		{#each filtered_profiles as profile (profile.username)}
 			<div
 				class="w-120 card relative flex flex-col items-center p-5 transition-transform duration-200 hover:scale-105"
 			>
 				<div class="flex w-[15em] flex-col items-center text-center">
 					<div class="mb-3 flex flex-col flex-wrap items-center gap-4">
-						<Avatar width="w-[5em]" seed={profile.avatar_seed || profile.username || ''} />
+						<Avatar width="w-[5em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
 						<h2 class="text-2xl font-semibold">
 							<a href={`/u/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}

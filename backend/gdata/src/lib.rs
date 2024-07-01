@@ -9,6 +9,7 @@ use smallvec::SmallVec;
 use std::{future::Future, sync::Arc};
 
 use iroh::{
+    base::base32,
     client::RpcService,
     docs::{store::Query, AuthorId, NamespaceId},
 };
@@ -65,11 +66,7 @@ impl std::fmt::Display for KeySegment {
             KeySegment::Int(i) => write!(f, "{i}"),
             KeySegment::String(s) => write!(f, "{s:?}"),
             KeySegment::Bytes(b) => {
-                write!(f, "0x")?;
-                for byte in b.iter() {
-                    write!(f, "{byte:X}")?;
-                }
-                Ok(())
+                write!(f, "base32:{}", base32::fmt(&b[..]))
             }
         }
     }

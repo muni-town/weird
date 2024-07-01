@@ -37,18 +37,25 @@
 	<main class="flex flex-col items-center">
 		<div class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl">
 			<div class="flex items-center gap-4">
-				<Avatar seed={profile.avatar_seed || profile.username || ''} />
+				<Avatar username={profile.username} />
 				<h1 class="my-3 text-4xl">{profile.display_name || profile.username}</h1>
 			</div>
 
 			<hr class="mb-4" />
 
 			<div class="flex flex-col gap-4">
-				{#if profile.location}
+				{#if profile.bio}
 					<div>
-						<strong>Location: </strong>
-						{profile.location}
+						<pre
+							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
 					</div>
+				{/if}
+				{#if profile.links}
+					{#each profile.links as link}
+						<a class="variant-ghost btn" href={link.url}>
+							{link.label || link.url}
+						</a>
+					{/each}
 				{/if}
 				{#if profile.tags && profile.tags.length > 0}
 					<div class="flex items-center gap-2">
@@ -63,6 +70,12 @@
 								</a>
 							{/each}
 						</span>
+					</div>
+				{/if}
+				{#if profile.location}
+					<div>
+						<strong>Location: </strong>
+						{profile.location}
 					</div>
 				{/if}
 				{#if profile.contact_info}

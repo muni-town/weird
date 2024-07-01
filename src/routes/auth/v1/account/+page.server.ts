@@ -11,7 +11,6 @@ export interface Provider {
 export interface Profile {
 	username?: string;
 	display_name?: string;
-	avatar_seed?: string;
 	location?: string;
 	tags: string[];
 	contact_info?: string;

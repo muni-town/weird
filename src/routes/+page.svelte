@@ -62,7 +62,7 @@
 			<div class="card grid place-items-stretch p-2">
 				<div class="flex flex-col p-3">
 					<h3 class="text-2xl font-semibold leading-none tracking-tight">
-						Self-sovereign internet passport
+						Self-sovereign internet passport.
 					</h3>
 				</div>
 				<div class="p-3">

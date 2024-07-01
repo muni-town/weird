@@ -23,6 +23,8 @@ export interface UserInfo {
 		| 'federated_password';
 	enabled: boolean;
 	groups: string[];
+	mastodon_server: string;
+	mastodon_username: string;
 }
 
 export const setUserInfo = (info?: UserInfo) => setContext('userInfo', info);

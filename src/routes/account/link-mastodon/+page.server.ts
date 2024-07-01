@@ -1,4 +1,4 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from '../../sites/$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
@@ -11,6 +11,7 @@ export interface Provider {
 export interface Profile {
 	username?: string;
 	display_name?: string;
+	avatar_seed?: string;
 	location?: string;
 	tags: string[];
 	contact_info?: string;
@@ -26,8 +27,15 @@ export type WorkCompensation = 'paid' | 'volunteer';
 
 export const load: PageServerLoad = async ({
 	fetch,
-	request
-}): Promise<{ profile?: Profile; providers: Provider[] }> => {
+	request,
+	params,
+	url
+}): Promise<{
+	profile?: Profile;
+	providers: Provider[];
+	params: typeof params;
+	profiles: Profile[];
+}> => {
 	let providers: Provider[] = [];
 	try {
 		const providersResp = await fetch('/auth/v1/providers/minimal', {
@@ -40,12 +48,22 @@ export const load: PageServerLoad = async ({
 	}
 
 	let { userInfo } = await getSession(fetch, request);
+
+	let loggedIn = !!userInfo;
+	const resp = await backendFetch(fetch, `/profiles`);
+	let profiles: Profile[] = await resp.json();
+
+	if (!loggedIn) {
+		profiles.forEach((x) => {
+			x.contact_info = undefined;
+		});
+	}
 	if (userInfo) {
 		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
 		const profile: Profile = await resp.json();
 
-		return { profile, providers };
+		return { profile, providers, params, profiles };
 	} else {
-		return { providers };
+		return { providers, params, profiles };
 	}
 };

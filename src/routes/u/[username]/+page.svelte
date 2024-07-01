@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/Avatar.svelte';
+	import { parseUsername } from '$lib/utils';
 	import type { WorkCapacity, WorkCompensation } from '../../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
 	const { data }: { data: PageData } = $props();
@@ -94,6 +95,27 @@
 						<strong>Work Compensation: </strong>
 						{printWorkCompensation(profile.work_compensation)}
 					</div>
+				{/if}
+				{#if profile.links}
+					{#each profile.links as link}
+						<a class="variant-ghost btn" href={link.url}>
+							{link.label || link.url}
+						</a>
+					{/each}
+				{/if}
+				{#if profile.bio}
+					<div>
+						<pre
+							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
+					</div>
+				{/if}
+				{#if profile.mastodon_server && profile.username}
+					<a
+						class="variant-ghost btn"
+						href={`/u/${parseUsername(profile.username!).name}/mastodon`}
+					>
+						View Mastodon Profile
+					</a>
 				{/if}
 			</div>
 		</div>

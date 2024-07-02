@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use axum::{
     extract::{DefaultBodyLimit, Multipart},
@@ -6,7 +6,9 @@ use axum::{
     routing::delete,
 };
 use futures::{pin_mut, StreamExt};
-use weird::profile::{Profile, Username};
+use weird::{
+    db::StringSerde, iroh::docs::AuthorId, profile::{Profile, Username}
+};
 
 use crate::ARGS;
 
@@ -14,9 +16,13 @@ use super::*;
 
 pub fn install(router: Router<AppState>) -> Router<AppState> {
     router
+        .route("/usernames", get(get_usernames))
         .route("/profiles", get(get_profiles))
         .route("/profile/username/:username", get(get_profile_by_name))
-        .route("/profile/username/:username/avatar", get(get_profile_avatar_by_name))
+        .route(
+            "/profile/username/:username/avatar",
+            get(get_profile_avatar_by_name),
+        )
         .route("/profile/:user_id/avatar", get(get_profile_avatar))
         .route(
             "/profile/:user_id/avatar",
@@ -25,6 +31,17 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/:user_id", get(get_profile))
         .route("/profile/:user_id", post(post_profile))
         .route("/profile/:user_id", delete(delete_profile))
+}
+
+async fn get_usernames(state: State<AppState>) -> AppResult<Json<HashMap<String, StringSerde<AuthorId>>>> {
+    let mut usernames = HashMap::default();
+    let stream = state.weird.get_usernames().await?;
+    pin_mut!(stream);
+    while let Some(result) = stream.next().await {
+        let (username, author_id) = result?;
+        usernames.insert(username, author_id.into());
+    }
+    Ok(Json(usernames))
 }
 
 async fn get_profiles(state: State<AppState>) -> AppResult<Json<Vec<Profile>>> {

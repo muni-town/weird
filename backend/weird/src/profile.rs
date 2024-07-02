@@ -3,7 +3,7 @@
 use std::{collections::HashMap, fmt::Debug, io::Cursor, str::FromStr};
 
 use anyhow::Result;
-use futures::{pin_mut, Stream, StreamExt};
+use futures::{pin_mut, Stream, StreamExt, TryStreamExt};
 use gdata::{GStoreBackend, GStoreValue, Key, KeySegment, Value};
 use iroh::docs::{AuthorId, DocTicket, NamespaceId};
 use once_cell::sync::Lazy;
@@ -633,6 +633,21 @@ impl<S> Weird<S> {
         }
         let author_bytes: [u8; 32] = author.as_bytes()?[..].try_into()?;
         Ok((AuthorId::from(author_bytes), ns))
+    }
+
+    /// Get the list of usernames and the associated AuthorIDs for this instance.
+    pub async fn get_usernames(&self) -> Result<impl Stream<Item = Result<(String, AuthorId)>>> {
+        let usernames = self
+            .graph
+            .get_or_init_map((self.ns, &*USERNAMES_KEY))
+            .await?;
+        let stream = usernames.list_items().await?;
+        Ok(stream.and_then(|item| async move {
+            let username = item.last_key_segment().as_str()?.to_string();
+            let author_id: [u8; 32] = item.as_bytes()?[..].try_into()?;
+
+            Ok((username, author_id.into()))
+        }))
     }
 
     /// Get profile by name.

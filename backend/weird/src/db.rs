@@ -312,6 +312,11 @@ mod ser_de {
     /// String-based serialize/deserialize wrapper.
     #[derive(Debug, Clone, Hash, PartialEq, Eq)]
     pub struct StringSerde<T>(pub T);
+    impl<T> From<T> for StringSerde<T> {
+        fn from(value: T) -> Self {
+            Self(value)
+        }
+    }
     impl<T: std::fmt::Display> serde::Serialize for StringSerde<T> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where

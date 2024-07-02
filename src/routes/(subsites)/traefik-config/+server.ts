@@ -16,7 +16,7 @@ export const GET: RequestHandler = async ({ fetch }) => {
 		for (const username of usernames) {
 			const routerName = `${env.TRAEFIK_CONFIG_NAMESPACE}-rtr-${username}`;
 			routers[routerName] = {
-				rule: `Host(${username}.${pubenv.PUBLIC_DOMAIN})`,
+				rule: `Host(\`${username}.${pubenv.PUBLIC_DOMAIN}\`)`,
 				service: env.TRAEFIK_CONFIG_SERVICE_NAME,
 				tls: {
 					certResolver: 'letsencrypt'

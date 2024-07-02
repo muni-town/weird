@@ -7,6 +7,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [wasm(), topLevelAwait(), sveltekit()],
 	server: {
+		host: '0.0.0.0',
 		port: 9523,
 		strictPort: true,
 	}

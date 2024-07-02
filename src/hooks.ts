@@ -1,18 +1,17 @@
-import { env as pubenv } from '$env/dynamic/public';
-import {env as privenv } from "$env/dynamic/private";
+import { env } from '$env/dynamic/public';
 import type { Reroute } from '@sveltejs/kit';
 
 const subdomainRegex = new RegExp(
-	`(.*)\.${pubenv.PUBLIC_DOMAIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
+	`(.*)\.${env.PUBLIC_DOMAIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
 );
 
 export const reroute: Reroute = ({ url }) => {
-	if (url.host === pubenv.PUBLIC_DOMAIN) {
+	if (url.host === env.PUBLIC_DOMAIN) {
 		return url.pathname;
 	}
 
-	if (url.host == privenv.TRAEFIK_CONFIG_HOST) {
-		return '/traefik-config'
+	if (url.host == env.PUBLIC_TRAEFIK_CONFIG_HOST) {
+		return '/traefik-config';
 	}
 
 	let username = url.host.match(subdomainRegex)?.[1];

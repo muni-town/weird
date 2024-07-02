@@ -19,5 +19,9 @@ export const reroute: Reroute = ({ url }) => {
 		throw 'Invalid domain';
 	}
 
-	return `/subsite/${username}`;
+	if (url.pathname == '/' || url.pathname == '') {
+		return `/subsite/${username}`;
+	} else if (url.pathname.startsWith(`/u/${username}`)) {
+		return url.pathname;
+	}
 };

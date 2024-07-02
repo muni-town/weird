@@ -191,7 +191,27 @@
 					>
 				{/each}
 			{/if}
-			<!-- <button onclick={AddProvider} class="variant-ghost btn">Log in anyway</button> -->
+			{#if userInfo.account_type === 'federated_password'}
+				<div class="my-4 flex items-center justify-between">
+					<span>Your account is linked to a provider</span>
+					<button
+						type="button"
+						onclick={() => {
+							fetch('/auth/v1/providers/link', {
+								method: 'DELETE',
+								headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+							})
+								.then(() => {
+									window.location.reload();
+								})
+								.catch((err) => console.log(err));
+						}}
+						class="btn rounded-lg bg-red-500 px-2 py-1 font-bold text-white hover:bg-red-700"
+					>
+						Unlink
+					</button>
+				</div>
+			{/if}
 
 			<label class="label">
 				<span>Username</span>

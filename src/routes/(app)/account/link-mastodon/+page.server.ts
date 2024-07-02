@@ -1,4 +1,4 @@
-import type { PageServerLoad } from '../../sites/$types';
+import type { PageServerLoad } from './$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';

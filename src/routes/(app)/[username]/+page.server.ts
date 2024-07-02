@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
-import type { Profile } from '../../auth/v1/account/proxy+page.server';
+import type { Profile } from '../auth/v1/account/+page.server';
 
 export const load: PageServerLoad = async ({
 	fetch,
@@ -18,5 +18,5 @@ export const load: PageServerLoad = async ({
 		profile.contact_info = undefined;
 	}
 
-	return { profile, params };
+	return { profile, params: { ...params } };
 };

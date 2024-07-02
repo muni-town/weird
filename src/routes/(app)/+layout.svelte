@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
 	import DefaultLayout from '$lib/components/layouts/DefaultLayout.svelte';
-	import '../app.css';
+	import '../../app.css';
 	import { setSessionInfo, setUserInfo } from '$lib/rauthy';
 	import type { Snippet } from 'svelte';
 	import { initializeStores, Drawer, getDrawerStore } from '@skeletonlabs/skeleton';

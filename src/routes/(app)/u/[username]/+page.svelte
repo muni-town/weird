@@ -96,7 +96,7 @@
 						{printWorkCompensation(profile.work_compensation)}
 					</div>
 				{/if}
-				{#if profile.mastodon_server && profile.username}
+				{#if profile.mastodon_server && profile.mastodon_username && profile.username}
 					<a
 						class="variant-ghost btn"
 						href={`/u/${parseUsername(profile.username!).name}/mastodon`}

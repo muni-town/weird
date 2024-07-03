@@ -69,6 +69,10 @@ export const actions = {
 		if (mastodon_username == '') {
 			mastodon_username = null;
 		}
+		let mastodon_access_token = data.get('mastodon_access_token');
+		if (mastodon_access_token == '') {
+			mastodon_access_token = null;
+		}
 
 		const json = JSON.stringify({
 			username,
@@ -81,7 +85,8 @@ export const actions = {
 			work_compensation,
 			bio,
 			mastodon_server,
-			mastodon_username
+			mastodon_username,
+			mastodon_access_token
 		});
 
 		try {

@@ -55,7 +55,7 @@
 			})
 		});
 		const data = await response.json();
-		console.log(data);
+
 		localStorage.setItem('access_token', data.access_token);
 		localStorage.setItem('mastodon_server', mastodon_server);
 
@@ -71,6 +71,7 @@
 		const form_data = new FormData();
 		form_data.append('mastodon_server', mastodon_server);
 		form_data.append('mastodon_username', user_data.username);
+		form_data.append('mastodon_access_token', data.access_token);
 		form_data.append('username', username);
 		form_data.append('display_name', display_name);
 		form_data.append('avatar_seed', avatar_seed);
@@ -84,7 +85,7 @@
 			form_data.append('link-label', link.label ?? '');
 			form_data.append('link-url', link.url ?? '');
 		});
-		console.log(JSON.stringify(Object.fromEntries(form_data.entries())));
+
 		await fetch('/account/update', {
 			method: 'POST',
 			body: form_data

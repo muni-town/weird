@@ -6,6 +6,7 @@
 	import Favorite from '$lib/icons/Favorite.svelte';
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
+	let search = $state(data.search);
 	const mastodon_profile = data.mastodon_profile;
 	let statuses: any[] = $state([]);
 	let show_blogs = $state('blogs');
@@ -45,7 +46,22 @@
 				reblog_flag = '&exclude_reblogs=true';
 				break;
 		}
-		fetchStatuses(reblog_flag);
+		if (search && profile.mastodon_access_token) {
+			fetch(
+				`https://${mastodon_profile.mastodon_server}/api/v2/search?q=${search}&resolve=true&type=statuses&limit=40&account_id=${mastodon_profile.id}`,
+				{
+					method: 'GET',
+					headers: {
+						Authorization: `Bearer ${profile.mastodon_access_token}`
+					}
+				}
+			)
+				.then((r) => r.json())
+				.then((stt) => {
+					console.log(stt);
+					statuses = stt.statuses;
+				});
+		} else fetchStatuses(reblog_flag);
 	});
 
 	const fetchMore = () => {
@@ -137,6 +153,12 @@
 				<option value="blogs">Blogs</option>
 				<option value="all">All</option>
 			</select>
+			<input
+				type="text"
+				class="form-input w-44 border border-gray-300 px-2 py-1 dark:bg-gray-800"
+				placeholder="Search"
+				bind:value={search}
+			/>
 		</div>
 		<div class="columns-1 md:columns-2 lg:columns-3 xl:columns-4">
 			{#each statuses as status}

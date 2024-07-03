@@ -20,6 +20,7 @@ export interface Profile {
 	links?: { label?: string; url: string }[];
 	mastodon_username?: string;
 	mastodon_server?: string;
+	mastodon_access_token?: string;
 }
 export type WorkCapacity = 'full_time' | 'part_time';
 export type WorkCompensation = 'paid' | 'volunteer';

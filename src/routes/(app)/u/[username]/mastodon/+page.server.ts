@@ -7,11 +7,13 @@ import type { MastodonProfile } from './mastodon';
 export const load: PageServerLoad = async ({
 	fetch,
 	request,
-	params
+	params,
+	url
 }): Promise<{
 	profile: Profile | { error: string };
 	params: typeof params;
 	mastodon_profile: MastodonProfile;
+	search?: string;
 }> => {
 	let { userInfo } = await getSession(fetch, request);
 	const loggedIn = !!userInfo;
@@ -26,6 +28,7 @@ export const load: PageServerLoad = async ({
 
 	const mastodon_server = profile.mastodon_server;
 	const mastodon_username = profile.mastodon_username;
+	const mastodon_access_token = profile.mastodon_access_token;
 
 	const mastodon_data = await fetch(
 		`${mastodon_server}/api/v1/accounts/lookup?acct=${mastodon_username}`,
@@ -49,5 +52,5 @@ export const load: PageServerLoad = async ({
 		mastodon_server: mastodon_server ? mastodon_server.replace('https://', '') : ''
 	};
 
-	return { profile, params, mastodon_profile };
+	return { profile, params, mastodon_profile, search: url.searchParams.get('q') || undefined };
 };

@@ -29,6 +29,7 @@
 	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
 	let mastodon_server = $state(data.profile?.mastodon_server || '');
 	let mastodon_username = $state(data.profile?.mastodon_username || '');
+	let mastodon_access_token = $state(data.profile?.mastodon_access_token || '');
 
 	let tags = $state(data.profile?.tags || []);
 	let tagsString = $state((data.profile?.tags || []).join(', '));
@@ -370,6 +371,7 @@
 			</label>
 
 			<input type="hidden" name="mastodon_username" bind:value={mastodon_username} />
+			<input type="hidden" name="mastodon_access_token" bind:value={mastodon_access_token} />
 
 			<button class="variant-filled btn mt-4"> Save </button>
 		</form>

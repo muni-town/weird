@@ -25,6 +25,7 @@ export interface UserInfo {
 	groups: string[];
 	mastodon_server: string;
 	mastodon_username: string;
+	mastodon_access_token: string;
 }
 
 export const setUserInfo = (info?: UserInfo) => setContext('userInfo', info);

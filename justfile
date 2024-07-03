@@ -39,4 +39,5 @@ fmt-check:
 # Lint the codebase.
 lint:
     pnpm run lint
+    # Run `typos  --write-changes` to fix the mistakes
     typos

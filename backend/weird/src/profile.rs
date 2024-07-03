@@ -613,7 +613,7 @@ impl<S> Weird<S> {
             // TODO: Wait Until Remote Instance Has Been Synced
             //
             // Currently there will be an error looking up a user the first time we connect to a
-            // remote instance beause we haven't waited until the instance is synced before trying
+            // remote instance because we haven't waited until the instance is synced before trying
             // to access the profile data.
             self.node.docs().import(ticket).await?;
             Ok(ns)

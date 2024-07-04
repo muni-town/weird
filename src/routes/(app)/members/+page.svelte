@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
+	import { PUBLIC_SHOW_WORK_CAPACITY } from '$env/static/public';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { parseUsername } from '$lib/utils';
 	import type { WorkCapacity, WorkCompensation } from '../auth/v1/account/proxy+page.server';
@@ -125,17 +126,19 @@
 								{profile.contact_info}
 							</div>
 						{/if}
-						<div>
-							{#if profile.work_capacity}
-								{printWorkCapacity(profile.work_capacity)}
-							{/if}
-							{#if profile.work_capacity && profile.work_compensation}
-								&nbsp;/&nbsp;
-							{/if}
-							{#if profile.work_compensation}
-								{printWorkCompensation(profile.work_compensation)}
-							{/if}
-						</div>
+						{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
+							<div>
+								{#if profile.work_capacity}
+									{printWorkCapacity(profile.work_capacity)}
+								{/if}
+								{#if profile.work_capacity && profile.work_compensation}
+									&nbsp;/&nbsp;
+								{/if}
+								{#if profile.work_compensation}
+									{printWorkCompensation(profile.work_compensation)}
+								{/if}
+							</div>
+						{/if}
 					</div>
 				</div>
 			</div>

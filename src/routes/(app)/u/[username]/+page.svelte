@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
+	import { PUBLIC_SHOW_WORK_CAPACITY } from '$env/static/public';
 	import Avatar from '$lib/components/Avatar.svelte';
 	import { parseUsername } from '$lib/utils';
 	import type { WorkCapacity, WorkCompensation } from '../../auth/v1/account/proxy+page.server';
@@ -84,17 +85,19 @@
 						{profile.contact_info}
 					</div>
 				{/if}
-				{#if profile.work_capacity}
-					<div>
-						<strong>Work Capacity: </strong>
-						{printWorkCapacity(profile.work_capacity)}
-					</div>
-				{/if}
-				{#if profile.work_compensation}
-					<div>
-						<strong>Work Compensation: </strong>
-						{printWorkCompensation(profile.work_compensation)}
-					</div>
+				{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
+					{#if profile.work_capacity}
+						<div>
+							<strong>Work Capacity: </strong>
+							{printWorkCapacity(profile.work_capacity)}
+						</div>
+					{/if}
+					{#if profile.work_compensation}
+						<div>
+							<strong>Work Compensation: </strong>
+							{printWorkCompensation(profile.work_compensation)}
+						</div>
+					{/if}
 				{/if}
 				{#if profile.mastodon_server && profile.mastodon_username && profile.username}
 					<a

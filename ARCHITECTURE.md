@@ -1,153 +1,133 @@
 # Architecture
 
-This describes the current architecture in weird. This is probably going to change a lot as we go,
-but right now we're starting with what's familiar and easy to get going with.
+This describes the current architecture in Weird. Many of the pieces are experimental and may change
+before we get to updating this document. Always feel free to join chat or open a discussion if you
+have questions!
 
 ## Overview
 
 The overall architecture is pictured below:
 
-![image](https://github.com/commune-os/weird/assets/25393315/94e7f25f-a7a5-4712-b2b5-8dc5c6a151e7)
+![image](./docs/weird-architecture.png)
 
-The web app is built with [SvelteKit](https://kit.svelte.dev/), and it's what users hit when they hit the website. The SvelteKit server proxies
-auth API requests behind the `/auth/v1` URL path, to the [Rauthy](https://github.com/sebadob/rauthy) server, while overriding the routes related
-to displaying things like login pages, so that we can provide a custom, integrated UI.
+## Web Instance
 
-All core auth functionality, other than UI, is handled by the Rauthy server in the background.
+The web application that we run at [Weird.One](https://weird.one) is an example of a Weird "Web Instance".
 
-For data storage, we use a custom Rust backend API server. The server-side of the SvelteKit web app will use this as a "database" to store all
-persistent data that isn't related directly to the user account and stored in Rauthy. So Rauthy might store, for example, the username of a user,
-but their profile bio or any webpage data that they store will be stored in the backend.
+It encompasses everything that is needed to run an instance of a Weird web server.
 
-The backend will use the [Iroh](https://iroh.computer/) library for storage. This is part of our larger future plans to grow weird and to help
-enable things like credible exit, but for now it will serve as an "implementation detail" invisible to the users, and not used to it's full potential.
+### SvelteKit
 
-For now our backend will be nothing more than a glorified JSON store where we will put users' profile data in.
+The web application front-end is implemented with [SvelteKit](https://kit.svelte.dev).
 
-## Interesting Iroh Details
+Front-end in this case doesn't not mean "client-side" only. The app is mostly server-side rendered
+using SvelteKit's SSR and client-side hydration feature, and all of the public API endpoints are
+implemented in SvelteKit also.
 
-Right now our backend just uses Iroh as a local key-value store. The interesting part is the
-graph store that we've built on top of the Iroh document.
+### Rauthy Auth Server
 
-When the backend service starts up, it opens an Iroh document to store all the app data. Instead
-of storing JSON documents or something similar directly in the key-value store, we wrap the key-value store
-in a graph store. The graph store has a backend trait that lets it run on any key-value API and it is implemented in the [`gdata`](./backend/gdata/) crate.
+[Rauthy] is our OIDC auth server, and it powers all of our login functionality. Rauthy hosts an HTTP
+API at `/auth/v1` and our SvelteKit server will proxy requests to that subpath to the Rauthy server.
 
-The graph store is used mostly in the [profile.rs](./backend/src/routes/profile.rs) file, for storing
-and loading profile data.
+Because we want to customize the Rauthy login/signup pages to fit seamlessly into our app, the
+SvelteKit server also overrides certain Rauthy paths to provide a custom UI. For example the
+SvelteKit app will override the `/auth/v1/account` route with a custom account page, but all
+of the Rauthy API endpoints for updating the account are proxied to the Rauthy server.
 
-### API Overview
+Ruathy also acts as an OIDC provider so other apps can [login with
+Weird](./docs/login-with-weird.md).
 
-Some context on the idea of creating an Iroh graph store is in [this discussion](https://github.com/commune-os/weird/discussions/32). Here we go over some of the ways it currently works at the time of writing.
+[Rauthy]: https://github.com/sebadob/rauthy
 
-You start off by creating the `IrohGStore`, wrapping a node client and an author that will be used for modifications ( [source](https://github.com/commune-os/weird/blob/dc75dd24b217b00c7a943e7c2a185549750cc202/backend/src/main.rs#L88) ):
+### Backend
 
-```rust
-let graph = IrohGStore::new(node.client().clone(), node_author);
-```
+The SvelteKit app uses the "Backend" server like a database. All of the persistent data is managed
+through the backend API. The backend API, in turn, uses the Weird Core Rust library to actually
+store and load data.
 
-The graph is technically allowed to span multiple Iroh documents, so we don't need to provide a document
-to open. Internally the store has an cache of the 5 most recently used documents open ( [source](https://github.com/commune-os/weird/blob/dc75dd24b217b00c7a943e7c2a185549750cc202/backend/gdata/src/lib.rs#L22) ).
+## Weird Core
 
-When we want to get some data, we do so by providing a `Link`, which is a combination of a `NamespaceId` and a key in namespace. For example, when use the document we created to store profiles, and we get the `profiles` key out of it.
+All of the core logic for loading and storing data is managed by the Weird Core library. We put this
+in it's own library so that it can be used by Weird apps, such as desktop, mobile, and
+offline-compatible web applications.
 
-> **Note:** `state.ns` is the namespace we store our data in for the weird backend and `state.graph` is the
-> `IrohGStore` we created above.
+### GData & Iroh
 
-```rust
-let profiles = state
-        .graph
-        .get_or_init_map((state.ns, "profiles".to_string()))
-        .await?;
-```
+All of the data in Weird is stored using [Iroh], with our own, custom `GData` graph format wrapped
+around it.
 
-Here we ask the graph to get the `profiles` key out of our document, or initialize the key as a new map, if it doesn't
-already exist.
+GData ( name subject to change ) provides a standard format for representing graph data on top of
+Iroh documents.
 
-In the graph store we have a handful of datatypes ( number types are pending ):
+Iroh documents are eventually consistent key-value stores. Both the keys and the values are made up
+of a list of bytes, but our app wants to deal with things like numbers, Strings, booleans, etc., not
+just bytes.
 
-```rust
-pub enum Value {
-    Null,
-    String(String),
-    Bytes(Bytes),
-    Map(Link),
-    Link(Link),
-}
-```
+GData gives us a way to store data on Iroh that, instead of just using bytes:
 
-A `Map` value is a mapping of `Bytes` to another `Value`, so it's kind of similar to a JSON object.
+- Uses typed arrays of `KeySegment`s as keys.
+  - Each `KeySegement` may be any of:
+    - `Bool`
+    - `Uint` ( unsigned integer )
+    - `Int` ( signed integer )
+    - `String`
+    - `Bytes`
+- Uses a custom `Value` type for values.
+  - Each `Value` may be any of:
+    - `Null`
+    - `Bool`
+    - `Uint`
+    - `Int`
+    - `Float`
+    - `String`
+    - `Bytes`
+    - `Link`
+    - `Map`
 
-In our backend, the `profiles` map will store a mapping of user ID ( which comes from our auth server ), to a
-a profile map, which stores the data for that users profile.
+Having these data types makes it much easier to deal with the key-value store like a kind of JSON
+store. That said, it is just a key-value store, is it is rather limited on query features, so things
+like indexes must be manually implemented if necessary.
 
-So, for example, if we want to get a user's username, we would then do:
+Also, there is no strong consistency or ACID compliance. All writes are eventually consistent.
 
-```rust
-let profile = profiles.get_key_or_init_map(user_id).await?;
-let username: Option<&str> = profile
-        .get_key("username".to_string())
-        .await?
-        .as_str()
-        .ok();
-```
+[Iroh]: https://iroh.computer/
 
-This says we want to get the `user_id` key from the `profiles` map, creating a new map for the user if it
-doesn't exist. We next want to get the `"username"` key from the user profile, and load it as a string
-value, or `None` if it, doesn't exist, or isn't a string.
+## Federation
 
-It's also as easy to set the username for a user:
+Iroh's super power is that it allows us to synchronize our data store with other Iroh nodes. These
+nodes might be other web instances, or even mobile or desktop apps. The eventually-consistent Iroh
+documents used for storage allow the local apps to support offline storage and editing, a feature
+that is very important to us.
 
-```rust
-profile.set_key("username".to_string(), "new_username".to_string()).await?;
-```
+Other web instances are _also_ able to replicate data to and from each-other, allowing us to create
+a global, federated network of Weird web instances and apps, that can all interact seamlessly.
 
-Finally, the other major operation we want to do is list items in a map. For example if we wanted to
-print all user's contact info:
+Iroh does the majority of the heavy lifting allowing us to easily implement federated features that
+would otherwise take a lot of engineering effort.
 
-```rust
-let profiles = state
-    .graph
-    .get_or_init_map((state.ns, "profiles".to_string()))
-    .await?;
-let mut profile_stream = profiles.list_items().await?;
-while let Some(result) = profile_stream.next().await {
-    let (user_id, profile) = result?;
-    let username = profile
-        .get_key("contact_info".to_string())
-        .await?
-        .as_str()
-        .ok();
-    println!("{contact_info:?}")
-}
-```
+Using Iroh, and making federation work, will still take a lot of thought and experimentation. As of 
+the time of writing, the big picture ideas for how to make federation work are described in the
+[How to Federate?][htf] post.
 
-We can also use maps to represent sets, for example, the set of user tags. We do this by making the `tags`
-field of the user profile a map, and making the keys the tag names, and the values all `Null`.
+[htf]: https://zicklag.katharos.group/blog/how-to-federate/
 
-Here's how we set the user tags in the graph when we get a `Vec<String>` from our API to update the user tags:
+The level of federation that we already have working is described below.
 
-```rust
-let profiles = state
-    .graph
-    .get_or_init_map((state.ns, "profiles".to_string()))
-    .await?;
-let profile = profiles.get_key_or_init_map(user_id).await?;
-let tags = profile.get_key_or_init_map("tags".to_string()).await?;
+### Resolving Profiles From Other Web Instances
 
-// Clear existing tags
-tags.del_all_keys().await?;
+Weird is able to load user profiles from other Weird web instances if you place the domain of the
+other weird instance after the username in the URL: `https://weird.one/u/zicklag@muni.town`.
 
-// Set tags from request
-for tag in &new_profile.tags {
-    tags.set_key(tag.clone(), ()).await?;
-}
-```
+What this does is cause the `weird.one` instance to make a TXT DNS query to `instance.weird.muni.town`.
+The TXT record is expected to contain an Iroh `DocTicket`, which tells `weird.one` where to go to
+connect to `muni.town`'s Weird instance, and which document it store's it's data in.
 
----
+`weird.one` will then join and replicate `muni.town`'s data, search for the `zicklag` user, and load
+ and display `zicklag`'s profile.
 
-The graph system is brand new and will probably undergo a lot of iteration, but it's already serving it's purpose
-of making it easier to store and query structured data in an Iroh/Key-Value context.
+### Next Steps
 
-It'd be great to improve static typing, maybe with some kind of schemas or something, but I think the
-self-describing graph is a good start that those things can be built on.
+The next step in setting up federation is to create a global tag index that all instances will use
+to lookup users that have specific tags. Similar to this, there may be a global user/instance index
+that will allow instances and users to add themselves to the global network so that other instances
+can find them.

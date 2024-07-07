@@ -7,7 +7,7 @@ https://blog.erlend.sh/weird-web-pages
 
 > The size of the internet can be measured in the atomic mass of the websites it's made up of. We collectively materialize the internet with every additional web page we create.
 
-If you want to chat about Weird and our vision for it feel free to join our [Discord Server](https://discord.gg/3v5xjDAk) or our bridge [Matrix Space](https://matrix.to/#/#home:commune.sh).
+If you want to chat about Weird and our vision for it feel free to join our [Discord Server](https://discord.gg/mbQYgFVBQx) or our bridge [Matrix Space](https://matrix.to/#/#discord:commune.sh).
 
 # Development
 

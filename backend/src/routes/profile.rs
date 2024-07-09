@@ -7,7 +7,9 @@ use axum::{
 };
 use futures::{pin_mut, StreamExt};
 use weird::{
-    db::StringSerde, iroh::docs::AuthorId, profile::{Profile, Username}
+    db::StringSerde,
+    iroh::docs::AuthorId,
+    profile::{Profile, Username},
 };
 
 use crate::ARGS;
@@ -33,7 +35,9 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/:user_id", delete(delete_profile))
 }
 
-async fn get_usernames(state: State<AppState>) -> AppResult<Json<HashMap<String, StringSerde<AuthorId>>>> {
+async fn get_usernames(
+    state: State<AppState>,
+) -> AppResult<Json<HashMap<String, StringSerde<AuthorId>>>> {
     let mut usernames = HashMap::default();
     let stream = state.weird.get_usernames().await?;
     pin_mut!(stream);

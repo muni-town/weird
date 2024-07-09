@@ -1,4 +1,5 @@
 build
-node_modules
+node_modules/
 Dockerfile
-backend
+backend/Dockerfile
+target/

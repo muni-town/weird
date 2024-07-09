@@ -29,15 +29,18 @@ dev:
 
 # Format the codebase.
 fmt:
+    cargo fmt --all
     pnpm run format
     dprint fmt
 
 # Check is the codebase properly formatted.
 fmt-check:
+    cargo fmt --all --check
     dprint check
 
 # Lint the codebase.
 lint:
+    cargo clippy --workspace --all-targets --all-features
     pnpm run lint
     # Run `typos  --write-changes` to fix the mistakes
     typos

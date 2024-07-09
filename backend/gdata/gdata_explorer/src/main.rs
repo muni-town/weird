@@ -73,7 +73,7 @@ impl App {
             .relay_mode(iroh::net::relay::RelayMode::Disabled)
             .spawn()
             .await?;
-        let node_author = node.authors.default().await?;
+        let node_author = node.authors().default().await?;
         let graph = IrohGStore::new(node.client().clone(), node_author);
 
         let state = Self::load_home(&node).await?;
@@ -88,7 +88,7 @@ impl App {
 
     async fn load_home(node: &FsNode) -> anyhow::Result<AppState> {
         let mut docs = Vec::new();
-        let mut stream = node.docs.list().await?;
+        let mut stream = node.docs().list().await?;
         while let Some(doc) = stream.next().await {
             let (doc, _cap) = doc?;
             docs.push(doc);
@@ -215,6 +215,7 @@ impl Widget for &mut HomePage {
     }
 }
 
+#[allow(dead_code)]
 struct NamespaceView {
     ns: NamespaceId,
     history: Vec<GStoreValue<IrohGStore>>,

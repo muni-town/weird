@@ -2,9 +2,10 @@
 name = "gdata"
 version = "0.0.1"
 description = "A graph layer on top of Iroh documents."
+license = "MIT OR Apache-2.0"
 
-repository.workspace = true
 edition.workspace = true
+repository.workspace = true
 
 [features]
 default = []

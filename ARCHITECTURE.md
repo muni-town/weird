@@ -66,7 +66,7 @@ just bytes.
 GData gives us a way to store data on Iroh that, instead of just using bytes:
 
 - Uses typed arrays of `KeySegment`s as keys.
-  - Each `KeySegement` may be any of:
+  - Each `KeySegment` may be any of:
     - `Bool`
     - `Uint` ( unsigned integer )
     - `Int` ( signed integer )

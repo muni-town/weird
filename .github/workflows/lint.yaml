@@ -35,6 +35,5 @@ jobs:
       - name: Lint codebase
         shell: bash
         run: |
-          just lint
-          just fmt-check
+          just comply
 

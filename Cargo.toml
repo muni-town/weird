@@ -1,6 +1,15 @@
 [workspace]
 resolver = "2"
-members = ["backend", "backend/gdata", "backend/gdata/gdata_explorer", "backend/weird"]
+members = [
+  "backend",
+  "backend/gdata",
+  "backend/gdata/gdata_explorer",
+  "backend/weird",
+]
+
+[workspace.package]
+edition = "2021"
+repository = "https://github.com/commune-os/weird/"
 
 # [patch.crates-io]
 # iroh = { path = "../iroh/iroh" }

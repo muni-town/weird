@@ -1,7 +1,10 @@
 [package]
 name = "gdata"
-version = "0.1.0"
-edition = "2021"
+version = "0.0.1"
+description = "A graph layer on top of Iroh documents."
+
+repository.workspace = true
+repository.edition = true
 
 [features]
 default = []

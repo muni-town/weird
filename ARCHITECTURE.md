@@ -34,8 +34,7 @@ SvelteKit server also overrides certain Rauthy paths to provide a custom UI. For
 SvelteKit app will override the `/auth/v1/account` route with a custom account page, but all
 of the Rauthy API endpoints for updating the account are proxied to the Rauthy server.
 
-Ruathy also acts as an OIDC provider so other apps can [login with
-Weird](./docs/login-with-weird.md).
+Ruathy also acts as an OIDC provider so other apps can [login with Weird](./docs/login-with-weird.md).
 
 [Rauthy]: https://github.com/sebadob/rauthy
 
@@ -105,7 +104,7 @@ a global, federated network of Weird web instances and apps, that can all intera
 Iroh does the majority of the heavy lifting allowing us to easily implement federated features that
 would otherwise take a lot of engineering effort.
 
-Using Iroh, and making federation work, will still take a lot of thought and experimentation. As of 
+Using Iroh, and making federation work, will still take a lot of thought and experimentation. As of
 the time of writing, the big picture ideas for how to make federation work are described in the
 [How to Federate?][htf] post.
 
@@ -123,7 +122,7 @@ The TXT record is expected to contain an Iroh `DocTicket`, which tells `weird.on
 connect to `muni.town`'s Weird instance, and which document it store's it's data in.
 
 `weird.one` will then join and replicate `muni.town`'s data, search for the `zicklag` user, and load
- and display `zicklag`'s profile.
+and display `zicklag`'s profile.
 
 ### Next Steps
 

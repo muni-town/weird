@@ -1,8 +1,8 @@
 [package]
 name = "gdata"
 version = "0.0.1"
-description = "A graph layer on top of Iroh documents."
 license = "MIT OR Apache-2.0"
+description = "A graph layer on top of Iroh documents."
 
 edition.workspace = true
 repository.workspace = true

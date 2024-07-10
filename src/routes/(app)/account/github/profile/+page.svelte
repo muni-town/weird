@@ -11,28 +11,28 @@
 	const user = data.user;
 </script>
 
-<div class="container mx-auto flex flex-col gap-8 py-8">
+<div class="container mx-auto flex flex-col gap-8 px-4 py-8 md:px-0">
 	<section>
 		<div>
 			<img src={user.avatar_url} alt={user.name} class={`aspect-square h-64 w-64 rounded-full`} />
 
 			<div class={`mt-4`}>
 				<h2 class={`text-2xl font-bold`}>{user.name}</h2>
-				<h2 class={`text-xl text-gray-400`}>{user.login}</h2>
+				<h2 class={`text-xl text-gray-700 dark:text-gray-400`}>{user.login}</h2>
 			</div>
-			<p class={`mt-4 max-w-md text-gray-300`}>{user.bio}</p>
+			<p class={`mt-4 max-w-md text-gray-600 dark:text-gray-300`}>{user.bio}</p>
 
 			<div class={`mt-4 flex items-center space-x-2`}>
 				<a href={`/${user.login}/followers`} class={`flex items-center space-x-1 hover:underline`}>
 					<p class={`font-bold`}>{user.followers}</p>
-					<p class={`text-sm text-gray-300`}>
+					<p class={`text-sm text-gray-600 dark:text-gray-300`}>
 						{user.followers > 1 ? 'followers' : 'follower'}
 					</p>
 				</a>
 				<span>&bull;</span>
 				<a href={`/${user.login}/following`} class={`flex items-center space-x-1 hover:underline`}>
 					<p class={`font-bold`}>{user.following}</p>
-					<p class={`text-sm text-gray-300`}>
+					<p class={`text-sm text-gray-600 dark:text-gray-300`}>
 						{user.following > 1 ? 'followings' : 'following'}
 					</p>
 				</a>
@@ -78,7 +78,7 @@
 
 	<section>
 		<h3 class="text-xl font-medium">Repositories</h3>
-		<div class="mt-4 grid grid-cols-3 gap-4">
+		<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
 			{#each data.repos as repo}
 				<Repository {repo} />
 			{/each}

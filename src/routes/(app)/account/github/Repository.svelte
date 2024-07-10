@@ -4,26 +4,28 @@
 	export let repo: GithubRepo;
 </script>
 
-<article class={`rounded-md border  border-gray-700 p-4`}>
+<article class={`rounded-md border  border-gray-300 p-4 dark:border-gray-700`}>
 	<div class={`justify-beeen flex items-center`}>
 		<a
 			target="_blank"
 			href={repo.html_url}
-			class={`block flex-1 font-bold text-blue-400 hover:underline`}
+			class={`block flex-1 font-bold text-blue-500 hover:underline dark:text-blue-400`}
 		>
 			{repo.name}
 		</a>
 
-		<p class={`rounded-full border border-gray-700 px-2 py-1 text-xs`}>
+		<p
+			class={`rounded-full border border-gray-300 px-2 py-1 text-xs font-semibold capitalize dark:border-gray-700`}
+		>
 			{repo.visibility}
 		</p>
 	</div>
 
-	<p class={`mt-4 text-sm text-gray-400`}>{repo.description}</p>
+	<p class={`mt-4 text-sm text-gray-600 dark:text-gray-400`}>{repo.description}</p>
 
 	<div class={`mt-4 flex items-center space-x-4`}>
 		<div>
-			<p class={`text-sm text-gray-400`}>{repo.language}</p>
+			<p class={`text-sm font-medium text-gray-600 dark:text-gray-400`}>{repo.language}</p>
 		</div>
 		<div class={`flex items-center space-x-2`}>
 			<div>
@@ -40,7 +42,7 @@
 					></path>
 				</svg>
 			</div>
-			<p class={`text-xs text-gray-300`}>{repo.stargazers_count}</p>
+			<p class={`text-xs text-gray-600 dark:text-gray-300`}>{repo.stargazers_count}</p>
 		</div>
 		<div class={`flex items-center space-x-2`}>
 			<div>
@@ -60,7 +62,7 @@
 					></path>
 				</svg>
 			</div>
-			<p class={`text-xs text-gray-300`}>{repo.forks_count}</p>
+			<p class={`text-xs text-gray-600 dark:text-gray-300`}>{repo.forks_count}</p>
 		</div>
 	</div>
 </article>

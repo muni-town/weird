@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/public';
 import type { SessionInfo, UserInfo } from './rauthy';
+import type { GithubRepo } from './types/github';
 
 export interface CheckResponseError {
 	status: number;
@@ -40,4 +41,41 @@ export function parseUsername(username: string): Username {
 			name: username
 		};
 	}
+}
+
+/**
+ * Fetch github repos
+ */
+
+export async function fetchRepos(username: string, token?: string) {
+	let repos = [] as GithubRepo[];
+	let page = 1;
+	let url = `https://api.github.com/users/${username}/repos?per_page=100&page=${page}&direction=desc&sort=updated`;
+
+	while (true) {
+		let resp = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${token}`
+			}
+		});
+		if (!resp.ok) break;
+
+		let data: GithubRepo[] = await resp.json();
+		if (data.length === 0) break;
+		repos = [...repos, ...data];
+		page = page + 1;
+		url = `https://api.github.com/users/${username}/repos?per_page=100&page=${page}&direction=desc&sort=updated`;
+	}
+
+	return repos;
+}
+
+/**
+ * find all languages used in repos
+ */
+
+export function fetchUniqueGithubLanguage(repos: GithubRepo[]) {
+	const languages = repos.map((repo) => repo.language).filter(Boolean);
+	const uniqueLanguages = new Set(languages);
+	return Array.from(uniqueLanguages);
 }

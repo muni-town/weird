@@ -38,6 +38,7 @@ pub static CLIENT: Lazy<reqwest::Client> =
 
 pub type AppState = Arc<AppStateInner>;
 pub struct AppStateInner {
+    /// Weird core.
     weird: Weird,
 }
 
@@ -85,6 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{}", NamespaceSecret::new(&mut rand::thread_rng()));
         std::process::exit(1)
     });
+    spow::pow::Pow::init_random()?;
 
     // Construct router
     let router = routes::install(Router::new())

@@ -8,8 +8,9 @@ use axum::{
 use crate::{AppResult, AppState};
 
 mod db;
+mod pow;
 mod profile;
 
 pub fn install(router: Router<AppState>) -> Router<AppState> {
-    profile::install(db::install(router))
+    pow::install(profile::install(db::install(router)))
 }

@@ -6,17 +6,17 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ fetch }) => {
 	try {
-		const resp = await backendFetch(fetch, '/usernames');
+		const resp = await backendFetch(fetch, '/domains');
 		await checkResponse(resp);
-		const usernames: string[] = Object.keys(await resp.json()).map((x) => x.split('@')[0]);
+		const customDomains: string[] = await resp.json();
 
 		const routers: {
 			[key: string]: { rule: string; tls?: { certResolver: string }; service: string };
 		} = {};
-		for (const username of usernames) {
-			const routerName = `${env.TRAEFIK_CONFIG_NAMESPACE}-rtr-${username}`;
+		for (const domain of customDomains) {
+			const routerName = `${env.TRAEFIK_CONFIG_NAMESPACE}-rtr-${domain.replaceAll('.', '-')}`;
 			routers[routerName] = {
-				rule: `Host(\`${username}.${pubenv.PUBLIC_DOMAIN}\`)`,
+				rule: `Host(\`${domain}\`)`,
 				service: env.TRAEFIK_CONFIG_SERVICE_NAME,
 				tls: {
 					certResolver: 'letsencrypt'

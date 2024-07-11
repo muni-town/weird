@@ -10,6 +10,7 @@ export interface Provider {
 
 export interface Profile {
 	username?: string;
+	custom_domain?: string;
 	display_name?: string;
 	location?: string;
 	tags: string[];

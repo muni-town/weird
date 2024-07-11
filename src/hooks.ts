@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import type { Reroute } from '@sveltejs/kit';
 
@@ -6,7 +7,7 @@ const subdomainRegex = new RegExp(
 );
 
 export const reroute: Reroute = ({ url }) => {
-	if (url.host === env.PUBLIC_DOMAIN) {
+	if (url.host == env.PUBLIC_DOMAIN || url.pathname.startsWith('/dns-challenge')) {
 		return url.pathname;
 	}
 
@@ -14,14 +15,13 @@ export const reroute: Reroute = ({ url }) => {
 		return '/traefik-config';
 	}
 
-	let username = url.host.match(subdomainRegex)?.[1];
-	if (!username) {
-		throw 'Invalid domain';
-	}
-
 	if (url.pathname == '/' || url.pathname == '') {
-		return `/subsite/${username}`;
-	} else if (url.pathname.startsWith(`/u/${username}`)) {
+		let usernameSubdomain = url.host.match(subdomainRegex)?.[1];
+		const subsite = usernameSubdomain ? usernameSubdomain : url.host;
+		return `/subsite/${subsite}`;
+	} else if (url.pathname.startsWith(`/u/`)) {
 		return url.pathname;
 	}
+
+	throw 'Invalid domain';
 };

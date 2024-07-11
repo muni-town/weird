@@ -5,7 +5,7 @@
 </script>
 
 <article class={`rounded-md border  border-gray-300 p-4 dark:border-gray-700`}>
-	<div class={`justify-beeen flex items-center`}>
+	<div class={`flex items-center justify-between`}>
 		<a
 			target="_blank"
 			href={repo.html_url}

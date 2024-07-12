@@ -51,12 +51,10 @@ export const actions = {
 		let resp;
 
 		if (customDomain && customDomain != '') {
-			const publicUrl = new URL(env.PUBLIC_URL);
-
 			const dnsChallenge = await createChallenge(userInfo.id);
 			try {
 				resp = await fetch(
-					`${publicUrl.protocol}//${customDomain}/dns-challenge/${dnsChallenge}/${userInfo?.id}`
+					`http://${customDomain}/dns-challenge/${dnsChallenge}/${userInfo?.id}`
 				);
 			} catch (_) {}
 			if (resp?.status != 200) {

@@ -63,7 +63,15 @@ async fn get_domains(state: State<AppState>) -> AppResult<Json<Vec<String>>> {
             .as_str()
             .map(ToOwned::to_owned)
             .ok();
-        domains.push(custom_domain.unwrap_or_else(|| format!("{username}.{}", ARGS.domain)));
+        let username = Username::from_str(&username)?;
+        if username.domain != ARGS.domain {
+            return Err(anyhow::format_err!(
+                "User name {username} does not match instance domain: {}",
+                ARGS.domain
+            )
+            .into());
+        }
+        domains.push(custom_domain.unwrap_or_else(|| format!("{}.{}", username.name, ARGS.domain)));
     }
     Ok(Json(domains))
 }

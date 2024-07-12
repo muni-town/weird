@@ -37,7 +37,7 @@
 				let resp;
 				try {
 					resp = await fetch(
-						`${publicUrl.protocol}//${customDomain}/dns-challenge/${data.dnsChallenge}/${userInfo?.id}`
+						`http://${customDomain}/dns-challenge/${data.dnsChallenge}/${userInfo?.id}`
 					);
 				} catch (_) {}
 				if (resp?.status == 200) {

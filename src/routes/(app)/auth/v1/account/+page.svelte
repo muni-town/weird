@@ -7,7 +7,6 @@
 	import { env } from '$env/dynamic/public';
 	import { parseUsername } from '$lib/utils';
 	import Avatar from '$lib/components/Avatar.svelte';
-	import { PUBLIC_SHOW_WORK_CAPACITY } from '$env/static/public';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
@@ -154,12 +153,25 @@
 </svelte:head>
 
 {#if userInfo}
-	<main class="flex flex-col items-center">
+	<main class="flex items-start justify-center gap-5 pt-12">
+		<section class="card px-5 py-4">
+			<h2 class="text-lg font-bold">{display_name}</h2>
+
+			<ol class="list-nav mt-4 flex flex-col gap-2">
+				<li>
+					<a href="/auth/v1/account" class="variant-outline"> Profile </a>
+				</li>
+				<li>
+					<a href={`/account/${userInfo.id}/custom-domain`}> Site Generation </a>
+				</li>
+			</ol>
+		</section>
+
 		<form
 			method="post"
 			action="/account/update"
 			enctype="multipart/form-data"
-			class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
+			class="card flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
 		>
 			<div class="mb-4 flex items-center gap-3">
 				<Avatar user_id={userInfo.id} username={`${username}@${env.PUBLIC_DOMAIN}`} width="w-32" />

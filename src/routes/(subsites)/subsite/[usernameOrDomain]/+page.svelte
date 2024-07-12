@@ -6,7 +6,7 @@
 	const profile = data.profile;
 	const username = profile.username;
 
-	const display_name = profile.display_name || profile.username.split('@')[0];
+	const display_name = profile.display_name || (profile.username || '').split('@')[0];
 
 	const avatar = `/u/${username}/avatar`;
 	const fallbackAvatar = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${username}`;

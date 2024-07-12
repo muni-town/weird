@@ -4,7 +4,7 @@ use std::{collections::HashMap, fmt::Debug, io::Cursor, str::FromStr};
 
 use anyhow::Result;
 use futures::{pin_mut, Stream, StreamExt, TryStreamExt};
-use gdata::{GStoreBackend, GStoreValue, Key, KeySegment, Value};
+use gdata::{GStoreBackend, GStoreValue, IrohGStore, Key, KeySegment, Value};
 use iroh::docs::{AuthorId, DocTicket, NamespaceId};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -521,14 +521,19 @@ impl<S> Weird<S> {
         }))
     }
 
-    /// Get a user profile.
-    #[tracing::instrument(skip(self))]
-    pub async fn get_profile(&self, author: AuthorId) -> Result<Profile> {
+    pub async fn get_profile_value(&self, author: AuthorId) -> Result<GStoreValue<IrohGStore>> {
         let profiles = self
             .graph
             .get_or_init_map((self.ns, &*PROFILES_KEY))
             .await?;
         let profile = profiles.get_or_init_map(&author.as_bytes()[..]).await?;
+        Ok(profile)
+    }
+
+    /// Get a user profile.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_profile(&self, author: AuthorId) -> Result<Profile> {
+        let profile = self.get_profile_value(author).await?;
         let profile = Profile::from_value(&profile).await?;
         Ok(profile)
     }

@@ -73,6 +73,14 @@
 		}
 		fetchStatuses(reblog_flag, last_fetched_status_id);
 	};
+
+	const parseLink = (text: string) => {
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(text, 'text/html');
+		const a = doc.querySelector('a');
+		if (a) return a.getAttribute('href');
+		return '';
+	};
 </script>
 
 <svelte:head>
@@ -133,7 +141,7 @@
 			<div class="justify-start md:flex md:flex-wrap md:items-center">
 				{#each mastodon_profile.fields as field}
 					<a
-						href={field.value}
+						href={parseLink(field.value)}
 						class="y-2 mx-3 my-2 block rounded bg-white px-3 py-1 shadow hover:bg-gray-50 dark:bg-slate-800 md:mx-1 md:my-1 md:rounded-xl"
 						target="_blank"
 						rel="noopener noreferrer"

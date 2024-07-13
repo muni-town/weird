@@ -18,17 +18,6 @@ use crate::ARGS;
 
 use super::*;
 
-#[derive(Serialize, Deserialize)]
-pub struct ProfileWithDomain {
-    #[serde(flatten)]
-    pub profile: Profile,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub custom_domain: Option<String>,
-}
-
-static DOMAINS_STORAGE_KEY: Lazy<Key> = Lazy::new(|| Key::from(["weird_backend", "v1", "domains"]));
-
 pub fn install(router: Router<AppState>) -> Router<AppState> {
     router
         .route("/domains", get(get_domains))
@@ -48,10 +37,16 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/:user_id", get(get_profile))
         .route("/profile/:user_id", post(post_profile))
         .route("/profile/:user_id", delete(delete_profile))
+        .route("/token/:user_id/revoke", post(post_revoke_token))
+        .route("/token/:user_id/generate", post(post_generate_token))
+        .route("/token/:user_id/verify", post(post_verify_token))
+        .route("/token/:token", post(post_profile_by_token))
 }
 
-async fn get_domains(state: State<AppState>) -> AppResult<Json<Vec<String>>> {
-    let mut domains = Vec::default();
+async fn get_usernames(
+    state: State<AppState>,
+) -> AppResult<Json<HashMap<String, StringSerde<AuthorId>>>> {
+    let mut usernames = HashMap::default();
     let stream = state.weird.get_usernames().await?;
     pin_mut!(stream);
     while let Some(result) = stream.next().await {
@@ -215,6 +210,26 @@ async fn post_profile(
     Path(user_id): Path<String>,
     new_profile: Json<Profile>,
 ) -> AppResult<()> {
+    let author = state.weird.get_or_init_author(user_id).await?;
+    // delete `token` field
+
+    state.weird.set_profile(author, new_profile.0).await?;
+    Ok(())
+}
+
+async fn post_profile_by_token(
+    state: State<AppState>,
+    Path(token): Path<String>,
+    new_profile: Json<Profile>,
+) -> AppResult<()> {
+    // for the user_tokens hashmap with the token as the value, get the key of user id
+    let mut user_id = Default::default();
+    let _ = USER_TOKENS.scan(|k, v| {
+        if v == &token {
+            user_id = k.clone();
+        }
+    });
+
     let author = state.weird.get_or_init_author(user_id).await?;
     state.weird.set_profile(author, new_profile.0).await?;
 

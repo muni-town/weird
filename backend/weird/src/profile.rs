@@ -713,7 +713,14 @@ impl<S> Weird<S> {
         // If there is a username set
         if let Some(new_username) = &new_profile.username {
             if new_username.domain != self.domain {
-                anyhow::bail!("Username domain does not match this instance's domain.");
+                // check if it is a subdomain of the instance domain
+                let subdomain = new_username.domain.strip_suffix(&self.domain).unwrap_or("");
+                if !subdomain.is_empty() && !subdomain.starts_with('.') {
+                    // If it is a subdomain, it is allowed
+                } else {
+                    // If it is not a subdomain, it is not allowed
+                    anyhow::bail!("Username domain does not match this instance's domain.");
+                }
             }
             let new_username_string = new_username.to_string();
 

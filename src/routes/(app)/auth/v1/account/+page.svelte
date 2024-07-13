@@ -60,7 +60,10 @@
 	};
 
 	onMount(() => {
-		if (!userInfo) {
+		if (localStorage.getItem('isLoggingIn') === 'true') {
+			localStorage.removeItem('isLoggingIn');
+			window.location.reload();
+		} else if (!userInfo) {
 			getPkce(64, (error, { challenge, verifier }) => {
 				if (!error) {
 					localStorage.setItem(PKCE_VERIFIER, verifier);

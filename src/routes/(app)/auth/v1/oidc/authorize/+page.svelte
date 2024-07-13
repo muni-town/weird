@@ -27,7 +27,10 @@
 
 	async function handleAuthResp(authResp: Response) {
 		if (authResp.status == 202) {
-			window.location.replace(authResp.headers.get('location')!);
+			localStorage.setItem('isLoggingIn', 'true');
+			window.location.replace(
+				`${new URL(window.location.href).pathname}/worker?redirect_uri=${encodeURIComponent(authResp.headers.get('location')!)}&csrf_token=${authResp.headers.get('csrf-token')}`
+			);
 		} else if (!authResp.ok) {
 			console.error('Error logging in', authResp, await authResp.text());
 			error = 'Invalid email or password.';

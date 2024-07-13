@@ -62,7 +62,7 @@
 			formData.append(key, profile[key]);
 		}
 		formData.append('token', token);
-		fetch(`http://${env.PUBLIC_URL}/account/update`, {
+		fetch(`http://${env.PUBLIC_DOMAIN}/account/update`, {
 			method: 'POST',
 			body: formData,
 			mode: 'cors'

@@ -70,7 +70,7 @@
 	<section>
 		<h3 class="text-xl font-semibold">Languages</h3>
 		<div class="mt-4 flex flex-wrap gap-4">
-			{#each data.languages as lang}
+			{#each data?.languages as lang}
 				<LanguageTag language={lang} />
 			{/each}
 		</div>

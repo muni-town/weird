@@ -1,7 +1,7 @@
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
 import { error, redirect } from '@sveltejs/kit';
-import { GH_ACCESS_TOKEN_URI, GH_SUCCESS_REDIRECT_URI } from '$lib/constants.js';
+import { GH_ACCESS_TOKEN_URI, GH_SUCCESS_REDIRECT_PATH } from '$lib/constants.js';
 
 const clientId = env.PUBLIC_GH_CLIENT_ID;
 const clientSecret = privateEnv.GH_CLIENT_SECRET;
@@ -43,5 +43,5 @@ export async function load({ url, cookies }) {
 		secure: privateEnv.NODE_ENV === 'production'
 	});
 
-	throw redirect(302, GH_SUCCESS_REDIRECT_URI);
+	throw redirect(302, GH_SUCCESS_REDIRECT_PATH);
 }

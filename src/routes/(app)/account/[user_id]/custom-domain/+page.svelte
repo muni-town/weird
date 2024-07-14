@@ -100,10 +100,6 @@
 						own custom domain.
 					</p>
 					<p>
-						By default your site is hosted as a sub-domain of Weird.one, but you can also use your
-						own custom domain.
-					</p>
-					<p>
 						Before setting your custom domain below, you must configure your DNS provider: add a <code
 							>CNAME</code
 						>

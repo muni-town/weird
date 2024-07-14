@@ -1,23 +1,23 @@
-export type GithubRepo = {
+export type GitRepo = {
 	id: number;
 	name: string;
 	description: string | null;
-	language: string;
+	language: string | null;
 	visibility: string;
 	stargazers_count: number;
 	forks_count: number;
 	html_url: string;
 };
 
-export type GithubUser = {
+export type GitUser = {
+	id: number;
 	login: string;
 	avatar_url: string | null;
 	html_url: string;
-	repos_url: string;
-	name: string;
-	company: string | null;
-	blog: string | null;
-	location: string | null;
+	name?: string | null;
+	company?: string | null;
+	blog?: string | null;
+	location?: string | null;
 	email: string | null;
 	bio: string | null;
 	public_repos: number;

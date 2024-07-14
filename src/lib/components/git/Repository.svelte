@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { GithubRepo } from '$lib/types/github';
+	import type { GitRepo } from '$lib/types/git';
 
-	export let repo: GithubRepo;
+	export let repo: GitRepo;
 </script>
 
 <article class={`rounded-md border  border-gray-300 p-4 dark:border-gray-700`}>

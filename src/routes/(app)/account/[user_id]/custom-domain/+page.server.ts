@@ -53,9 +53,7 @@ export const actions = {
 		if (customDomain && customDomain != '') {
 			const dnsChallenge = await createChallenge(userInfo.id);
 			try {
-				resp = await fetch(
-					`http://${customDomain}/dns-challenge/${dnsChallenge}/${userInfo?.id}`
-				);
+				resp = await fetch(`http://${customDomain}/dns-challenge/${dnsChallenge}/${userInfo?.id}`);
 			} catch (_) {}
 			if (resp?.status != 200) {
 				throw 'Error validating DNS challenge';

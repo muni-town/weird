@@ -2,6 +2,8 @@ import type { PageServerLoad } from './$types';
 import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
+import { redirect } from '@sveltejs/kit';
+import { env } from '$env/dynamic/public';
 
 export interface Provider {
 	id: string;
@@ -28,7 +30,8 @@ export type WorkCompensation = 'paid' | 'volunteer';
 
 export const load: PageServerLoad = async ({
 	fetch,
-	request
+	request,
+	cookies
 }): Promise<{ profile?: Profile; providers: Provider[] }> => {
 	let providers: Provider[] = [];
 	try {
@@ -46,7 +49,24 @@ export const load: PageServerLoad = async ({
 		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
 		const profile: Profile = await resp.json();
 
-		return { profile, providers };
+		if (cookies.get('justLoggedIn')) {
+			const userDomain =
+				profile.custom_domain || `${profile.username?.split('@')[0] || ''}.${env.PUBLIC_DOMAIN}`;
+
+			const fetch_token = await backendFetch(
+				fetch,
+				`/token/${userDomain}/generate/${userInfo.id}`,
+				{
+					method: 'POST',
+					headers: [['accept', 'application/json']]
+				}
+			);
+			const { token } = await fetch_token.json();
+
+			cookies.delete('justLoggedIn', { path: '/' });
+			const callbackUrl = `http://${userDomain}/pubpage-auth-callback?token=${token}`;
+			return redirect(307, callbackUrl);
+		} else return { profile, providers };
 	} else {
 		return { providers };
 	}

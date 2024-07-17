@@ -7,16 +7,19 @@ import { fail, type Actions, redirect } from '@sveltejs/kit';
 export const actions = {
 	default: async ({ fetch, request }) => {
 		let { userInfo } = await getSession(fetch, request);
-		if (!userInfo) {
-			return fail(400, { error: 'Must be logged in to update profile.' });
-		}
 		const data = await request.formData();
+		let token = data.get('token');
+		if (token === '') token = null;
+
+		if (!userInfo) {
+			if (!token) return fail(400, { error: 'Must be logged in to update profile.' });
+		}
 
 		let username = data.get('username');
 		if (username === '') {
 			username = null;
 		} else {
-			username = `${username}@${env.PUBLIC_DOMAIN}`;
+			if (!username?.includes('@')) username = `${username}@${env.PUBLIC_DOMAIN}`;
 		}
 		let display_name = data.get('display_name');
 		if (display_name === '') {
@@ -89,36 +92,58 @@ export const actions = {
 			mastodon_access_token
 		});
 
-		try {
-			const resp = await backendFetch(fetch, `/profile/${userInfo.id}`, {
-				method: 'post',
-				headers: [['content-type', 'application/json']],
-				body: json
-			});
-			await checkResponse(resp);
-		} catch (e) {
-			console.error('Error updating profile:', e);
-			const data = JSON.parse((e as CheckResponseError).data);
-			return fail(400, { error: `Error updating profile: ${data.error}` });
-		}
-
-		try {
-			const avatarData = data.get('avatar') as File;
-			if (avatarData.name != '') {
-				const body = new FormData();
-				body.append('avatar', avatarData);
-				const resp = await backendFetch(fetch, `/profile/${userInfo.id}/avatar`, {
+		if (token) {
+			try {
+				const originHeader = request.headers.get('Origin');
+				const origin = originHeader ? new URL(originHeader).host : undefined;
+				const resp = await backendFetch(fetch, `/profile/by-token/${origin}`, {
 					method: 'post',
-					body
+					headers: [
+						['content-type', 'application/json'],
+						['x-token-auth', token as string]
+					],
+					body: json
 				});
 				await checkResponse(resp);
+			} catch (e) {
+				console.error('Error updating profile:', e);
+				const data = e;
+				return fail(400, { error: `Error updating profile: ${data.error}` });
 			}
-		} catch (e) {
-			console.error('Error updating profile:', e);
-			const data = JSON.parse((e as CheckResponseError).data);
-			return fail(400, { error: `Error updating profile avatar: ${data.error}` });
+		} else {
+			try {
+				const resp = await backendFetch(fetch, `/profile/${userInfo.id}`, {
+					method: 'post',
+					headers: [['content-type', 'application/json']],
+					body: json
+				});
+				await checkResponse(resp);
+			} catch (e) {
+				console.error('Error updating profile:', e);
+				const data = e;
+				return fail(400, { error: `Error updating profile: ${data.error}` });
+			}
 		}
 
-		return redirect(301, '/auth/v1/account');
+		if (!token) {
+			try {
+				const avatarData = data.get('avatar') as File;
+				if (avatarData.name != '') {
+					const body = new FormData();
+					body.append('avatar', avatarData);
+					const resp = await backendFetch(fetch, `/profile/${userInfo.id}/avatar`, {
+						method: 'post',
+						body
+					});
+					await checkResponse(resp);
+				}
+			} catch (e) {
+				console.error('Error updating profile:', e);
+				const data = JSON.parse((e as CheckResponseError).data);
+				return fail(400, { error: `Error updating profile avatar: ${data.error}` });
+			}
+		}
+
+		return token ? 'ok' : redirect(301, '/auth/v1/account');
 	}
 } satisfies Actions;

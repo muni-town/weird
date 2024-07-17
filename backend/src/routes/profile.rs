@@ -6,7 +6,10 @@ use axum::{
     routing::delete,
 };
 use futures::{pin_mut, StreamExt};
+use http::HeaderMap;
 use once_cell::sync::Lazy;
+use rand::{distributions::Alphanumeric, Rng};
+use scc::HashMap as SccMap;
 use serde::{Deserialize, Serialize};
 use weird::{
     gdata::{GStoreBackend, Key},
@@ -28,6 +31,12 @@ pub struct ProfileWithDomain {
 }
 
 static DOMAINS_STORAGE_KEY: Lazy<Key> = Lazy::new(|| Key::from(["weird_backend", "v1", "domains"]));
+static USER_TOKENS: Lazy<SccMap<String, UserToken>> = Lazy::new(SccMap::new);
+#[derive(Debug)]
+struct UserToken {
+    token: String,
+    user_id: String,
+}
 
 pub fn install(router: Router<AppState>) -> Router<AppState> {
     router
@@ -36,6 +45,7 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/username/:username", get(get_profile_by_name))
         .route("/profile/domain/:domain", get(get_profile_by_domain))
         .route("/profile/domain/:domain", post(set_domain_for_profile))
+        .route("/profile/by-token/:domain", post(post_profile_by_token))
         .route(
             "/profile/username/:username/avatar",
             get(get_profile_avatar_by_name),
@@ -48,6 +58,41 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/:user_id", get(get_profile))
         .route("/profile/:user_id", post(post_profile))
         .route("/profile/:user_id", delete(delete_profile))
+        .route("/token/:domain/revoke", post(post_revoke_token))
+        .route(
+            "/token/:domain/generate/:user_id",
+            post(post_generate_token),
+        )
+        .route("/token/:domain/verify", post(post_verify_token))
+}
+
+async fn post_revoke_token(Path(user_id): Path<String>) -> AppResult<()> {
+    let _ = USER_TOKENS.remove(&user_id);
+    Ok(())
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Token {
+    token: String,
+}
+
+async fn post_generate_token(
+    Path((domain, user_id)): Path<(String, String)>,
+) -> AppResult<Json<Token>> {
+    let token: String = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(12)
+        .map(char::from)
+        .collect();
+    USER_TOKENS.remove(&domain);
+    let _ = USER_TOKENS.insert(
+        domain.clone(),
+        UserToken {
+            token: token.clone(),
+            user_id,
+        },
+    );
+    Ok(Json(Token { token }))
 }
 
 async fn get_domains(state: State<AppState>) -> AppResult<Json<Vec<String>>> {
@@ -216,6 +261,49 @@ async fn post_profile(
     new_profile: Json<Profile>,
 ) -> AppResult<()> {
     let author = state.weird.get_or_init_author(user_id).await?;
+    state.weird.set_profile(author, new_profile.0).await?;
+    Ok(())
+}
+
+async fn post_verify_token(Path(domain): Path<String>, headers: HeaderMap) -> AppResult<()> {
+    let token = headers
+        .get("x-token-auth")
+        .ok_or_else(|| anyhow::format_err!("x-token-auth header not provided"))?;
+    let token = token.to_str()?;
+
+    let is_verified = match USER_TOKENS.get(&domain) {
+        Some(t) => t.token == token,
+        None => false,
+    };
+    if is_verified {
+        Ok(())
+    } else {
+        Err(anyhow::format_err!("Token is invalid").into())
+    }
+}
+
+async fn post_profile_by_token(
+    state: State<AppState>,
+    Path(domain): Path<String>,
+    headers: HeaderMap,
+    new_profile: Json<Profile>,
+) -> AppResult<()> {
+    let token = headers
+        .get("x-token-auth")
+        .ok_or_else(|| anyhow::format_err!("x-token-auth header not provided"))?;
+    let token = token.to_str()?;
+
+    let stored_token = USER_TOKENS
+        .get(&domain)
+        .ok_or_else(|| anyhow::format_err!("Invalid token."))?;
+    if stored_token.token != token {
+        return Err(anyhow::format_err!("Invalid token.").into());
+    }
+
+    let author = state
+        .weird
+        .get_or_init_author(&stored_token.user_id)
+        .await?;
     state.weird.set_profile(author, new_profile.0).await?;
 
     Ok(())

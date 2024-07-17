@@ -7,8 +7,16 @@ import { checkResponse } from '$lib/utils';
 export const load: PageServerLoad = async ({
 	fetch,
 	request,
-	params
-}): Promise<{ profile: Profile; params: typeof params }> => {
+	params,
+	cookies,
+	url
+}): Promise<{
+	profile: Profile | { error: string };
+	params: typeof params;
+	token: string | undefined;
+	is_author: boolean;
+}> => {
+	const token = cookies.get('token');
 	let { userInfo } = await getSession(fetch, request);
 	const loggedIn = !!userInfo;
 
@@ -21,13 +29,20 @@ export const load: PageServerLoad = async ({
 		if ('error' in profile) {
 			throw 'User not found';
 		}
-
-		return { profile, params: { ...params } };
-	} else {
-		if (!loggedIn) {
-			profile.contact_info = undefined;
-		}
-
-		return { profile, params: { ...params } };
 	}
+
+	if (!loggedIn) {
+		profile.contact_info = undefined;
+	}
+
+	let is_author = false;
+	if (token) {
+		const is_author_resp = await backendFetch(fetch, `/token/${url.host}/verify`, {
+			method: 'POST',
+			headers: [['x-token-auth', token!]]
+		});
+		is_author = is_author_resp.ok;
+	}
+
+	return { profile, params: { ...params }, token, is_author: is_author };
 };

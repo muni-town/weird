@@ -84,6 +84,7 @@ async fn post_generate_token(
         .take(12)
         .map(char::from)
         .collect();
+    USER_TOKENS.remove(&domain);
     let _ = USER_TOKENS.insert(
         domain.clone(),
         UserToken {

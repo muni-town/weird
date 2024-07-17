@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Profile } from '../../routes/(app)/auth/v1/account/proxy+page.server';
 	import { env } from '$env/dynamic/public';
-	import { onMount } from 'svelte';
-	import test from 'node:test';
 	export let profile: Profile;
 	export let token;
 	export let is_author;
@@ -167,7 +165,7 @@
 		{#if unsavedChanges}
 			<div role="group" style="max-width: 800px;" class="unsaved-changes">
 				<p>You have unsaved changes.</p>
-				<button class="btn" onclick={submitChanges}> Save </button>
+				<button class="btn" onclick={() => submitChanges()}> Save </button>
 			</div>
 		{/if}
 	</main>

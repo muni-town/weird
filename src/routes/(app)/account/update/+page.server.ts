@@ -10,6 +10,7 @@ export const actions = {
 		const data = await request.formData();
 		let token = data.get('token');
 		if (token === '') token = null;
+
 		if (!userInfo) {
 			if (!token) return fail(400, { error: 'Must be logged in to update profile.' });
 		}
@@ -93,9 +94,14 @@ export const actions = {
 
 		if (token) {
 			try {
-				const resp = await backendFetch(fetch, `/token/${token}`, {
+				const originHeader = request.headers.get('Origin');
+				const origin = originHeader ? new URL(originHeader).host : undefined;
+				const resp = await backendFetch(fetch, `/profile/by-token/${origin}`, {
 					method: 'post',
-					headers: [['content-type', 'application/json']],
+					headers: [
+						['content-type', 'application/json'],
+						['x-token-auth', token as string]
+					],
 					body: json
 				});
 				await checkResponse(resp);

@@ -34,6 +34,13 @@
 	let tags = $state(data.profile?.tags || []);
 	let tagsString = $state((data.profile?.tags || []).join(', '));
 
+	const publicUrl = new URL(env.PUBLIC_URL);
+	const pubpageUrl =
+		parsedUsername?.name &&
+		(data.profile?.custom_domain
+			? `${publicUrl.protocol}//${data.profile.custom_domain}`
+			: `${publicUrl.protocol}//${parsedUsername.name}.${env.PUBLIC_DOMAIN}`);
+
 	$effect(() => {
 		tags = tagsString
 			.split(',')
@@ -193,6 +200,16 @@
 								{`${baseUrl}u/${parsedUsername.name}`}
 							</a>
 						{:else}<span class="text-surface-400">Username Not Set</span>{/if}
+					</span>
+				</div>
+				<div>
+					<strong class="pr-2">Personal Webpage:</strong>
+					<span class="text-base">
+						{#if pubpageUrl}
+							<a class="underline" href={pubpageUrl}>
+								{pubpageUrl}
+							</a>
+						{/if}
 					</span>
 				</div>
 			</div>

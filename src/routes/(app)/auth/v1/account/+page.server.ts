@@ -49,17 +49,23 @@ export const load: PageServerLoad = async ({
 		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
 		const profile: Profile = await resp.json();
 
-		const fetch_token = await backendFetch(fetch, `/token/${userInfo.id}/generate`, {
-			method: 'POST'
-		});
-		const { token } = await fetch_token.json();
-
 		if (cookies.get('justLoggedIn')) {
-			cookies.delete('justLoggedIn', { path: '/' });
-			return redirect(
-				307,
-				`http://${profile.username?.split('@')[0]}.${env.PUBLIC_DOMAIN}/pubpage-auth-callback?cookies=${encodeURIComponent(JSON.stringify(cookies.getAll()))}&token=${token}`
+			const userDomain =
+				profile.custom_domain || `${profile.username?.split('@')[0] || ''}.${env.PUBLIC_DOMAIN}`;
+
+			const fetch_token = await backendFetch(
+				fetch,
+				`/token/${userDomain}/generate/${userInfo.id}`,
+				{
+					method: 'POST',
+					headers: [['accept', 'application/json']]
+				}
 			);
+			const { token } = await fetch_token.json();
+
+			cookies.delete('justLoggedIn', { path: '/' });
+			const callbackUrl = `http://${userDomain}/pubpage-auth-callback?token=${token}`;
+			return redirect(307, callbackUrl);
 		} else return { profile, providers };
 	} else {
 		return { providers };

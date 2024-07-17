@@ -8,7 +8,8 @@ export const load: PageServerLoad = async ({
 	fetch,
 	request,
 	params,
-	cookies
+	cookies,
+	url
 }): Promise<{
 	profile: Profile | { error: string };
 	params: typeof params;
@@ -34,11 +35,14 @@ export const load: PageServerLoad = async ({
 		profile.contact_info = undefined;
 	}
 
-	const is_author = await backendFetch(fetch, `/token/${userInfo?.id}/verify`, {
-		method: 'POST',
-		body: JSON.stringify({ token }),
-		headers: [['content-type', 'application/json']]
-	});
+	let is_author = false;
+	if (token) {
+		const is_author_resp = await backendFetch(fetch, `/token/${url.host}/verify`, {
+			method: 'POST',
+			headers: [['x-token-auth', token!]]
+		});
+		is_author = is_author_resp.ok;
+	}
 
-	return { profile, params: { ...params }, token, is_author: is_author.ok };
+	return { profile, params: { ...params }, token, is_author: is_author };
 };

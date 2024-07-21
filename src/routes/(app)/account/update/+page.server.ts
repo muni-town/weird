@@ -110,6 +110,25 @@ export const actions = {
 				const data = e;
 				return fail(400, { error: `Error updating profile: ${data.error}` });
 			}
+			try {
+				const avatarData = data.get('avatar') as File;
+				if (avatarData.name != '') {
+					const body = new FormData();
+					body.append('avatar', avatarData);
+					const originHeader = request.headers.get('Origin');
+					const origin = originHeader ? new URL(originHeader).host : undefined;
+					const resp = await backendFetch(fetch, `/avatar/by-token/${origin}`, {
+						method: 'post',
+						body,
+						headers: [['x-token-auth', token as string]]
+					});
+					await checkResponse(resp);
+				}
+			} catch (e) {
+				console.error('Error updating profile:', e);
+				const data = JSON.parse((e as CheckResponseError).data);
+				return fail(400, { error: `Error updating profile avatar: ${data.error}` });
+			}
 		} else {
 			try {
 				const resp = await backendFetch(fetch, `/profile/${userInfo.id}`, {
@@ -123,9 +142,6 @@ export const actions = {
 				const data = e;
 				return fail(400, { error: `Error updating profile: ${data.error}` });
 			}
-		}
-
-		if (!token) {
 			try {
 				const avatarData = data.get('avatar') as File;
 				if (avatarData.name != '') {
@@ -133,7 +149,8 @@ export const actions = {
 					body.append('avatar', avatarData);
 					const resp = await backendFetch(fetch, `/profile/${userInfo.id}/avatar`, {
 						method: 'post',
-						body
+						body,
+						headers: [['x-token-auth', token as string]]
 					});
 					await checkResponse(resp);
 				}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import { PUBLIC_SHOW_WORK_CAPACITY } from '$env/static/public';
-	import Avatar from '$lib/components/Avatar.svelte';
+	import Avatar from '$lib/components/avatar/view.svelte';
 	import { parseUsername } from '$lib/utils';
 	import type { WorkCapacity, WorkCompensation } from '../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';

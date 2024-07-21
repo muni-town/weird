@@ -1,12 +1,13 @@
 <script lang="ts">
 	import type { Profile } from '../../routes/(app)/auth/v1/account/proxy+page.server';
 	import { env } from '$env/dynamic/public';
+	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	export let profile: Profile;
 	export let token;
 	export let is_author;
 
-	const avatar = `/u/${profile.username}/avatar`;
-	const fallbackAvatar = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${profile.username}`;
+	let avatar = `/u/${profile.username}/avatar`;
+	let fallbackAvatar = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${profile.username}`;
 
 	type WorkCapacity = 'full_time' | 'part_time' | 'not_specified';
 	type WorkCompensation = 'paid' | 'volunteer' | 'not_specified';
@@ -48,6 +49,16 @@
 		initialLoaded = false;
 	}
 
+	let editingAvatar = '';
+	const ChangeAvatar = (e) => {
+		const file = e.target.files[0];
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			editingAvatar = e.target!.result as string;
+		};
+		reader.readAsDataURL(file);
+	};
+
 	const submitChanges = async () => {
 		const formData = new FormData();
 		for (const key in profile) {
@@ -60,6 +71,11 @@
 			formData.append(key, profile[key]);
 		}
 		formData.append('token', token);
+		const avatar_blob = await fetch(avatar)
+			.then((res) => res.blob())
+			.then((blob) => new File([blob], 'avatar.png', { type: 'image/png' }));
+
+		formData.append('avatar', avatar_blob, 'avatar.png');
 		fetch(`http://${env.PUBLIC_DOMAIN}/account/update`, {
 			method: 'POST',
 			body: formData,
@@ -80,16 +96,50 @@
 </svelte:head>
 
 {#if profile}
-	<main class="container">
-		<img
-			src={avatar}
-			width="200px"
-			alt="Avatar"
-			onerror={(ev: Event) => {
-				console.log('Image error!!!');
-				(ev.target as HTMLImageElement).src = fallbackAvatar;
+	{#if editingAvatar != ''}
+		<AvatarEditor
+			img={editingAvatar}
+			cancelCallback={() => (editingAvatar = '')}
+			saveCallback={(new_avatar) => {
+				avatar = new_avatar;
+				editingAvatar = '';
+				unsavedChanges = true;
 			}}
 		/>
+	{/if}
+	<main class="container">
+		<input type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
+		{#if is_author}
+			<figure class="avatar-figure">
+				<img
+					src={avatar}
+					width="200px"
+					alt="Avatar"
+					onerror={(ev: Event) => {
+						console.log('Image error!!!');
+						(ev.target as HTMLImageElement).src = fallbackAvatar;
+					}}
+				/>
+				<figcaption class="avatar-figcaption">
+					<label
+						for="avatar"
+						onclick={() => document.querySelector('input[name="avatar"]').click()}
+					>
+						<img src="/edit-avatar.png" />
+					</label>
+				</figcaption>
+			</figure>
+		{:else}
+			<img
+				src={avatar}
+				width="200px"
+				alt="Avatar"
+				onerror={(ev: Event) => {
+					console.log('Image error!!!');
+					(ev.target as HTMLImageElement).src = fallback;
+				}}
+			/>
+		{/if}
 		{#if is_author}
 			<h1
 				contenteditable="true"
@@ -208,5 +258,31 @@
 	}
 	.unsaved-changes button {
 		padding: none;
+	}
+
+	.avatar-figure {
+		position: relative;
+	}
+	.avatar-figure img {
+		position: relative;
+		z-index: -3;
+	}
+	.avatar-figcaption {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		border-radius: 100%;
+		background-color: var(--pico-secondary);
+		height: 70px;
+		width: 70px;
+		z-index: 1;
+	}
+	.avatar-figcaption img {
+		height: 50px;
+		width: 50px;
+		display: block;
+		margin: auto;
+		margin-top: 0px;
+		z-index: 2;
 	}
 </style>

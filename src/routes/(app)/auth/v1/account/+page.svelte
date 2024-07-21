@@ -6,7 +6,7 @@
 	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
 	import { parseUsername } from '$lib/utils';
-	import Avatar from '$lib/components/Avatar.svelte';
+	import Avatar from '$lib/components/avatar/view.svelte';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;

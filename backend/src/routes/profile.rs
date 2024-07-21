@@ -46,6 +46,7 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/domain/:domain", get(get_profile_by_domain))
         .route("/profile/domain/:domain", post(set_domain_for_profile))
         .route("/profile/by-token/:domain", post(post_profile_by_token))
+        .route("/avatar/by-token/:domain", post(post_avatar_by_token))
         .route(
             "/profile/username/:username/avatar",
             get(get_profile_avatar_by_name),
@@ -353,6 +354,43 @@ async fn post_profile_avatar(
 ) -> AppResult<()> {
     let author = state.weird.get_or_init_author(user_id).await?;
 
+    let mut avatar = None;
+    while let Some(field) = data.next_field().await? {
+        if field.name() == Some("avatar") {
+            avatar = Some(field.bytes().await?.to_vec());
+        }
+    }
+
+    if let Some(avatar) = avatar {
+        state.weird.set_profile_avatar(author, avatar).await?;
+        Ok(())
+    } else {
+        Err(anyhow::format_err!("`avatar` field not found").into())
+    }
+}
+
+async fn post_avatar_by_token(
+    state: State<AppState>,
+    Path(domain): Path<String>,
+    headers: HeaderMap,
+    mut data: Multipart,
+) -> AppResult<()> {
+    let token = headers
+        .get("x-token-auth")
+        .ok_or_else(|| anyhow::format_err!("x-token-auth header not provided"))?;
+    let token = token.to_str()?;
+
+    let stored_token = USER_TOKENS
+        .get(&domain)
+        .ok_or_else(|| anyhow::format_err!("Invalid token."))?;
+    if stored_token.token != token {
+        return Err(anyhow::format_err!("Invalid token.").into());
+    }
+
+    let author = state
+        .weird
+        .get_or_init_author(&stored_token.user_id)
+        .await?;
     let mut avatar = None;
     while let Some(field) = data.next_field().await? {
         if field.name() == Some("avatar") {

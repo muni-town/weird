@@ -107,7 +107,7 @@ export function computeCroppedArea(
 	const isImgWiderThanHigh = imgSize.naturalWidth >= imgSize.naturalHeight * aspect;
 
 	// then we ensure the width and height exactly match the aspect (to avoid rounding approximations)
-	// if the image is wider than high, when zoom is 0, the crop height will be equals to iamge height
+	// if the image is wider than high, when zoom is 0, the crop height will be equals to image height
 	// thus we want to compute the width from the height and aspect for accuracy.
 	// Otherwise, we compute the height from width and aspect.
 	const sizePixels = isImgWiderThanHigh

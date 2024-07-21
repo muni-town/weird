@@ -49,7 +49,7 @@ export const load: PageServerLoad = async ({
 		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
 		const profile: Profile = await resp.json();
 
-		if (cookies.get('justLoggedIn')) {
+		if (cookies.get('justLoggedIn') && (profile.custom_domain || profile.username)) {
 			const userDomain =
 				profile.custom_domain || `${profile.username?.split('@')[0] || ''}.${env.PUBLIC_DOMAIN}`;
 

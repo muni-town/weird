@@ -2,6 +2,12 @@
 	import type { Profile } from '../../routes/(app)/auth/v1/account/proxy+page.server';
 	import { env } from '$env/dynamic/public';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
+	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
+
+	let editingTags = false;
+	let linkLabel = '';
+	let linkUrl = '';
+
 	export let profile: Profile;
 	export let token;
 	export let is_author;
@@ -29,16 +35,6 @@
 			return 'Not Specified';
 		}
 	};
-	const ShortDescription = () => {
-		return [
-			profile.username,
-			printWorkCapacity(profile.work_capacity),
-			printWorkCompensation(profile.work_compensation),
-			profile.location
-		]
-			.filter(Boolean)
-			.join(' • ');
-	};
 
 	let initialLoaded = true;
 	let unsavedChanges = false;
@@ -63,10 +59,10 @@
 		const formData = new FormData();
 		for (const key in profile) {
 			if (key === 'links') {
-				const keyUrls = profile[key]?.map((link) => link.url);
-				const keyLabels = profile[key]?.map((link) => link.label);
-				formData.append('link-url', keyUrls);
-				formData.append('link-label', keyLabels);
+				profile[key]?.forEach((link) => {
+					formData.append('link-url', link.url);
+					formData.append('link-label', link.label);
+				});
 			}
 			formData.append(key, profile[key]);
 		}
@@ -89,6 +85,28 @@
 				console.log(err);
 			});
 	};
+
+	const editLinkCallback = (label: string, url: string) => {
+		editingTags = false;
+		unsavedChanges = true;
+		profile.links = profile.links.map((link) => {
+			if (link.label === linkLabel && link.url === linkUrl) {
+				link.url = url;
+				link.label = label;
+			}
+			return link;
+		});
+		if (linkLabel === '' && linkUrl === '') {
+			profile.links.push({ label, url });
+		}
+	};
+	const addTags = () => {
+		profile.tags = profile.tags || [];
+		profile.tags.push('(newly added tag)');
+	};
+	const deleteTag = (tag: string) => {
+		profile.tags = profile.tags.filter((t) => t !== tag);
+	};
 </script>
 
 <svelte:head>
@@ -108,6 +126,7 @@
 		/>
 	{/if}
 	<main class="container">
+		<EditLinks label={linkLabel} url={linkUrl} open={editingTags} saveCallback={editLinkCallback} />
 		<input type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
 		{#if is_author}
 			<figure class="avatar-figure">
@@ -151,8 +170,26 @@
 		{/if}
 		<span>
 			<span>{profile.username}</span> •
-			<span>{printWorkCompensation(profile.work_compensation)}</span> •
-			<span>{printWorkCapacity(profile.work_capacity)}</span> •
+			{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
+				{#if is_author}
+					<select bind:value={profile.work_compensation} style="width: fit-content;">
+						<option value="">Not Specified</option>
+						<option value="paid">Paid</option>
+						<option value="volunteer">Volunteer</option>
+					</select>
+				{:else}
+					<span>{printWorkCompensation(profile.work_compensation)}</span> •
+				{/if}
+				{#if is_author}
+					<select bind:value={profile.work_capacity} style="width: fit-content;">
+						<option value="">Not Specified</option>
+						<option value="full_time">Full Time</option>
+						<option value="part_time">Part Time</option>
+					</select>
+				{:else}
+					<span>{printWorkCapacity(profile.work_capacity)}</span> •
+				{/if}
+			{/if}
 			{#if is_author}
 				<span contenteditable="true" bind:textContent={profile.location}></span>
 			{:else}
@@ -161,19 +198,39 @@
 		</span>
 
 		<div class="links">
-			<a href={`${env.PUBLIC_URL}/u/${profile.username}`}>Weird</a>
+			<a href={`${env.PUBLIC_URL}/u/${profile.username}`} class="link">Weird</a>
 			{#if profile.links}
 				{#each profile.links as link}
 					{#if is_author}
-						<a href={link.url} contenteditable="true" bind:textContent={link.label}>
-							{link.label || link.url}
+						<a
+							href={link.url}
+							target="_blank"
+							onclick={(e) => (
+								e.preventDefault(),
+								(editingTags = true),
+								(linkLabel = link.label!),
+								(linkUrl = link.url!)
+							)}
+							class="link"
+						>
+							{link.label}
 						</a>
 					{:else}
-						<a href={link.url} target="_blank">
+						<a href={link.url} target="_blank" class="link">
 							{link.label || link.url}
 						</a>
 					{/if}
 				{/each}
+			{/if}
+			{#if is_author}
+				<span
+					class="link"
+					style="color: var(--pico-primary); cursor: pointer;"
+					onclick={() => ((editingTags = true), (linkLabel = ''), (linkUrl = ''))}
+					title="Add link"
+				>
+					+
+				</span>
 			{/if}
 		</div>
 
@@ -190,24 +247,32 @@
 		{/if}
 
 		{#if profile.tags && profile.tags.length > 0}
-			<div>
+			<div style="padding-bottom: 3rem;">
 				<span class="tags">
 					{#each profile.tags as tag}
 						{#if is_author}
-							<a
-								href={`${env.PUBLIC_URL}/members?q=${tag}`}
-								target="_blank"
-								contenteditable="true"
-								bind:textContent={tag}
+							<span contenteditable="true" bind:textContent={tag} class="tag">
+								{tag}
+							</span>
+							<span
+								style="color: var(--pico-del-color); cursor: pointer; margin-right: 1rem;"
+								onclick={() => deleteTag(tag)}>&times;</span
 							>
-								#{tag}
-							</a>
 						{:else}
-							<a href={`${env.PUBLIC_URL}/members?q=${tag}`} target="_blank">
-								#{tag}
+							<a href={`${env.PUBLIC_URL}/members?q=${tag}`} target="_blank" class="tag">
+								{tag}
 							</a>
 						{/if}
 					{/each}
+					{#if is_author}
+						<span
+							onclick={addTags}
+							style="color: var(--pico-primary); cursor: pointer;"
+							title="Add tag"
+						>
+							+
+						</span>
+					{/if}
 				</span>
 			</div>
 		{/if}
@@ -236,14 +301,17 @@
 		padding: 1em;
 		margin: 1em;
 	}
-	.tags a {
+	.tag {
 		padding: 0.25em;
+	}
+	.tag::before {
+		content: '#';
 	}
 	.links {
 		margin: 0.5em;
 		display: flex;
 	}
-	.links a {
+	.link {
 		margin: 0.5em;
 	}
 

@@ -63,6 +63,9 @@
 						<TwitterIcon />
 					</UserInfoItem>
 				{/if}
+				<div class="pt-4">
+					<a class="variant-soft-primary btn" href="/account/github/profile/readme">README</a>
+				</div>
 			</div>
 		</div>
 	</section>

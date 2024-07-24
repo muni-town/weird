@@ -3,7 +3,7 @@ import type { Actions } from './$types';
 
 import { env } from '$env/dynamic/private';
 import { env as pubenv } from '$env/dynamic/public';
-import { backendFetch } from '$lib/backend';
+// import { backendFetch } from '$lib/backend';
 import { checkResponse } from '$lib/utils';
 
 export const actions = {

@@ -1,10 +1,14 @@
 [workspace]
 resolver = "2"
 members = [
-  "backend",
-  "backend/gdata",
-  "backend/gdata/gdata_explorer",
-  "backend/weird",
+  # "leaf/leaf-rpc-client-tui",
+  "leaf/leaf-protocol",
+  "leaf/leaf-protocol/macros",
+  "leaf/leaf-protocol/types",
+  "leaf/leaf-rpc-client",
+  "leaf/leaf-rpc-client-cli",
+  "leaf/leaf-rpc-proto",
+  "leaf/leaf-rpc-server",
 ]
 
 [workspace.package]

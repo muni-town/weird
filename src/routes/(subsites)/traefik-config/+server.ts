@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 import { env as pubenv } from '$env/dynamic/public';
-import { backendFetch } from '$lib/backend';
+// import { backendFetch } from '$lib/backend';
 import { checkResponse } from '$lib/utils';
 import { json, type RequestHandler } from '@sveltejs/kit';
 

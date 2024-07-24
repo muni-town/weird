@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import type { Profile } from '../../../(app)/auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
 	import Minimal from '$lib/themes/minimal.svelte';
 	import Retro from '$lib/themes/retro.svelte';
 	import Panel from '$lib/components/subsite-admin/panel.svelte';
+	import type { Profile } from '$lib/leaf/profile';
 	const { data }: { data: PageData } = $props();
 	const profile: Profile = data.profile!;
 	const token = data.token!;

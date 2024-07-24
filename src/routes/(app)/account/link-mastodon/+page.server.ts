@@ -1,31 +1,13 @@
 import type { PageServerLoad } from './$types';
-import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
+import { getProfileById, type Profile } from '$lib/leaf/profile';
+import { error } from '@sveltejs/kit';
 
 export interface Provider {
 	id: string;
 	name: string;
 }
-
-export interface Profile {
-	username?: string;
-	display_name?: string;
-	avatar_seed?: string;
-	location?: string;
-	tags: string[];
-	contact_info?: string;
-	work_capacity?: WorkCapacity;
-	work_compensation?: WorkCompensation;
-	bio: string;
-	links?: { label?: string; url: string }[];
-	mastodon_username?: string;
-	mastodon_server?: string;
-	mastodon_access_token?: string;
-	subsite_theme?: string;
-}
-export type WorkCapacity = 'full_time' | 'part_time';
-export type WorkCompensation = 'paid' | 'volunteer';
 
 export const load: PageServerLoad = async ({
 	fetch,
@@ -33,10 +15,9 @@ export const load: PageServerLoad = async ({
 	params,
 	url
 }): Promise<{
-	profile?: Profile;
+	profile: Profile;
 	providers: Provider[];
 	params: typeof params;
-	profiles: Profile[];
 }> => {
 	let providers: Provider[] = [];
 	try {
@@ -50,22 +31,10 @@ export const load: PageServerLoad = async ({
 	}
 
 	let { userInfo } = await getSession(fetch, request);
+	if (!userInfo) return error(403, 'Not logged in');
 
-	let loggedIn = !!userInfo;
-	const resp = await backendFetch(fetch, `/profiles`);
-	let profiles: Profile[] = await resp.json();
+	const profile = await getProfileById(userInfo.id);
+	if (!profile) return error(404, 'Profile not found');
 
-	if (!loggedIn) {
-		profiles.forEach((x) => {
-			x.contact_info = undefined;
-		});
-	}
-	if (userInfo) {
-		const resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
-		const profile: Profile = await resp.json();
-
-		return { profile, providers, params, profiles };
-	} else {
-		return { providers, params, profiles };
-	}
+	return { profile, providers, params };
 };

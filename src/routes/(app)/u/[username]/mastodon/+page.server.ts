@@ -1,5 +1,5 @@
 import type { PageServerLoad } from '../$types';
-import { backendFetch } from '$lib/backend';
+// import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
 import type { Profile } from '../../../auth/v1/account/proxy+page.server';
 import type { MastodonProfile } from './mastodon';

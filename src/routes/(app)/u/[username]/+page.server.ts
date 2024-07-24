@@ -1,22 +1,19 @@
 import type { PageServerLoad } from './$types';
-import { backendFetch } from '$lib/backend';
-import { getSession } from '$lib/rauthy/server';
-import type { Profile } from '../../auth/v1/account/+page.server';
+import { getProfileByUsername, type Profile } from '$lib/leaf/profile';
+import { env } from '$env/dynamic/public';
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({
 	fetch,
 	request,
 	params
 }): Promise<{ profile: Profile | { error: string }; params: typeof params }> => {
-	let { userInfo } = await getSession(fetch, request);
-	const loggedIn = !!userInfo;
+	const username = params.username;
+	const full_username = username.includes('@') ? username : `${username}@${env.PUBLIC_DOMAIN}`;
 
-	const resp = await backendFetch(fetch, `/profile/username/${params.username}`);
-	const profile: Profile = await resp.json();
+	const profile: Profile | undefined = await getProfileByUsername(full_username);
 
-	if (!loggedIn) {
-		profile.contact_info = undefined;
-	}
+	if (!profile) return error(404, `User not found: ${username}`);
 
 	return { profile, params: { ...params } };
 };

@@ -1,4 +1,4 @@
-import { backendFetch } from '$lib/backend';
+// import { backendFetch } from '$lib/backend';
 import { checkResponse } from '$lib/utils';
 import type { RequestHandler } from '@sveltejs/kit';
 

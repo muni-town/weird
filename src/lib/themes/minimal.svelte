@@ -72,7 +72,7 @@
 			.then((blob) => new File([blob], 'avatar.png', { type: 'image/png' }));
 
 		formData.append('avatar', avatar_blob, 'avatar.png');
-		fetch(`http://${env.PUBLIC_DOMAIN}/account/update`, {
+		fetch(`${env.PUBLIC_URL}/account/update`, {
 			method: 'POST',
 			body: formData,
 			mode: 'cors'

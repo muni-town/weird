@@ -12,8 +12,12 @@ use iroh::{docs::NamespaceId, node::FsNode};
 use layout::Size;
 use once_cell::sync::Lazy;
 use ratatui::{
+    layout::{Constraint, Direction, Layout, Rect},
     prelude::*,
-    widgets::{Block, List, ListState, Paragraph, Wrap},
+    widgets::{
+        block::{Position, Title},
+        Block, Clear, List, ListState, Paragraph, Wrap,
+    },
 };
 
 #[derive(clap::Parser)]
@@ -96,6 +100,7 @@ impl App {
         Ok(AppState::Home(HomePage {
             docs,
             docs_state: ListState::default().with_selected(Some(0)),
+            show_help: false,
         }))
     }
 
@@ -117,11 +122,21 @@ impl App {
             match key.code {
                 KeyCode::Up | KeyCode::Char('k') => {
                     let selected = home.docs_state.selected_mut().get_or_insert(0);
-                    *selected = (*selected + 1).min(home.docs.len())
+                    // The modulo operator doesn’t work well with negative values
+                    // Hence, an if-else is required to handle wrap-around properly
+                    if *selected == 0 {
+                        // Cycle to the last item if already at the first
+                        //`saturating_sub(n)` in used  to handle the case where len is 0, avoiding underflow
+                        *selected = home.docs.len().saturating_sub(1);
+                    } else {
+                        *selected -= 1;
+                    }
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
                     let selected = home.docs_state.selected_mut().get_or_insert(0);
-                    *selected = selected.saturating_sub(1);
+                    // The modulo operation ensure `last index % list.len() = 0`
+                    // which will put the cursor to the start of the item
+                    *selected = (*selected + 1) % home.docs.len();
                 }
                 KeyCode::Enter => {
                     if let Some(ns) = home.docs.get(home.docs_state.selected().unwrap_or(0)) {
@@ -134,17 +149,16 @@ impl App {
                         }
 
                         return Ok(AppState::Doc(NamespaceView {
-                            history: vec![current_value.clone()],
                             ns: *ns,
                             entries_state: ListState::default().with_selected(Some(0)),
                             current_value,
-                            highlighted_value: match entries.first() {
-                                Some(x) => Some(self.graph.get((*ns, x.clone())).await?),
-                                None => None,
-                            },
                             entries,
                         }));
                     }
+                }
+                KeyCode::Char('?') => {
+                    // Toggle popup visibility
+                    home.show_help = !home.show_help;
                 }
                 _ => (),
             }
@@ -153,17 +167,37 @@ impl App {
         Ok(AppState::Home(home))
     }
 
-    async fn update_doc(&mut self, page: NamespaceView, event: Event) -> anyhow::Result<AppState> {
+    async fn update_doc(
+        &mut self,
+        mut page: NamespaceView,
+        event: Event,
+    ) -> anyhow::Result<AppState> {
         check_for_exit(&event)?;
 
         if let Event::Key(key) = event {
             #[allow(clippy::single_match)]
             match key.code {
                 KeyCode::Esc => return Self::load_home(&self.node).await,
+                KeyCode::Up | KeyCode::Char('k') => {
+                    let selected = page.entries_state.selected_mut().get_or_insert(0);
+                    if *selected == 0 {
+                        *selected = page.entries.len().saturating_sub(1);
+                    } else {
+                        *selected -= 1;
+                    }
+                    let key: Key = page.entries.get(*selected).unwrap().clone();
+                    page.current_value = self.graph.get_or_init_map((page.ns, key)).await?;
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    let selected = page.entries_state.selected_mut().get_or_insert(0);
+                    let key: Key = page.entries.get(*selected).unwrap().clone();
+                    page.current_value = self.graph.get_or_init_map((page.ns, key)).await?;
+
+                    *selected = (*selected + 1) % page.entries.len();
+                }
                 _ => (),
             }
         }
-
         Ok(AppState::Doc(page))
     }
 }
@@ -185,6 +219,7 @@ impl Widget for &mut App {
 struct HomePage {
     docs: Vec<NamespaceId>,
     docs_state: ListState,
+    show_help: bool,
 }
 
 impl Widget for &mut HomePage {
@@ -199,6 +234,7 @@ impl Widget for &mut HomePage {
             .centered()
             .render(title_bar_area, buf);
 
+        let instructions = Title::from(Line::from(vec![" Help ".into(), "<?> ".blue().bold()]));
         StatefulWidget::render(
             List::new(
                 self.docs
@@ -206,23 +242,48 @@ impl Widget for &mut HomePage {
                     .map(|x| Text::from(x.to_string()))
                     .collect::<Vec<_>>(),
             )
-            .block(Block::bordered().title("Namespaces"))
+            .block(
+                Block::bordered().title("Namespaces").title(
+                    instructions
+                        .alignment(Alignment::Center)
+                        .position(Position::Bottom),
+                ),
+            )
             .highlight_style(Style::default().black().on_gray()),
             app_area,
             buf,
             &mut self.docs_state,
         );
+
+        if self.show_help {
+            let width = 40;
+            let height = 30;
+
+            // Block `app_area` to make popup text readable
+            Clear::render(Clear, app_area, buf);
+
+            let popup_area = centered_rect(width, height, area);
+            let popup_content_area = centered_rect(width - 10, height - 10, area);
+
+            Block::bordered().title("Help").render(popup_area, buf);
+            let content = ["?: Toggle Help", "↑↓: Cycle List", "⏎: Open", "q: Quit"];
+            let popup_content = List::new(
+                content
+                    .iter()
+                    .map(|&help| Text::from(help))
+                    .collect::<Vec<_>>(),
+            )
+            .block(Block::default());
+            Widget::render(&popup_content, popup_content_area, buf);
+        }
     }
 }
 
-#[allow(dead_code)]
 struct NamespaceView {
     ns: NamespaceId,
-    history: Vec<GStoreValue<IrohGStore>>,
     entries: Vec<Key>,
     entries_state: ListState,
     current_value: GStoreValue<IrohGStore>,
-    highlighted_value: Option<GStoreValue<IrohGStore>>,
 }
 
 impl Widget for &mut NamespaceView {
@@ -253,12 +314,35 @@ impl Widget for &mut NamespaceView {
         );
 
         Paragraph::new(format!("{:#?}", self.current_value))
-            .block(Block::bordered().title("Namespace"))
+            .block(Block::bordered())
             .wrap(Wrap { trim: false })
             .render(value_area, buf);
 
         Block::bordered().title("Value").render(value_area, buf);
     }
+}
+
+/// helper function to create a centered rect using up certain percentage of the available rect `r`
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    // Cut the given rectangle into three vertical pieces
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    // Then cut the middle vertical piece into three width-wise pieces
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1] // Return the middle chunk
 }
 
 fn main() -> anyhow::Result<()> {
@@ -305,76 +389,3 @@ async fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> anyhow
         }
     }
 }
-
-// fn ui(f: &mut Frame, app: &App) {
-//     let vertical = Layout::vertical([
-//         Constraint::Length(1),
-//         Constraint::Length(3),
-//         Constraint::Min(1),
-//     ]);
-//     let [help_area, input_area, messages_area] = vertical.areas(f.size());
-
-//     let (msg, style) = match app.input_mode {
-//         InputMode::Normal => (
-//             vec![
-//                 "Press ".into(),
-//                 "q".bold(),
-//                 " to exit, ".into(),
-//                 "e".bold(),
-//                 " to start editing.".bold(),
-//             ],
-//             Style::default().add_modifier(Modifier::RAPID_BLINK),
-//         ),
-//         InputMode::Editing => (
-//             vec![
-//                 "Press ".into(),
-//                 "Esc".bold(),
-//                 " to stop editing, ".into(),
-//                 "Enter".bold(),
-//                 " to record the message".into(),
-//             ],
-//             Style::default(),
-//         ),
-//     };
-//     let text = Text::from(Line::from(msg)).patch_style(style);
-//     let help_message = Paragraph::new(text);
-//     f.render_widget(help_message, help_area);
-
-//     let input = Paragraph::new(app.input.as_str())
-//         .style(match app.input_mode {
-//             InputMode::Normal => Style::default(),
-//             InputMode::Editing => Style::default().fg(Color::Yellow),
-//         })
-//         .block(Block::bordered().title("Input"));
-//     f.render_widget(input, input_area);
-//     match app.input_mode {
-//         InputMode::Normal =>
-//             // Hide the cursor. `Frame` does this by default, so we don't need to do anything here
-//             {}
-
-//         InputMode::Editing => {
-//             // Make the cursor visible and ask ratatui to put it at the specified coordinates after
-//             // rendering
-//             #[allow(clippy::cast_possible_truncation)]
-//             f.set_cursor(
-//                 // Draw the cursor at the current position in the input field.
-//                 // This position is can be controlled via the left and right arrow key
-//                 input_area.x + app.character_index as u16 + 1,
-//                 // Move one line down, from the border to the input line
-//                 input_area.y + 1,
-//             );
-//         }
-//     }
-
-//     let messages: Vec<ListItem> = app
-//         .messages
-//         .iter()
-//         .enumerate()
-//         .map(|(i, m)| {
-//             let content = Line::from(Span::raw(format!("{i}: {m}")));
-//             ListItem::new(content)
-//         })
-//         .collect();
-//     let messages = List::new(messages).block(Block::bordered().title("Messages"));
-//     f.render_widget(messages, messages_area);
-// }

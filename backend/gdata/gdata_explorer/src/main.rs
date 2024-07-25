@@ -117,11 +117,21 @@ impl App {
             match key.code {
                 KeyCode::Up | KeyCode::Char('k') => {
                     let selected = home.docs_state.selected_mut().get_or_insert(0);
-                    *selected = (*selected + 1).min(home.docs.len())
+                    // The modulo operator doesn’t work well with negative values
+                    // Hence, an if-else is required to handle wrap-around properly
+                    if *selected == 0 {
+                        // Cycle to the last item if already at the first
+                        //`saturating_sub(n)` in used  to handle the case where len is 0, avoiding underflow
+                        *selected = home.docs.len().saturating_sub(1);
+                    } else {
+                        *selected -= 1;
+                    }
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
                     let selected = home.docs_state.selected_mut().get_or_insert(0);
-                    *selected = selected.saturating_sub(1);
+                    // The modulo operation ensure `last index % list.len() = 0`
+                    // which will put the cursor to the start of the item
+                    *selected = (*selected + 1) % home.docs.len();
                 }
                 KeyCode::Enter => {
                     if let Some(ns) = home.docs.get(home.docs_state.selected().unwrap_or(0)) {

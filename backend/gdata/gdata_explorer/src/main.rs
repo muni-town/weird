@@ -172,13 +172,29 @@ impl App {
         Ok(AppState::Home(home))
     }
 
-    async fn update_doc(&mut self, page: NamespaceView, event: Event) -> anyhow::Result<AppState> {
+    async fn update_doc(
+        &mut self,
+        mut page: NamespaceView,
+        event: Event,
+    ) -> anyhow::Result<AppState> {
         check_for_exit(&event)?;
 
         if let Event::Key(key) = event {
             #[allow(clippy::single_match)]
             match key.code {
                 KeyCode::Esc => return Self::load_home(&self.node).await,
+                KeyCode::Up | KeyCode::Char('k') => {
+                    let selected = page.entries_state.selected_mut().get_or_insert(0);
+                    if *selected == 0 {
+                        *selected = page.entries.len().saturating_sub(1);
+                    } else {
+                        *selected -= 1;
+                    }
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    let selected = page.entries_state.selected_mut().get_or_insert(0);
+                    *selected = (*selected + 1) % page.entries.len();
+                }
                 _ => (),
             }
         }

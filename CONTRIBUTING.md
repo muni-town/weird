@@ -42,8 +42,8 @@ Steps to get Weird running locally.
 
 ### Result
 
-- You will be able to hit the app at `http://localhost:9523`
-- To see emails sent by the system you can go to the development SMTP viewer at `http://localhost:8091`
+- You will be able to hit the app at <http://localhost:9523>
+- To see emails sent by the system you can go to the development SMTP viewer at <http://localhost:8091>
 
 ## Pull Requests
 

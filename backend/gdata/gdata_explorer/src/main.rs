@@ -149,14 +149,9 @@ impl App {
                         }
 
                         return Ok(AppState::Doc(NamespaceView {
-                            history: vec![current_value.clone()],
                             ns: *ns,
                             entries_state: ListState::default().with_selected(Some(0)),
                             current_value,
-                            highlighted_value: match entries.first() {
-                                Some(x) => Some(self.graph.get((*ns, x.clone())).await?),
-                                None => None,
-                            },
                             entries,
                         }));
                     }
@@ -190,15 +185,19 @@ impl App {
                     } else {
                         *selected -= 1;
                     }
+                    let key: Key = page.entries.get(*selected).unwrap().clone();
+                    page.current_value = self.graph.get_or_init_map((page.ns, key)).await?;
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
                     let selected = page.entries_state.selected_mut().get_or_insert(0);
+                    let key: Key = page.entries.get(*selected).unwrap().clone();
+                    page.current_value = self.graph.get_or_init_map((page.ns, key)).await?;
+
                     *selected = (*selected + 1) % page.entries.len();
                 }
                 _ => (),
             }
         }
-
         Ok(AppState::Doc(page))
     }
 }
@@ -280,14 +279,11 @@ impl Widget for &mut HomePage {
     }
 }
 
-#[allow(dead_code)]
 struct NamespaceView {
     ns: NamespaceId,
-    history: Vec<GStoreValue<IrohGStore>>,
     entries: Vec<Key>,
     entries_state: ListState,
     current_value: GStoreValue<IrohGStore>,
-    highlighted_value: Option<GStoreValue<IrohGStore>>,
 }
 
 impl Widget for &mut NamespaceView {
@@ -318,7 +314,7 @@ impl Widget for &mut NamespaceView {
         );
 
         Paragraph::new(format!("{:#?}", self.current_value))
-            .block(Block::bordered().title("Namespace"))
+            .block(Block::bordered())
             .wrap(Wrap { trim: false })
             .render(value_area, buf);
 

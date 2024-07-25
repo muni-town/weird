@@ -12,8 +12,12 @@ use iroh::{docs::NamespaceId, node::FsNode};
 use layout::Size;
 use once_cell::sync::Lazy;
 use ratatui::{
+    layout::{Constraint, Direction, Layout, Rect},
     prelude::*,
-    widgets::{Block, List, ListState, Paragraph, Wrap},
+    widgets::{
+        block::{Position, Title},
+        Block, Clear, List, ListState, Paragraph, Wrap,
+    },
 };
 
 #[derive(clap::Parser)]
@@ -96,6 +100,7 @@ impl App {
         Ok(AppState::Home(HomePage {
             docs,
             docs_state: ListState::default().with_selected(Some(0)),
+            show_help: false,
         }))
     }
 
@@ -156,6 +161,10 @@ impl App {
                         }));
                     }
                 }
+                KeyCode::Char('?') => {
+                    // Toggle popup visibility
+                    home.show_help = !home.show_help;
+                }
                 _ => (),
             }
         }
@@ -195,6 +204,7 @@ impl Widget for &mut App {
 struct HomePage {
     docs: Vec<NamespaceId>,
     docs_state: ListState,
+    show_help: bool,
 }
 
 impl Widget for &mut HomePage {
@@ -209,6 +219,7 @@ impl Widget for &mut HomePage {
             .centered()
             .render(title_bar_area, buf);
 
+        let instructions = Title::from(Line::from(vec![" Help ".into(), "<?> ".blue().bold()]));
         StatefulWidget::render(
             List::new(
                 self.docs
@@ -216,12 +227,40 @@ impl Widget for &mut HomePage {
                     .map(|x| Text::from(x.to_string()))
                     .collect::<Vec<_>>(),
             )
-            .block(Block::bordered().title("Namespaces"))
+            .block(
+                Block::bordered().title("Namespaces").title(
+                    instructions
+                        .alignment(Alignment::Center)
+                        .position(Position::Bottom),
+                ),
+            )
             .highlight_style(Style::default().black().on_gray()),
             app_area,
             buf,
             &mut self.docs_state,
         );
+
+        if self.show_help {
+            let width = 40;
+            let height = 30;
+
+            // Block `app_area` to make popup text readable
+            Clear::render(Clear, app_area, buf);
+
+            let popup_area = centered_rect(width, height, area);
+            let popup_content_area = centered_rect(width - 10, height - 10, area);
+
+            Block::bordered().title("Help").render(popup_area, buf);
+            let content = ["?: Toggle Help", "↑↓: Cycle List", "⏎: Open", "q: Quit"];
+            let popup_content = List::new(
+                content
+                    .iter()
+                    .map(|&help| Text::from(help))
+                    .collect::<Vec<_>>(),
+            )
+            .block(Block::default());
+            Widget::render(&popup_content, popup_content_area, buf);
+        }
     }
 }
 
@@ -269,6 +308,29 @@ impl Widget for &mut NamespaceView {
 
         Block::bordered().title("Value").render(value_area, buf);
     }
+}
+
+/// helper function to create a centered rect using up certain percentage of the available rect `r`
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    // Cut the given rectangle into three vertical pieces
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    // Then cut the middle vertical piece into three width-wise pieces
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1] // Return the middle chunk
 }
 
 fn main() -> anyhow::Result<()> {

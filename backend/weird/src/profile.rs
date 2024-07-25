@@ -574,13 +574,13 @@ impl<S> Weird<S> {
     pub async fn set_profile_avatar(&self, author: AuthorId, avatar: Vec<u8>) -> Result<()> {
         // Parse, resize, and convert avatar to webp
         let mut avatar = Cursor::new(avatar);
-        let image = image::io::Reader::new(&mut avatar)
+        let mut image = image::ImageReader::new(&mut avatar)
             .with_guessed_format()?
             .decode()?;
         let mut avatar = avatar.into_inner();
         avatar.clear();
         if image.width() > 256 || image.height() > 256 {
-            image.resize(256, 256, image::imageops::FilterType::Gaussian);
+            image = image.resize(256, 256, image::imageops::FilterType::Gaussian);
         }
         let mut avatar = Cursor::new(avatar);
         image.write_to(&mut avatar, image::ImageFormat::WebP)?;

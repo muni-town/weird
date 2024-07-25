@@ -52,7 +52,7 @@
 			<LightSwitch />
 		</div>
 		<div class="sm:hidden">
-			<button class="variant-ghost btn-icon" onclick={openDrawer}>
+			<button class="variant-ghost btn-icon" onclick={openDrawer} aria-label="Toggle drawer">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="24"
@@ -76,7 +76,7 @@
 		<slot></slot>
 	</div>
 
-	<footer class="sticky bottom-0 p-4 text-center text-xs text-surface-500">
+	<footer class="bottom-0 p-4 text-center text-xs text-surface-300">
 		Avatars generated with
 		<a class="underline" href="https://dicebear.com">DiceBear</a> and the
 		<a class="underline" href={`https://dicebear.com/styles/${env.PUBLIC_DICEBEAR_STYLE}`}

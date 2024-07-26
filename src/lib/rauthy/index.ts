@@ -26,6 +26,7 @@ export interface UserInfo {
 	mastodon_server: string;
 	mastodon_username: string;
 	mastodon_access_token: string;
+	subsite_theme?: string;
 }
 
 export const setUserInfo = (info?: UserInfo) => setContext('userInfo', info);

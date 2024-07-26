@@ -59,6 +59,8 @@ pub struct Profile {
     pub mastodon_username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mastodon_access_token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subsite_theme: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -260,6 +262,13 @@ impl Profile {
             .ok()
             .map(|x| x.to_owned());
 
+        let subsite_theme = profile
+            .get_key("subsite_theme")
+            .await?
+            .as_str()
+            .ok()
+            .map(|x| x.to_owned());
+
         futures::pin_mut!(tags_stream);
         let mut tags = Vec::new();
         while let Some(tag) = tags_stream.next().await {
@@ -322,6 +331,7 @@ impl Profile {
             mastodon_server,
             mastodon_username,
             mastodon_access_token,
+            subsite_theme,
         })
     }
 
@@ -418,6 +428,15 @@ impl Profile {
             .set_key(
                 "mastodon_access_token",
                 self.mastodon_access_token
+                    .clone()
+                    .map(|x| x.into())
+                    .unwrap_or(Value::Null),
+            )
+            .await?;
+        value
+            .set_key(
+                "subsite_theme",
+                self.subsite_theme
                     .clone()
                     .map(|x| x.into())
                     .unwrap_or(Value::Null),

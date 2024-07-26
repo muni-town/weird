@@ -83,6 +83,7 @@
 </svelte:head>
 
 {#if profile}
+	<EditLinks label={linkLabel} url={linkUrl} open={editingTags} saveCallback={editLinkCallback} />
 	{#if editingAvatar != ''}
 		<AvatarEditor
 			img={editingAvatar}
@@ -94,34 +95,26 @@
 			}}
 		/>
 	{/if}
-	<main class="container">
-		<EditLinks label={linkLabel} url={linkUrl} open={editingTags} saveCallback={editLinkCallback} />
-		<input type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
+	<div class="retro">
 		{#if is_author}
-			<figure class="avatar-figure">
-				<img
-					src={avatar}
-					width="200px"
-					alt="Avatar"
-					onerror={(ev: Event) => {
-						console.log('Image error!!!');
-						(ev.target as HTMLImageElement).src = fallbackAvatar;
-					}}
-				/>
-				<figcaption class="avatar-figcaption">
-					<label
-						for="avatar"
-						onclick={() => document.querySelector('input[name="avatar"]')?.click()}
-					>
-						<img src="/edit-avatar.png" />
-					</label>
-				</figcaption>
-			</figure>
+			<input type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
+			<img
+				src={avatar}
+				width="200px"
+				alt="Avatar"
+				class="retro-avatar"
+				onerror={(ev: Event) => {
+					console.log('Image error!!!');
+					(ev.target as HTMLImageElement).src = fallbackAvatar;
+				}}
+				onclick={() => document.querySelector('input[name="avatar"]')?.click()}
+			/>
 		{:else}
 			<img
 				src={avatar}
 				width="200px"
 				alt="Avatar"
+				class="retro-avatar"
 				onerror={(ev: Event) => {
 					console.log('Image error!!!');
 					(ev.target as HTMLImageElement).src = fallbackAvatar;
@@ -129,16 +122,27 @@
 			/>
 		{/if}
 		{#if is_author}
-			<h1
-				contenteditable="true"
-				bind:textContent={profile.display_name}
-				style="margin-top: 1em;"
-			></h1>
+			<h1 class="retro-name" bind:textContent={profile.display_name} contenteditable="true">
+				{profile.display_name}
+			</h1>
 		{:else}
-			<h1 style="margin-top: 1em;">{profile.display_name}</h1>
+			<h1 class="retro-name">
+				{profile.display_name}
+			</h1>
 		{/if}
-		<span>
-			<span>{profile.username}</span> •
+		{#if profile.bio}
+			{#if is_author}
+				<blockquote bind:textContent={profile.bio} contenteditable="true">
+					{profile.bio}
+				</blockquote>
+			{:else}
+				<blockquote>
+					{profile.bio}
+				</blockquote>
+			{/if}
+		{/if}
+
+		<div>
 			{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
 				{#if is_author}
 					<select bind:value={profile.work_compensation} style="width: fit-content;">
@@ -147,7 +151,7 @@
 						<option value="volunteer">Volunteer</option>
 					</select>
 				{:else}
-					<span>{printWorkCompensation(profile.work_compensation)}</span> •
+					<span>{printWorkCompensation(profile.work_compensation)}</span> |
 				{/if}
 				{#if is_author}
 					<select bind:value={profile.work_capacity} style="width: fit-content;">
@@ -156,7 +160,7 @@
 						<option value="part_time">Part Time</option>
 					</select>
 				{:else}
-					<span>{printWorkCapacity(profile.work_capacity)}</span> •
+					<span>{printWorkCapacity(profile.work_capacity)}</span> |
 				{/if}
 			{/if}
 			{#if is_author}
@@ -164,34 +168,9 @@
 			{:else}
 				<span>{profile.location}</span>
 			{/if}
-		</span>
-
-		<div class="links">
-			<a href={`${env.PUBLIC_URL}/u/${profile.username}`} class="link">Weird</a>
-			{#if profile.links}
-				{#each profile.links as link}
-					{#if is_author}
-						<a
-							href={link.url}
-							target="_blank"
-							onclick={(e) => (
-								e.preventDefault(),
-								(editingTags = true),
-								(linkLabel = link.label!),
-								(linkUrl = link.url!)
-							)}
-							class="link"
-						>
-							{link.label}
-						</a>
-					{:else}
-						<a href={link.url} target="_blank" class="link">
-							{link.label || link.url}
-						</a>
-					{/if}
-				{/each}
-			{/if}
-			{#if is_author}
+		</div>
+		<h1>
+			Links {#if is_author}
 				<span
 					class="link"
 					style="color: var(--pico-primary); cursor: pointer;"
@@ -201,105 +180,133 @@
 					+
 				</span>
 			{/if}
+		</h1>
+		<div class="retro-links">
+			{#each profile.links as link}
+				{#if is_author}
+					<a
+						href={link.url}
+						class="retro-link"
+						onclick={(e) => {
+							e.preventDefault();
+							linkLabel = link.label;
+							linkUrl = link.url;
+							editingTags = true;
+						}}
+					>
+						<span class="retro-link-label">{link.label}</span>
+						<span class="retro-link-url">{link.url}</span>
+					</a>
+				{:else}
+					<a href={link.url} class="retro-link">
+						<span class="retro-link-label">{link.label}</span>
+						<span class="retro-link-url">{link.url}</span>
+					</a>
+				{/if}
+			{/each}
 		</div>
-
-		{#if profile.bio}
+		<div class="retro-tags">
+			{#each profile.tags as tag}
+				{#if is_author}
+					<span contenteditable="true" bind:textContent={tag} class="retro-tag">
+						{tag}
+					</span>
+					<span
+						style="color: var(--pico-del-color); cursor: pointer; margin-right: 1rem;"
+						onclick={() => deleteTag(tag)}>&times;</span
+					>
+				{:else}
+					<a href={`${env.PUBLIC_URL}/members?q=${tag}`} target="_blank" class="retro-tag">
+						{tag}
+					</a>
+				{/if}
+			{/each}
 			{#if is_author}
-				<p
-					style="max-width: 800px; text-align:justify;"
-					bind:textContent={profile.bio}
-					contenteditable="true"
-				></p>
-			{:else}
-				<p style="max-width: 800px; text-align:justify;">{profile.bio}</p>
-			{/if}
-		{/if}
-
-		{#if profile.tags && profile.tags.length > 0}
-			<div style="padding-bottom: 3rem;">
-				<span class="tags">
-					{#each profile.tags as tag}
-						{#if is_author}
-							<span contenteditable="true" bind:textContent={tag} class="tag">
-								{tag}
-							</span>
-							<span
-								style="color: var(--pico-del-color); cursor: pointer; margin-right: 1rem;"
-								onclick={() => deleteTag(tag)}>&times;</span
-							>
-						{:else}
-							<a href={`${env.PUBLIC_URL}/members?q=${tag}`} target="_blank" class="tag">
-								{tag}
-							</a>
-						{/if}
-					{/each}
-					{#if is_author}
-						<span
-							onclick={addTags}
-							style="color: var(--pico-primary); cursor: pointer;"
-							title="Add tag"
-						>
-							+
-						</span>
-					{/if}
+				<span
+					onclick={addTags}
+					style="color: var(--pico-primary); cursor: pointer;"
+					title="Add tag"
+				>
+					+
 				</span>
-			</div>
-		{/if}
-	</main>
+			{/if}
+		</div>
+	</div>
 {/if}
 
 <style>
-	main {
-		margin-top: 1em;
-		display: flex;
-		align-items: center;
-		flex-direction: column;
+	.retro {
+		padding: 2rem 6rem;
+		display: inline-block;
+		background-color: var(--pico-background-color);
+		--pico-background-color: #000;
+		--pico-color: #d0dec5;
+		--pico-h1-color: #ccfca7;
+		--pico-span-color: #ccfca7;
+		/* min-height: 100vh; */
 	}
-	main img {
-		border-radius: 100%;
-		margin-top: 2em;
+	@media (max-width: 800px) {
+		.retro {
+			padding: 2rem 2rem;
+		}
 	}
-	main p {
-		padding: 1em;
-		margin: 1em;
-	}
-	.tag {
-		padding: 0.25em;
-	}
-	.tag::before {
-		content: '#';
-	}
-	.links {
-		margin: 0.5em;
-		display: flex;
-	}
-	.link {
-		margin: 0.5em;
-	}
-
-	.avatar-figure {
-		position: relative;
-	}
-	.avatar-figure img {
-		position: relative;
-		z-index: -3;
-	}
-	.avatar-figcaption {
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		border-radius: 100%;
-		background-color: var(--pico-secondary);
-		height: 70px;
-		width: 70px;
-		z-index: 1;
-	}
-	.avatar-figcaption img {
-		height: 50px;
+	.retro-avatar {
 		width: 50px;
+		border-radius: 50%;
+		box-shadow: 1px 1px 1px 1px var(--pico-color);
+	}
+	.retro-name {
+		display: inline-block;
+		vertical-align: middle;
+		margin: 0 0 0 1rem;
+	}
+	.retro span {
+		color: var(--pico-span-color);
+	}
+	.retro-links {
+		display: flex;
+		gap: 25px;
+	}
+	.retro-link-label {
 		display: block;
-		margin: auto;
-		margin-top: 0px;
-		z-index: 2;
+		color: #d0dec5 !important;
+		font-size: 1.2rem;
+		font-weight: bold;
+		text-align: center;
+		text-transform: uppercase;
+	}
+	.retro-link-url {
+		color: #d0dec5 !important;
+		font-size: 0.8rem;
+	}
+	.retro-link {
+		text-decoration: none;
+		color: #d0dec5;
+		display: block;
+		margin: 20px 0;
+		border: 1px solid #d0dec5;
+		padding: 8px 13px;
+		border-radius: 7px;
+	}
+	.retro-link:hover {
+		background-color: #d0dec5;
+	}
+	.retro-link:hover .retro-link-label,
+	.retro-link:hover .retro-link-url {
+		color: #000 !important;
+	}
+	.retro-tags {
+		display: flex;
+		text-align: center;
+		align-items: center;
+		justify-content: center;
+		margin-top: 2rem;
+	}
+	.retro-tag {
+		color: #63e400;
+		margin: 1ex;
+	}
+	.retro-tag::before {
+		content: '#';
 	}
 </style>

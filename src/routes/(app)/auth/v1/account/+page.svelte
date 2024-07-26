@@ -30,6 +30,7 @@
 	let mastodon_server = $state(data.profile?.mastodon_server || '');
 	let mastodon_username = $state(data.profile?.mastodon_username || '');
 	let mastodon_access_token = $state(data.profile?.mastodon_access_token || '');
+	let subsite_theme = $state(data.profile?.subsite_theme || '');
 
 	let tags = $state(data.profile?.tags || []);
 	let tagsString = $state((data.profile?.tags || []).join(', '));

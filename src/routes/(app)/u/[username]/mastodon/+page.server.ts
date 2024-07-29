@@ -29,6 +29,7 @@ export const load: PageServerLoad = async ({
 	const mastodon_server = profile.mastodon_server;
 	const mastodon_username = profile.mastodon_username;
 	const mastodon_access_token = profile.mastodon_access_token;
+	const subsite_theme = profile.subsite_theme;
 
 	const mastodon_data = await fetch(
 		`${mastodon_server}/api/v1/accounts/lookup?acct=${mastodon_username}`,
@@ -49,7 +50,8 @@ export const load: PageServerLoad = async ({
 		following_count: mastodon_data.following_count,
 		statuses_count: mastodon_data.statuses_count,
 		fields: mastodon_data.fields,
-		mastodon_server: mastodon_server ? mastodon_server.replace('https://', '') : ''
+		mastodon_server: mastodon_server ? mastodon_server.replace('https://', '') : '',
+		subsite_theme
 	};
 
 	return { profile, params, mastodon_profile, search: url.searchParams.get('q') || undefined };

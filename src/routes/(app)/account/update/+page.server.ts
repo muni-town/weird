@@ -77,6 +77,11 @@ export const actions = {
 			mastodon_access_token = null;
 		}
 
+		let subsite_theme = data.get('subsite_theme');
+		if (subsite_theme == '') {
+			subsite_theme = null;
+		}
+
 		const json = JSON.stringify({
 			username,
 			display_name,
@@ -89,7 +94,8 @@ export const actions = {
 			bio,
 			mastodon_server,
 			mastodon_username,
-			mastodon_access_token
+			mastodon_access_token,
+			subsite_theme
 		});
 
 		if (token) {

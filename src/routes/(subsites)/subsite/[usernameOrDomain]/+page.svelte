@@ -2,14 +2,60 @@
 	import { env } from '$env/dynamic/public';
 	import type { Profile } from '../../../(app)/auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
+	import Minimal from '$lib/themes/minimal.svelte';
+	import Retro from '$lib/themes/retro.svelte';
+	import Panel from '$lib/components/subsite-admin/panel.svelte';
 	const { data }: { data: PageData } = $props();
 	const profile: Profile = data.profile!;
 	const token = data.token!;
 	const is_author = data.is_author!;
 	const username = profile.username;
 
+	let theme: string = $state(profile.subsite_theme || 'minimal');
+	let unsavedChanges = $state(false);
+	let avatar = `/u/${profile.username}/avatar`;
+	let fallbackAvatar = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${profile.username}`;
+
+	let setUnsavedChanges = (value: boolean) => {
+		unsavedChanges = value;
+	};
+	const setAvatar = (new_avatar: string) => {
+		avatar = new_avatar;
+		unsavedChanges = true;
+	};
+
 	const display_name = profile.display_name || (profile.username || '').split('@')[0];
-	import Minimal from '$lib/themes/minimal.svelte';
+
+	const submitChanges = async () => {
+		const formData = new FormData();
+		for (const key in profile) {
+			if (key === 'links') {
+				profile[key]?.forEach((link) => {
+					formData.append('link-url', link.url);
+					formData.append('link-label', link.label);
+				});
+			}
+			formData.append(key, profile[key]);
+		}
+		formData.append('token', token);
+		const avatar_blob = await fetch(avatar)
+			.then((res) => res.blob())
+			.then((blob) => new File([blob], 'avatar.png', { type: 'image/png' }));
+
+		formData.append('avatar', avatar_blob, 'avatar.png');
+		fetch(`${env.PUBLIC_URL}/account/update`, {
+			method: 'POST',
+			body: formData,
+			mode: 'cors'
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				unsavedChanges = false;
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	};
 </script>
 
 <svelte:head>
@@ -19,7 +65,62 @@
 	<link rel="stylesheet" href="pico.min.css" />
 	<title>{display_name}</title>
 </svelte:head>
-<Minimal {profile} {token} {is_author} />
+
+{#if is_author}
+	<div class="subsite">
+		<div class="subsite-theme">
+			{#if theme === 'minimal'}
+				<Minimal
+					{profile}
+					{token}
+					{is_author}
+					{setUnsavedChanges}
+					{avatar}
+					{fallbackAvatar}
+					{setAvatar}
+				/>
+			{:else if theme === 'retro'}
+				<Retro
+					{profile}
+					{token}
+					{is_author}
+					{setUnsavedChanges}
+					{avatar}
+					{fallbackAvatar}
+					{setAvatar}
+				/>
+			{/if}
+		</div>
+		<div class="subsite-admin-panel">
+			<Panel
+				set_theme_callback={(new_theme: string) => {
+					theme = new_theme;
+					profile.subsite_theme = new_theme;
+					unsavedChanges = true;
+				}}
+			/>
+		</div>
+	</div>
+{:else if theme === 'minimal'}
+	<Minimal
+		{profile}
+		{token}
+		{is_author}
+		{setUnsavedChanges}
+		{avatar}
+		{fallbackAvatar}
+		{setAvatar}
+	/>
+{:else if theme === 'retro'}
+	<Retro {profile} {token} {is_author} {setUnsavedChanges} {avatar} {fallbackAvatar} {setAvatar} />
+{/if}
+
+{#if unsavedChanges}
+	<div role="group" style="max-width: 80vw;" class="unsaved-changes">
+		<p>You have unsaved changes.</p>
+		<button class="btn" onclick={() => submitChanges()}> Save </button>
+	</div>
+{/if}
 <footer>
 	Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
 </footer>
@@ -33,5 +134,38 @@
 		text-align: center;
 		width: 100%;
 		margin-bottom: 0.5em;
+	}
+	.subsite {
+		display: flex;
+		width: 100%;
+	}
+	.subsite-theme {
+		width: 70%;
+	}
+	.subsite-admin-panel {
+		width: 30%;
+	}
+	@media (max-width: 800px) {
+		.subsite {
+			flex-direction: column;
+		}
+		.subsite-theme {
+			width: 100%;
+		}
+		.subsite-admin-panel {
+			width: 100%;
+		}
+	}
+	.unsaved-changes {
+		padding: 0.75rem 1.25rem;
+		margin: 0 10vw;
+		border: 1px solid;
+		border-radius: 0.25rem;
+		position: fixed;
+		bottom: 2em;
+		background-color: var(--pico-mark-background-color);
+	}
+	.unsaved-changes button {
+		padding: none;
 	}
 </style>

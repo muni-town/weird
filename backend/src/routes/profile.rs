@@ -45,6 +45,7 @@ pub fn install(router: Router<AppState>) -> Router<AppState> {
         .route("/profile/username/:username", get(get_profile_by_name))
         .route("/profile/domain/:domain", get(get_profile_by_domain))
         .route("/profile/domain/:domain", post(set_domain_for_profile))
+        .route("/profile/by-token/:domain", get(get_profile_by_token))
         .route("/profile/by-token/:domain", post(post_profile_by_token))
         .route("/avatar/by-token/:domain", post(post_avatar_by_token))
         .route(
@@ -281,6 +282,29 @@ async fn post_verify_token(Path(domain): Path<String>, headers: HeaderMap) -> Ap
     } else {
         Err(anyhow::format_err!("Token is invalid").into())
     }
+}
+async fn get_profile_by_token(
+    state: State<AppState>,
+    Path(domain): Path<String>,
+    headers: HeaderMap,
+) -> AppResult<Json<Profile>> {
+    let token = headers
+        .get("x-token-auth")
+        .ok_or_else(|| anyhow::format_err!("x-token-auth header not provided"))?;
+    let token = token.to_str()?;
+
+    let stored_token = USER_TOKENS
+        .get(&domain)
+        .ok_or_else(|| anyhow::format_err!("Invalid token."))?;
+    if stored_token.token != token {
+        return Err(anyhow::format_err!("Invalid token.").into());
+    }
+
+    let author = state
+        .weird
+        .get_or_init_author(&stored_token.user_id)
+        .await?;
+    Ok(Json(state.weird.get_profile(author).await?))
 }
 
 async fn post_profile_by_token(

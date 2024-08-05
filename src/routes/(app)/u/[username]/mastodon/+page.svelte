@@ -46,22 +46,7 @@
 				reblog_flag = '&exclude_reblogs=true';
 				break;
 		}
-		if (search && profile.mastodon_access_token) {
-			fetch(
-				`https://${mastodon_profile.mastodon_server}/api/v2/search?q=${search}&resolve=true&type=statuses&limit=40&account_id=${mastodon_profile.id}`,
-				{
-					method: 'GET',
-					headers: {
-						Authorization: `Bearer ${profile.mastodon_access_token}`
-					}
-				}
-			)
-				.then((r) => r.json())
-				.then((stt) => {
-					console.log(stt);
-					statuses = stt.statuses;
-				});
-		} else fetchStatuses(reblog_flag);
+		if (!search) fetchStatuses(reblog_flag);
 	});
 
 	const fetchMore = () => {
@@ -170,7 +155,10 @@
 		</div>
 		<div class="columns-1 md:columns-2 lg:columns-3 xl:columns-4">
 			{#each statuses as status}
-				<div class="w-full p-2 no-underline">
+				<div
+					class="w-full p-2 no-underline"
+					style={!status.content.includes(search) && search ? 'display: none' : ''}
+				>
 					<div
 						class="border-gray-00 flex h-full flex-col items-start overflow-hidden rounded-lg border-2 border-opacity-60"
 					>

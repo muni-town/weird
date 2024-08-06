@@ -1,8 +1,10 @@
 //! The core engine of a Weird instance.
 
+use futures::{pin_mut, StreamExt};
 use std::{path::Path, str::FromStr};
 
-use gdata::{GStoreBackend, IrohGStore, Key};
+use crate::profile::PROFILES_KEY;
+use gdata::{GStoreBackend, IrohGStore, Key, Value};
 use hickory_resolver::{
     config::{ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
@@ -90,6 +92,15 @@ impl Weird<iroh::blobs::store::fs::Store> {
             .await?;
 
         // Run global namespace migrations ( we don't have any because this is the first version )
+        let profiles = graph.get_or_init_map((ns, &*PROFILES_KEY)).await?;
+        let profiles = profiles.list_items().await?;
+        pin_mut!(profiles);
+        while let Some(profile) = profiles.next().await {
+            let profile = profile?;
+            profile
+                .set_key("mastodon_access_token", Value::Null)
+                .await?;
+        }
 
         tracing::info!(instance_id = %ns, %instance_ticket, "Started weird instance");
 

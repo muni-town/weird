@@ -424,15 +424,7 @@ impl Profile {
                     .unwrap_or(Value::Null),
             )
             .await?;
-        value
-            .set_key(
-                "mastodon_access_token",
-                self.mastodon_access_token
-                    .clone()
-                    .map(|x| x.into())
-                    .unwrap_or(Value::Null),
-            )
-            .await?;
+        value.set_key("mastodon_access_token", Value::Null).await?;
         value
             .set_key(
                 "subsite_theme",

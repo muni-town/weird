@@ -8,4 +8,7 @@ yarn.lock
 *.yaml
 *.md
 
+# Manually crafted using https://jakearchibald.github.io/svgomg
+.svg
+
 static/

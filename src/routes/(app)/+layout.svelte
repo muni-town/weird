@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { LayoutData } from './$types';
-	import DefaultLayout from '$lib/components/layouts/DefaultLayout.svelte';
+	import DefaultLayout from '$lib/components/layouts/Default.svelte';
 	import '../../app.css';
 	import { setSessionInfo, setUserInfo } from '$lib/rauthy';
 	import type { Snippet } from 'svelte';

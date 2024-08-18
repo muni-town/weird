@@ -8,6 +8,8 @@ Independent contributions (i.e., individual pull requests) from anyone other tha
 
 Meaning, that all independent contributors retain ownership of their contributions, albeit non-exclusively. In other words, your contributions belong equally to the Weird project as they do to you.
 
+Furthermore, as a consequence of our [Polyform Countdowm License Grant](https://polyformproject.org/licenses/countdown/1.0.0/), all code releases older than two years are solely licensed as Blue Oak Model License v1.0, i.e. no longer dual-licensed.
+
 ## Q&A
 
 #### What is a "Contributor License Compromise"

@@ -4,11 +4,11 @@ Thanks for your help in improving the project! We are so happy to have you!
 
 ## Contributor License Compromise
 
-Independent contributions (i.e., individual pull requests) from anyone other than the Weird team ([Erlend Sogge Heggen][erlend], [Kapono Haws][kapono], and [Joe][joe]) are dual-licensed as [Polyform NonCommercial][polyform] (granted to Weird as the _licensor_) and [Blue Oak Model License v1.0][blueoak] (OSI approved).
+Independent contributions (i.e., individual pull requests) from anyone other than the Weird team ([Erlend Sogge Heggen][erlend], [Kapono Haws][kapono], and [Joe][joe]) are dual-licensed as [Polyform NonCommercial][polyform] (granted to Weird as the _licensor_) and [Blue Oak Model License v1.0][blueoak].
 
 Meaning, that all independent contributors retain ownership of their contributions, albeit non-exclusively. In other words, your contributions belong equally to the Weird project as they do to you.
 
-Furthermore, as a consequence of our [Polyform Countdowm License Grant](https://polyformproject.org/licenses/countdown/1.0.0/), all code releases older than two years are solely licensed as Blue Oak Model License v1.0, i.e. no longer dual-licensed.
+Furthermore, as a consequence of our [Polyform Countdowm License Grant](https://polyformproject.org/licenses/countdown/1.0.0/), all code releases older than two years are solely licensed as Blue Oak Model License v1.0, i.e. no longer PolyForm NonCommercial licensed.
 
 ## Q&A
 
@@ -22,7 +22,7 @@ Because Weird wants to serve self-hosters and cloud-subscribers on equal terms. 
 
 #### Why the Blue Oak license for contributors and general utilities?
 
-Blue Oak is a simpler and [more modern alternative][blue-oak] to older permissive licenses with equivalent legal implications.
+Blue Oak is a simpler and [more modern alternative][blue-oak] to older permissive licenses with equivalent legal implications. It is [OSI approved][osi-approved]
 
 ## Development Setup
 
@@ -90,6 +90,7 @@ You can do this by running `just comply` followed by `just check`.
 [joe]: https://github.com/hnb-ku
 [polyform]: https://polyformproject.org/licenses/noncommercial/1.0.0/
 [blueoak]: https://blueoakcouncil.org/license/1.0.0
+[osi-approved]: https://opensource.org/license/blue-oak-model-license
 
 <!-- dprint-ignore -->
 [cla]: https://en.wikipedia.org/wiki/Contributor_License_Agreement

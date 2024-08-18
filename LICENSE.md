@@ -15,7 +15,7 @@ Version 1.0.0
 
 ## Start Date
 
-2026-08-01 (ISO 8601-1:2019)
+{start date} (ISO 8601-1:2019)
 
 ## License
 

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { pow_work_wasm } from '$lib/spow/spow-wasm';
 	import { checkResponse } from '$lib/utils';
 
 	let email = $state('');
@@ -20,14 +19,15 @@
 		processing = true;
 		event.preventDefault();
 		try {
-			let challenge = await get_pow_challenge();
-			console.debug('Computing proof of work', challenge);
-			powInput.value = (await pow_work_wasm(challenge)) || '';
-			console.debug('Completed proof of work', powInput.value);
-			if (powInput.value == '') {
-				processing = false;
-				throw 'Error computing proof of work, you may need a browser update.';
-			}
+			// TODO: add proof-of-work challenge for feedback form.
+			// 	let challenge = await get_pow_challenge();
+			// 	console.debug('Computing proof of work', challenge);
+			// 	powInput.value = (await pow_work_wasm(challenge)) || '';
+			// 	console.debug('Completed proof of work', powInput.value);
+			// 	if (powInput.value == '') {
+			// 		processing = false;
+			// 		throw 'Error computing proof of work, you may need a browser update.';
+			// 	}
 			(event.target! as HTMLFormElement).submit();
 		} catch (e) {
 			processing = false;

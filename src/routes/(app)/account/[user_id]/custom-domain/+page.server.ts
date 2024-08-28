@@ -1,10 +1,10 @@
 import type { Actions, PageServerLoad } from './$types';
-import { backendFetch } from '$lib/backend';
 import { getSession } from '$lib/rauthy/server';
-import type { Profile } from '../../../auth/v1/account/+page.server';
 import { checkResponse } from '$lib/utils';
 import { env } from '$env/dynamic/public';
 import { createChallenge } from '$lib/dns-challenge';
+import { getProfileById, setCustomDomain, type Profile } from '$lib/leaf/profile';
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({
 	fetch,
@@ -30,9 +30,8 @@ export const load: PageServerLoad = async ({
 	let { userInfo } = await getSession(fetch, request);
 	if (userInfo) {
 		dnsChallenge = await createChallenge(userInfo.id);
-		resp = await backendFetch(fetch, `/profile/${userInfo.id}`);
-		await checkResponse(resp);
-		const profile: Profile = await resp.json();
+		const profile = await getProfileById(userInfo.id);
+		if (!profile) return error(404, 'Profile not found');
 
 		return { profile, serverIp, dnsChallenge };
 	} else {
@@ -59,23 +58,9 @@ export const actions = {
 				throw 'Error validating DNS challenge';
 			}
 
-			resp = await backendFetch(fetch, `/profile/domain/${userInfo.id}`, {
-				method: 'post',
-				headers: [['content-type', 'application/json']],
-				body: JSON.stringify({
-					domain: customDomain
-				})
-			});
-			await checkResponse(resp);
+			await setCustomDomain(userInfo.id, customDomain.toString());
 		} else {
-			resp = await backendFetch(fetch, `/profile/domain/${userInfo.id}`, {
-				method: 'post',
-				headers: [['content-type', 'application/json']],
-				body: JSON.stringify({
-					domain: null
-				})
-			});
-			await checkResponse(resp);
+			await setCustomDomain(userInfo.id, undefined);
 		}
 	}
 } satisfies Actions;

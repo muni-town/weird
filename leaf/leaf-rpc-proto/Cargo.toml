@@ -1,0 +1,8 @@
+[package]
+name = "leaf-rpc-proto"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+borsh = { version = "1.5.1", features = ["derive"] }
+leaf-protocol = { path = "../leaf-protocol", default-features = false }

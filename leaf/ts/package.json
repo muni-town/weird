@@ -1,0 +1,14 @@
+{
+	"name": "leaf-proto",
+	"version": "0.0.0",
+	"description": "Leaf protocol RPC client.",
+	"keywords": [],
+	"author": "Commune Developers ( https://github.com/commune-os )",
+	"license": "BlueOak-1.0.0",
+	"dependencies": {
+		"@noble/hashes": "^1.4.0",
+		"base32-decode": "^1.0.0",
+		"base32-encode": "^1.0.0",
+		"borsher": "^3.5.0"
+	}
+}

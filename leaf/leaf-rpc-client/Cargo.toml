@@ -1,0 +1,18 @@
+[package]
+name = "leaf-rpc-client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fastwebsockets = { version = "=0.8.0", features = ["upgrade", "unstable-split"] }
+hyper = "1.4.1"
+hyper-util = { version = "0.1.6", features = ["tokio"] }
+tokio = "1.39.2"
+
+anyhow = "1.0.86"
+async-stream = "0.3.5"
+futures = { version = "0.3.30", default-features = false }
+leaf-protocol = { path = "../leaf-protocol", default-features = false }
+leaf-rpc-proto = { path = "../leaf-rpc-proto" }
+tokio-stream = "0.1.15"
+tracing = "0.1.40"

@@ -1,5 +1,5 @@
-import { Pow } from "./wasm/spow-wasm";
+import { Pow } from './wasm/spow-wasm';
 
-Pow.init_random()
+Pow.init_random();
 
-export { Pow }
+export { Pow };

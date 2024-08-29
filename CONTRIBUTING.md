@@ -1,28 +1,34 @@
 # Contributing to Weird
 
-Thanks for your help in improving the project! We are so happy to have you!
+Thanks for your help in improving the project!
 
 ## Contributor License Compromise
 
-Independent contributions (i.e., individual pull requests) from anyone other than the Weird team ([Erlend Sogge Heggen][erlend], [Kapono Haws][kapono], and [Joe][joe]) are dual-licensed as [Polyform NonCommercial][polyform] (granted to Weird as the _licensor_) and [Blue Oak Model License v1.0][blueoak].
+Independent contributions (i.e., individual pull requests) from anyone other than the Weird team ([Erlend Sogge Heggen][erlend] a d [Kapono Haws][kapono]) are dual-licensed as [Polyform NonCommercial][polyform] (granted to Weird as the _licensor_) and [Blue Oak Model License v1.0][blueoak].
 
-Meaning, that all independent contributors retain ownership of their contributions, albeit non-exclusively. In other words, your contributions belong equally to the Weird project as they do to you.
+Thusly all independent contributors retain ownership of their contributions, albeit non-exclusively. In other words, your contributions belong equally to you as to the Weird project.
 
-Furthermore, as a consequence of our [Polyform Countdowm License Grant](https://polyformproject.org/licenses/countdown/1.0.0/), all code releases older than two years are solely licensed as Blue Oak Model License v1.0, i.e. no longer PolyForm NonCommercial licensed.
+Furthermore, as a consequence of our [Polyform Countdown License Grant](/LICENSE.md#polyform-countdown-to-blue-oak), all code releases older than two years are solely licensed as Blue Oak Model License v1.0, i.e. no longer PolyForm NonCommercial licensed.
+
+<details>
+
+<summary>ℹ️ Questions and Answers</summary>
 
 ## Q&A
 
 #### What is a "Contributor License Compromise"
 
-It is our alternative to a [CLA][cla] or [DCO][dco]. The CLC intends to grant the maintainers of Weird the necessary ownership privileges to run a sustainable project whilst providing a low-friction way for external contributors to submit changes without relinquishing ownership of their contributions.
+It is our alternative to a [CLA][cla] or [DCO][dco]. The CLC intends to grant the maintainers of Weird the necessary ownership privileges to run a sustainable project whilst providing a low-friction way for external contributors to submit changes without fully relinquishing ownership of their contributions.
 
 #### Why the PolyForm NonCommercial license?
 
 Because Weird wants to serve self-hosters and cloud-subscribers on equal terms. As product developers we believe 'you become what you sell', and we want first and foremost to be software providers, not cloud providers. (Expounding blog post TBA).
 
-#### Why the Blue Oak license for contributors and general utilities?
+#### Why the Blue Oak license?
 
 Blue Oak is a simpler and [more modern alternative][blue-oak] to older permissive licenses with equivalent legal implications. It is [OSI approved][osi-approved]
+
+</details>
 
 ## Development Setup
 

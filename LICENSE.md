@@ -1,9 +1,18 @@
-Weird source code is Copyright (c) 2024 Weird team ([Erlend Sogge Heggen](https://github.com/erlend-sh/) & [Kapono Haws](https://github.com/zicklag/) \
+# PolyForm NonCommercial
+
+Weird source code is Copyright (c) 2024 Weird team ([Erlend Sogge Heggen](https://github.com/erlend-sh/) & [Kapono Haws](https://github.com/zicklag/))
 and licensed as [PolyForm NonCommercial v1.0](https://polyformproject.org/licenses/noncommercial/1.0.0/).
 
-..except for the general utilities of `/example`, `/example2` and `/example3`, which are licensed under [Blue Oak Model License v1.0](https://blueoakcouncil.org/license/1.0.0).
+An exception is made for the contents of `/leaf`, licensed under [Blue Oak Model License v1.0](https://blueoakcouncil.org/license/1.0.0).
 
-By utilizing [Polyform Countdown](https://writing.kemitchell.com/2023/12/01/PolyForm-Countdown#transition) for delayed relicensing, all Weird source code is made freely available as permissive open source software two years after its release, licensed as [Blue Oak Model License v1.0](https://blueoakcouncil.org/license/1.0.0).
+> **Note**  
+Further information is provided in [CONTRIBUTING.md](https://github.com/muni-town/weird/blob/main/CONTRIBUTING.md)
+
+### PolyForm Countdown to Blue Oak
+
+By utilizing [PolyForm Countdown](https://writing.kemitchell.com/2023/12/01/PolyForm-Countdown#transition) for delayed relicensing, all Weird source code is made freely available as permissive open source software two years after its packaged release, licensed as [Blue Oak Model License v1.0](https://blueoakcouncil.org/license/1.0.0).
+
+`{start date}` is automatically set to each version-release date.
 
 - - - 
 

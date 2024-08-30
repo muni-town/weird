@@ -334,7 +334,6 @@ export async function listDomains(): Promise<string[]> {
 		if (domain) {
 			domains.push(domain.value);
 		} else if (username) {
-			console.log(username.value)
 			const [name, domain] = username.value.split('@');
 			if (domain == env.PUBLIC_DOMAIN) {
 				domains.push(`${name}.${env.PUBLIC_DOMAIN}`);

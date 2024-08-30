@@ -24,9 +24,7 @@
 	}, 2000);
 
 	const checkDomain = _.throttle(async () => {
-		console.log('throttle');
 		if (customDomain != '') {
-			console.log(customDomain);
 			if (customDomain.endsWith(env.PUBLIC_DOMAIN)) {
 				domainStatus = 'Cannot use instance domain';
 				domainValid = false;
@@ -59,7 +57,6 @@
 	$effect(() => {
 		(async () => {
 			domainReCheck;
-			console.log('touch');
 			await checkDomain();
 		})();
 	});

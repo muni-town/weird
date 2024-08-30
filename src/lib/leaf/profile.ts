@@ -2,6 +2,7 @@ import { BorshSchema, Component, type ExactLink, type PathSegment } from 'leaf-p
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import { instance_link, leafClient } from '.';
 import { env } from '$env/dynamic/public';
+import _ from 'underscore';
 
 export const PROFILE_PREFIX: PathSegment = { String: 'profiles' };
 
@@ -177,6 +178,21 @@ export async function profileLinkByUsername(username: string): Promise<ExactLink
 
 	return undefined;
 }
+export async function profileLinkByDomain(domain: string): Promise<ExactLink | undefined> {
+	const profilesLink = instance_link([PROFILE_PREFIX]);
+	const entities = await leafClient.list_entities(profilesLink);
+	for (const link of entities) {
+		const ent = await leafClient.get_components(link, [WeirdCustomDomain]);
+		if (ent) {
+			const u = ent.get(WeirdCustomDomain);
+			if (u && u.value == domain) {
+				return link;
+			}
+		}
+	}
+
+	return undefined;
+}
 
 export async function getProfile(link: ExactLink): Promise<Profile | undefined> {
 	let ent = await leafClient.get_components(link, [
@@ -207,6 +223,13 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 	const delComponents = [];
 	const add_components = [];
 
+	if (profile.username) {
+		const existingProfileWithUsername = await profileLinkByUsername(profile.username);
+		if (existingProfileWithUsername && !_.isEqual(link, existingProfileWithUsername)) {
+			throw `Username already taken: ${profile.username}`;
+		}
+	}
+
 	profile.display_name
 		? add_components.push(new Name(profile.display_name))
 		: delComponents.push(Name);
@@ -214,9 +237,6 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 	profile.username
 		? add_components.push(new Username(profile.username))
 		: delComponents.push(Username);
-	profile.custom_domain
-		? add_components.push(new WeirdCustomDomain(profile.custom_domain))
-		: delComponents.push(WeirdCustomDomain);
 	profile.mastodon_profile
 		? add_components.push(new MastodonProfile(profile.mastodon_profile))
 		: delComponents.push(MastodonProfile);
@@ -226,6 +246,9 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 	add_components.push(new WebLinks(profile.links));
 	add_components.push(new Tags(profile.tags));
 
+	// NOTE: We don't set the user domain with this function. Setting the domain should be done
+	// separately with `setCustomDomain()`.
+
 	// TODO: allow deleting and adding components in the same RPC request.
 	if (delComponents.length > 0) await leafClient.del_components(link, delComponents);
 	await leafClient.add_components(link, add_components);
@@ -233,7 +256,13 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 
 export async function setCustomDomain(userId: string, domain?: string): Promise<void> {
 	const link = profileLinkById(userId);
+
 	if (domain) {
+		const existingProfileWithDomain = await profileLinkByDomain(domain);
+		if (existingProfileWithDomain && !_.isEqual(link, existingProfileWithDomain)) {
+			throw `Domain already taken by another user: ${domain}`;
+		}
+
 		await leafClient.add_components(link, [new WeirdCustomDomain(domain)]);
 	} else {
 		await leafClient.del_components(link, [WeirdCustomDomain]);
@@ -267,6 +296,11 @@ export async function getProfileByUsername(username: string): Promise<Profile | 
 	if (!link) return;
 	return await getProfile(link);
 }
+export async function getProfileByDomain(domain: string): Promise<Profile | undefined> {
+	const link = await profileLinkByDomain(domain);
+	if (!link) return;
+	return await getProfile(link);
+}
 export async function setProfileById(rauthyId: string, profile: Profile): Promise<void> {
 	await setProfile(profileLinkById(rauthyId), profile);
 }
@@ -282,4 +316,19 @@ export async function getProfiles(): Promise<Profile[]> {
 		profiles.push(profile);
 	}
 	return profiles;
+}
+
+export async function listDomains(): Promise<string[]> {
+	const profilesLink = instance_link([PROFILE_PREFIX]);
+	const entities = await leafClient.list_entities(profilesLink);
+	const domains: string[] = [];
+
+	for (const link of entities) {
+		const ent = await leafClient.get_components(link, [WeirdCustomDomain]);
+		if (!ent) continue;
+		const domain = ent.get(WeirdCustomDomain);
+		if (!domain) continue;
+		domains.push(domain.value);
+	}
+	return domains;
 }

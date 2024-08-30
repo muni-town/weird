@@ -52,7 +52,9 @@
 		"vite": "^5.4.2",
 		"vite-plugin-top-level-await": "^1.4.4",
 		"vite-plugin-wasm": "^3.3.0",
-		"ws": "^8.18.0"
+		"ws": "^8.18.0",
+		"underscore": "^1.13.7",
+		"@types/underscore": "^1.11.15"
 	},
 	"type": "module"
 }

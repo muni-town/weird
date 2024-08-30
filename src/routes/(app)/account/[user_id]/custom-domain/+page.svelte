@@ -3,6 +3,7 @@
 	import { getUserInfo } from '$lib/rauthy';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
+	import _ from 'underscore';
 
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
@@ -20,40 +21,46 @@
 
 	setInterval(() => {
 		domainReCheck = domainReCheck + 1;
-	}, 5000);
+	}, 2000);
+
+	const checkDomain = _.throttle(async () => {
+		console.log('throttle');
+		if (customDomain != '') {
+			console.log(customDomain);
+			if (customDomain.endsWith(env.PUBLIC_DOMAIN)) {
+				domainStatus = 'Cannot use instance domain';
+				domainValid = false;
+				domainStatusColor = 'red';
+				return;
+			}
+
+			let resp;
+			try {
+				resp = await fetch(
+					`/account/${userInfo?.id}/custom-domain/check/${customDomain}/${data.dnsChallenge}`
+				);
+			} catch (_) {}
+			if (resp?.status == 200) {
+				domainStatus = 'Domain validated';
+				domainValid = true;
+				domainStatusColor = 'green';
+			} else {
+				domainStatus =
+					'Domain check unsuccessful. If you already set the DNS correctly you may just need to wait for it to propagate.';
+				domainValid = false;
+				domainStatusColor = 'red';
+			}
+		} else {
+			domainStatus = '';
+			domainValid = true;
+		}
+	}, 2000);
 
 	$effect(() => {
 		(async () => {
 			domainReCheck;
-
-			if (customDomain != '') {
-				if (customDomain.endsWith(env.PUBLIC_DOMAIN)) {
-					domainStatus = 'Cannot use instance domain';
-					domainValid = false;
-					domainStatusColor = 'red';
-					return;
-				}
-
-				let resp;
-				try {
-					resp = await fetch(
-						`/account/${userInfo?.id}/custom-domain/check/${customDomain}/${data.dnsChallenge}`
-					);
-				} catch (_) {}
-				if (resp?.status == 200) {
-					domainStatus = 'Domain validated';
-					domainValid = true;
-					domainStatusColor = 'green';
-				} else {
-					domainStatus =
-						'Domain check unsuccessful. If you already set the DNS correctly you may just need to wait for it to propagate.';
-					domainValid = false;
-					domainStatusColor = 'red';
-				}
-			} else {
-				domainStatus = '';
-				domainValid = true;
-			}
+			console.log('touch');
+			await checkDomain();
 		})();
 	});
 

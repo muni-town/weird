@@ -104,7 +104,7 @@ export const actions = {
 			if (avatarData.name != '') {
 				const origData = new Uint8Array(await avatarData.arrayBuffer());
 				const resized = new Uint8Array((await sharp(origData).resize(256, 256).toBuffer()).buffer);
-				setAvatarById(userInfo.id, new RawImage('image/webp', resized));
+				await setAvatarById(userInfo.id, new RawImage('image/webp', resized));
 			}
 		} catch (e) {
 			console.error('Error updating profile:', e);
@@ -113,7 +113,7 @@ export const actions = {
 		}
 
 		try {
-			setProfileById(userInfo.id, profile);
+			await setProfileById(userInfo.id, profile);
 		} catch (e) {
 			console.error('Error updating profile:', e);
 			return fail(400, { error: `Error updating profile: ${e}` });

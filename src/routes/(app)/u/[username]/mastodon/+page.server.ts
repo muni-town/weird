@@ -1,38 +1,27 @@
 import type { PageServerLoad } from '../$types';
-// import { backendFetch } from '$lib/backend';
-import { getSession } from '$lib/rauthy/server';
-import type { Profile } from '../../../auth/v1/account/proxy+page.server';
 import type { MastodonProfile } from './mastodon';
+import { getProfileByUsername, type Profile } from '$lib/leaf/profile';
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({
 	fetch,
-	request,
 	params,
 	url
 }): Promise<{
-	profile: Profile | { error: string };
+	profile: Profile;
 	params: typeof params;
 	mastodon_profile: MastodonProfile;
 	search?: string;
 }> => {
-	let { userInfo } = await getSession(fetch, request);
-	const loggedIn = !!userInfo;
+	const profile = await getProfileByUsername(params.username);
+	if (!profile) return error(404, 'User not found.');
+	if (!profile.mastodon_profile) return error(404, 'Mastodon profile not registered with user.');
 
-	const resp = await backendFetch(fetch, `/profile/username/${params.username}`);
-	const profile: Profile = await resp.json();
-
-	if (!loggedIn) {
-		profile.contact_info = undefined;
-	}
-	if ('error' in profile) return { profile, params, mastodon_profile: {} as MastodonProfile };
-
-	const mastodon_server = profile.mastodon_server;
-	const mastodon_username = profile.mastodon_username;
-	const mastodon_access_token = profile.mastodon_access_token;
-	const subsite_theme = profile.subsite_theme;
+	const pubpage_theme = profile.pubpage_theme;
+	const mastodon = profile.mastodon_profile;
 
 	const mastodon_data = await fetch(
-		`${mastodon_server}/api/v1/accounts/lookup?acct=${mastodon_username}`,
+		`${mastodon.server}/api/v1/accounts/lookup?acct=${mastodon.username}`,
 		{
 			method: 'GET'
 		}
@@ -50,8 +39,8 @@ export const load: PageServerLoad = async ({
 		following_count: mastodon_data.following_count,
 		statuses_count: mastodon_data.statuses_count,
 		fields: mastodon_data.fields,
-		mastodon_server: mastodon_server ? mastodon_server.replace('https://', '') : '',
-		subsite_theme
+		mastodon_server: mastodon.server ? mastodon.server.replace('https://', '') : '',
+		subsite_theme: pubpage_theme
 	};
 
 	return { profile, params, mastodon_profile, search: url.searchParams.get('q') || undefined };

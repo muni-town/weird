@@ -162,8 +162,6 @@ export function profileLinkById(rauthyId: string): ExactLink {
 	return instance_link([PROFILE_PREFIX, { String: rauthyId }]);
 }
 export async function profileLinkByUsername(username: string): Promise<ExactLink | undefined> {
-	if (!username.endsWith(`@${env.PUBLIC_DOMAIN}`)) throw 'Federation not supported yet';
-
 	const profilesLink = instance_link([PROFILE_PREFIX]);
 	const entities = await leafClient.list_entities(profilesLink);
 	for (const link of entities) {
@@ -171,6 +169,11 @@ export async function profileLinkByUsername(username: string): Promise<ExactLink
 		if (ent) {
 			const u = ent.get(Username);
 			if (u && u.value == username) {
+				if (!username.endsWith(`@${env.PUBLIC_DOMAIN}`)) {
+					console.warn(
+						`Warning: found local username with domain suffix not matching local domain: ${username}`
+					);
+				}
 				return link;
 			}
 		}
@@ -324,11 +327,19 @@ export async function listDomains(): Promise<string[]> {
 	const domains: string[] = [];
 
 	for (const link of entities) {
-		const ent = await leafClient.get_components(link, [WeirdCustomDomain]);
+		const ent = await leafClient.get_components(link, [WeirdCustomDomain, Username]);
 		if (!ent) continue;
 		const domain = ent.get(WeirdCustomDomain);
-		if (!domain) continue;
-		domains.push(domain.value);
+		const username = ent.get(Username);
+		if (domain) {
+			domains.push(domain.value);
+		} else if (username) {
+			console.log(username.value)
+			const [name, domain] = username.value.split('@');
+			if (domain == env.PUBLIC_DOMAIN) {
+				domains.push(`${name}.${env.PUBLIC_DOMAIN}`);
+			}
+		}
 	}
 	return domains;
 }

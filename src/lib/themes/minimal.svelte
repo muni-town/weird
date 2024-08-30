@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Profile } from '../../routes/(app)/auth/v1/account/proxy+page.server';
 	import { env } from '$env/dynamic/public';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
+	import type { Profile } from '$lib/leaf/profile';
 
 	let editingTags = false;
 	let linkLabel = '';
@@ -138,32 +138,7 @@
 			<h1 style="margin-top: 1em;">{profile.display_name}</h1>
 		{/if}
 		<span>
-			<span>{profile.username}</span> •
-			{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
-				{#if is_author}
-					<select bind:value={profile.work_compensation} style="width: fit-content;">
-						<option value="">Not Specified</option>
-						<option value="paid">Paid</option>
-						<option value="volunteer">Volunteer</option>
-					</select>
-				{:else}
-					<span>{printWorkCompensation(profile.work_compensation)}</span> •
-				{/if}
-				{#if is_author}
-					<select bind:value={profile.work_capacity} style="width: fit-content;">
-						<option value="">Not Specified</option>
-						<option value="full_time">Full Time</option>
-						<option value="part_time">Part Time</option>
-					</select>
-				{:else}
-					<span>{printWorkCapacity(profile.work_capacity)}</span> •
-				{/if}
-			{/if}
-			{#if is_author}
-				<span contenteditable="true" bind:textContent={profile.location}></span>
-			{:else}
-				<span>{profile.location}</span>
-			{/if}
+			{profile.username}
 		</span>
 
 		<div class="links">

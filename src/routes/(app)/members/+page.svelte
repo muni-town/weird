@@ -1,48 +1,23 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { PUBLIC_SHOW_WORK_CAPACITY } from '$env/static/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
+	import type { Profile } from '$lib/leaf/profile';
 	import { parseUsername } from '$lib/utils';
-	import type { WorkCapacity, WorkCompensation } from '../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
 	const profiles = data.profiles;
 	let search = $state(data.search || '');
 
-	const printWorkCapacity = (c?: WorkCapacity): string => {
-		if (c == 'full_time') {
-			return 'Full Time';
-		} else if (c == 'part_time') {
-			return 'Part Time';
-		} else {
-			return 'Not Specified';
-		}
-	};
-	const printWorkCompensation = (c?: WorkCompensation): string => {
-		if (c == 'paid') {
-			return 'Paid';
-		} else if (c == 'volunteer') {
-			return 'Volunteer';
-		} else {
-			return 'Not Specified';
-		}
-	};
-
 	let filtered_profiles = $derived.by(() => {
 		const words = search.split(' ');
 		return profiles
-			.filter((x) => {
+			.filter((x: Profile) => {
+				if (!x.username) return false;
 				if (search == '') return true;
 				for (const word of words) {
 					const wordLowercase = word.toLowerCase();
-					for (const field of [
-						x.bio,
-						x.username,
-						printWorkCapacity(x.work_capacity),
-						printWorkCompensation(x.work_compensation),
-						...(x.tags || [])
-					]) {
+					for (const field of [x.bio, x.username, ...(x.tags || [])]) {
 						const fieldLowercase = field?.toLowerCase();
 						if (wordLowercase && fieldLowercase && fieldLowercase.includes(wordLowercase)) {
 							return true;
@@ -51,7 +26,7 @@
 				}
 				return false;
 			})
-			.map((profile) => {
+			.map((profile: Profile) => {
 				// Remove the domain for local usernames
 				const parsedUsername = profile.username && parseUsername(profile.username);
 				const username =
@@ -124,19 +99,6 @@
 						{#if profile.contact_info}
 							<div>
 								{profile.contact_info}
-							</div>
-						{/if}
-						{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
-							<div>
-								{#if profile.work_capacity}
-									{printWorkCapacity(profile.work_capacity)}
-								{/if}
-								{#if profile.work_capacity && profile.work_compensation}
-									&nbsp;/&nbsp;
-								{/if}
-								{#if profile.work_compensation}
-									{printWorkCompensation(profile.work_compensation)}
-								{/if}
 							</div>
 						{/if}
 					</div>

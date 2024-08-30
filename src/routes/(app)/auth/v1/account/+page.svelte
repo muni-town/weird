@@ -370,24 +370,6 @@
 
 				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
 			</label> -->
-			<!-- {#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
-				<label class="label">
-					<span>Work Capacity</span>
-					<select class="select" name="work_capacity" bind:value={work_capacity}>
-						<option value={null}>Not Specified</option>
-						<option value="part_time">Part Time</option>
-						<option value="full_time">Full Time</option>
-					</select>
-				</label>
-				<label class="label">
-					<span>Work Compensation</span>
-					<select class="select" name="work_compensation" bind:value={work_compensation}>
-						<option value={null}>Not Specified</option>
-						<option value="paid">Paid</option>
-						<option value="volunteer">Volunteer</option>
-					</select>
-				</label>
-			{/if} -->
 
 			<label class="label">
 				<span>Sub-Profiles</span>

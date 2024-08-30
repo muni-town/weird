@@ -1,3 +1,4 @@
+import { building } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import '$lib/websocket-polyfill';
 import {
@@ -10,7 +11,7 @@ import {
 } from 'leaf-proto';
 
 /** The Leaf RPC client used to connect to our backend data server. */
-export const leafClient = new RpcClient(env.BACKEND_URL, env.BACKEND_SECRET);
+export let leafClient: RpcClient = null as any;
 
 /** The communal namespace that all Weird instances live in. */
 export const WEIRD_NAMESPACE_SECRET: Digest = new Uint8Array([
@@ -18,29 +19,9 @@ export const WEIRD_NAMESPACE_SECRET: Digest = new Uint8Array([
 	215, 183, 175, 201, 167, 198, 156, 23, 195, 217, 7
 ]);
 
-export const WEIRD_NAMESPACE: Digest =
-	await leafClient.import_namespace_secret(WEIRD_NAMESPACE_SECRET);
+export let WEIRD_NAMESPACE: Digest = null as any;
 
-let secret: string | undefined = env.INSTANCE_SUBSPACE_SECRET;
-
-if (!secret) {
-	const subspace = await leafClient.create_subspace();
-	const key = await leafClient.get_subspace_secret(subspace);
-	if (!key) {
-		throw 'Error: subspace just created does not exist';
-	}
-	secret = base32Encode(key);
-	console.warn(
-		'Warning: INSTANCE_SUBSPACE_SECRET environment variable \
-not set, generating a new secret. Set set the environment variable to \
-this secret when running the server next, to keep using the same data:',
-		secret
-	);
-}
-
-export let INSTANCE_SUBSPACE: Digest = await leafClient.import_subspace_secret(
-	base32Decode(secret)
-);
+export let INSTANCE_SUBSPACE: Digest = null as any;
 
 /** Create an ExactLink from a path in this Weird instance. */
 export function instance_link(path: PathSegment[]): ExactLink {
@@ -51,6 +32,30 @@ export function instance_link(path: PathSegment[]): ExactLink {
 	};
 }
 
-console.log(`Leaf client initialized:
+if (!building) {
+	leafClient = new RpcClient(env.BACKEND_URL, env.BACKEND_SECRET);
+	WEIRD_NAMESPACE = await leafClient.import_namespace_secret(WEIRD_NAMESPACE_SECRET);
+
+	let secret: string | undefined = env.INSTANCE_SUBSPACE_SECRET;
+
+	if (!secret) {
+		const subspace = await leafClient.create_subspace();
+		const key = await leafClient.get_subspace_secret(subspace);
+		if (!key) {
+			throw 'Error: subspace just created does not exist';
+		}
+		secret = base32Encode(key);
+		console.warn(
+			'Warning: INSTANCE_SUBSPACE_SECRET environment variable \
+not set, generating a new secret. Set set the environment variable to \
+this secret when running the server next, to keep using the same data:',
+			secret
+		);
+	}
+
+	INSTANCE_SUBSPACE = await leafClient.import_subspace_secret(base32Decode(secret));
+
+	console.log(`Leaf client initialized:
     Weird Namespace ID        : ${base32Encode(WEIRD_NAMESPACE)}
     Weird Instance Subspace ID: ${base32Encode(INSTANCE_SUBSPACE)}`);
+}

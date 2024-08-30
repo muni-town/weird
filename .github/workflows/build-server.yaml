@@ -1,4 +1,4 @@
-name: Build & Push Container
+name: Build & Push Weird Docker Image
 
 on:
   push:
@@ -13,7 +13,7 @@ env:
 
 jobs:
   build-and-publish:
-    name: Build and Publish Container
+    name: Build and Publish Docker Image
     runs-on: ubuntu-latest
     env:
       DEPLOY_HOOK: ${{ secrets.DEPLOY_HOOK }}
@@ -54,6 +54,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          file: weird.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

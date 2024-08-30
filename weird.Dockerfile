@@ -1,10 +1,10 @@
-FROM node:20 AS build
+FROM node:20-alpine AS build
 RUN npm i -g pnpm
 COPY . /project
 WORKDIR /project
 RUN --mount=type=cache,target=/project/node_modules pnpm i && pnpm run build
 
-FROM node:20
+FROM node:20-alpine
 COPY --from=build /project/build /project
 RUN useradd weird
 RUN echo '{"type": "module"}' > /project/package.json

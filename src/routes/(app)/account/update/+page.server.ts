@@ -4,7 +4,7 @@ import { getSession } from '$lib/rauthy/server';
 import { type CheckResponseError } from '$lib/utils';
 import { fail, type Actions } from '@sveltejs/kit';
 import { RawImage } from 'leaf-proto/components';
-import sharp from 'sharp';
+import { Image, decode as decodeImage } from 'imagescript';
 
 export const actions = {
 	default: async ({ fetch, request }) => {
@@ -103,7 +103,9 @@ export const actions = {
 			const avatarData = data.get('avatar') as File;
 			if (avatarData.name != '') {
 				const origData = new Uint8Array(await avatarData.arrayBuffer());
-				const resized = new Uint8Array((await sharp(origData).resize(256, 256).toBuffer()).buffer);
+				const image = (await decodeImage(origData)) as Image;
+				const resizedImage = image.scale(256 / Math.max(image.width, image.height));
+				const resized = await resizedImage.encodeWEBP(90);
 				await setAvatarById(userInfo.id, new RawImage('image/webp', resized));
 			}
 		} catch (e) {

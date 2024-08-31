@@ -53,8 +53,10 @@
 		"vite-plugin-wasm": "^3.3.0",
 		"ws": "^8.18.0",
 		"underscore": "^1.13.7",
-		"@types/underscore": "^1.11.15",
-		"jimp": "^0.22.12"
+		"@types/underscore": "^1.11.15"
+	},
+	"dependencies": {
+		"sharp": "^0.33.5"
 	},
 	"type": "module"
 }

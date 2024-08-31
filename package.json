@@ -54,7 +54,7 @@
 		"ws": "^8.18.0",
 		"underscore": "^1.13.7",
 		"@types/underscore": "^1.11.15",
-		"@silvia-odwyer/photon-node": "0.3.3"
+		"jimp": "^0.22.12"
 	},
 	"type": "module"
 }

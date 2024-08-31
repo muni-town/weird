@@ -4,7 +4,7 @@ import { getSession } from '$lib/rauthy/server';
 import { type CheckResponseError } from '$lib/utils';
 import { fail, type Actions } from '@sveltejs/kit';
 import { RawImage } from 'leaf-proto/components';
-import photon from '@silvia-odwyer/photon-node';
+import Jimp from 'jimp';
 
 export const actions = {
 	default: async ({ fetch, request }) => {
@@ -102,13 +102,16 @@ export const actions = {
 		try {
 			const avatarData = data.get('avatar') as File;
 			if (avatarData.name != '') {
-				const origData = new Uint8Array(await avatarData.arrayBuffer());
-				const image = photon.PhotonImage.new_from_byteslice(origData);
-				const width = image.get_width();
-				const height = image.get_height();
+				const origData = await avatarData.arrayBuffer();
+				const image = await Jimp.read(origData as any);
+				const width = image.getWidth();
+				const height = image.getHeight();
 				const scale = 256 / Math.max(width, height);
-				const resized = photon.resize(image, width * scale, height * scale, photon.SamplingFilter.Triangle);
-				await setAvatarById(userInfo.id, new RawImage('image/jpeg', resized.get_bytes_jpeg(90)));
+				const resized = image.resize(width * scale, height * scale);
+				await setAvatarById(
+					userInfo.id,
+					new RawImage('image/jpeg', await image.getBufferAsync(Jimp.MIME_JPEG))
+				);
 			}
 		} catch (e) {
 			console.error('Error updating profile:', e);

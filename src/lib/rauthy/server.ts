@@ -131,6 +131,15 @@ export async function getSession(
 
 	const headers = new Headers(request.headers);
 	headers.delete('content-length');
+	const toDelete = []
+	for (const header of headers) {
+		if (header[0].toLowerCase().startsWith('sec-')) {
+			toDelete.push(header[0]);
+		}
+	}
+	for (const name of toDelete) {
+		headers.delete(name);
+	}
 
 	try {
 		const sessionInfoResp = await fetch('/auth/v1/oidc/sessioninfo', {

@@ -52,22 +52,10 @@
 						</span>
 					</div>
 				{/if}
-				{#if profile.location}
-					<div>
-						<strong>Location: </strong>
-						{profile.location}
-					</div>
-				{/if}
-				{#if profile.contact_info}
-					<div>
-						<strong>Contact Info: </strong>
-						{profile.contact_info}
-					</div>
-				{/if}
-				{#if profile.mastodon_server && profile.mastodon_username && profile.username}
+				{#if profile.mastodon_profile}
 					<a
 						class="variant-ghost btn"
-						href={`/u/${parseUsername(profile.username!).name}/mastodon`}
+						href={`/u/${profile.username}/mastodon`}
 					>
 						View Mastodon Profile
 					</a>

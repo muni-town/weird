@@ -9,7 +9,6 @@ RUN --mount=type=cache,target=/project/node_modules pnpm i && pnpm run build
 FROM base
 COPY --from=build /project/build /project
 RUN adduser -D weird
-RUN echo '{"type": "module"}' > /project/package.json
 RUN chown -R weird:weird /project
 USER weird
 CMD ["node", "/project"]

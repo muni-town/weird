@@ -103,7 +103,9 @@ export const actions = {
 			const avatarData = data.get('avatar') as File;
 			if (avatarData.name != '') {
 				const origData = new Uint8Array(await avatarData.arrayBuffer());
-				const resized = new Uint8Array((await sharp(origData).resize(256, 256).toBuffer()).buffer);
+				const resized = new Uint8Array(
+					(await sharp(origData).resize(256, 256).webp().toBuffer()).buffer
+				);
 				await setAvatarById(userInfo.id, new RawImage('image/webp', resized));
 			}
 		} catch (e) {

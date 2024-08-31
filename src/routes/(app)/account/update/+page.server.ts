@@ -12,12 +12,6 @@ export const actions = {
 		if (!userInfo) return fail(403, { error: 'Not logged in' });
 
 		const data = await request.formData();
-		let token = data.get('token');
-		if (token === '') token = null;
-
-		if (!userInfo) {
-			if (!token) return fail(400, { error: 'Must be logged in to update profile.' });
-		}
 
 		let username = data.get('username')?.toString() || undefined;
 		if (username === '') {

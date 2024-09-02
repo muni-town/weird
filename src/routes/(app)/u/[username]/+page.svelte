@@ -52,14 +52,14 @@
 						</span>
 					</div>
 				{/if}
-				{#if profile.mastodon_profile}
+				<!-- {#if profile.mastodon_profile}
 					<a
 						class="variant-ghost btn"
 						href={`/u/${profile.username}/mastodon`}
 					>
 						View Mastodon Profile
 					</a>
-				{/if}
+				{/if} -->
 			</div>
 		</div>
 	</main>

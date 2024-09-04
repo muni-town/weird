@@ -7,39 +7,34 @@
 	import { env } from '$env/dynamic/public';
 	import { parseUsername } from '$lib/utils';
 	import Avatar from '$lib/components/avatar/view.svelte';
+	import type { Profile } from '$lib/leaf/profile';
 
 	const { data }: { data: PageData } = $props();
+	const profile: Profile | undefined = data.profile;
 	const providers = data.providers;
 
 	const userInfo = getUserInfo();
 	const PKCE_VERIFIER = 'pkce_verifier';
 
 	/** The username without the `@` 		*/
-	const parsedUsername =
-		(data.profile?.username && parseUsername(data.profile.username)) || undefined;
+	const parsedUsername = (profile?.username && parseUsername(profile.username)) || undefined;
 
 	let username = $state(parsedUsername?.name || '');
-	let display_name = $state(data.profile?.display_name || '');
-	let location = $state(data.profile?.location || '');
-	let contact_info = $state(data.profile?.contact_info || '');
-	let work_capacity = $state(data.profile?.work_capacity);
-	let work_compensation = $state(data.profile?.work_compensation);
-	let bio = $state(data.profile?.bio || '');
-	let links = $state(data.profile?.links || []);
+	let display_name = $state(profile?.display_name || '');
+	let bio = $state(profile?.bio || '');
+	let links = $state(profile?.links || []);
 	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
-	let mastodon_server = $state(data.profile?.mastodon_server || '');
-	let mastodon_username = $state(data.profile?.mastodon_username || '');
-	let mastodon_access_token = $state(data.profile?.mastodon_access_token || '');
-	let subsite_theme = $state(data.profile?.subsite_theme || '');
+	let mastodon_server = $state(profile?.mastodon_profile?.server || '');
+	let mastodon_username = $state(profile?.mastodon_profile?.username || '');
 
-	let tags = $state(data.profile?.tags || []);
-	let tagsString = $state((data.profile?.tags || []).join(', '));
+	let tags = $state(profile?.tags || []);
+	let tagsString = $state((profile?.tags || []).join(', '));
 
 	const publicUrl = new URL(env.PUBLIC_URL);
 	const pubpageUrl =
 		parsedUsername?.name &&
-		(data.profile?.custom_domain
-			? `${publicUrl.protocol}//${data.profile.custom_domain}`
+		(profile?.custom_domain
+			? `${publicUrl.protocol}//${profile.custom_domain}`
 			: `${publicUrl.protocol}//${parsedUsername.name}.${env.PUBLIC_DOMAIN}`);
 
 	$effect(() => {
@@ -123,40 +118,40 @@
 		});
 	};
 
-	const LinkWithMastodon = async (e: Event) => {
-		e.preventDefault();
-		mastodon_server = mastodon_server.startsWith('https://')
-			? mastodon_server
-			: `https://${mastodon_server}`;
-		mastodon_server = mastodon_server.endsWith('/')
-			? mastodon_server.slice(0, -1)
-			: mastodon_server;
-		fetch(mastodon_server + '/api/v1/apps', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				client_name: 'Weird Ones',
-				redirect_uris: window.location.origin + '/account/link-mastodon',
-				scopes: 'read',
-				website: window.location.origin
-			})
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				let client_id = data.client_id;
-				let client_secret = data.client_secret;
-				let redirect_uri = data.redirect_uri;
-				localStorage.setItem(
-					'app_data',
-					JSON.stringify({ client_id, client_secret, redirect_uri, mastodon_server })
-				);
-				let redirect_url = `${mastodon_server}/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=read`;
-				window.location.href = redirect_url;
-			})
-			.catch((err) => console.log(err));
-	};
+	// const LinkWithMastodon = async (e: Event) => {
+	// 	e.preventDefault();
+	// 	mastodon_server = mastodon_server.startsWith('https://')
+	// 		? mastodon_server
+	// 		: `https://${mastodon_server}`;
+	// 	mastodon_server = mastodon_server.endsWith('/')
+	// 		? mastodon_server.slice(0, -1)
+	// 		: mastodon_server;
+	// 	fetch(mastodon_server + '/api/v1/apps', {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json'
+	// 		},
+	// 		body: JSON.stringify({
+	// 			client_name: 'Weird Ones',
+	// 			redirect_uris: window.location.origin + '/account/link-mastodon',
+	// 			scopes: 'read',
+	// 			website: window.location.origin
+	// 		})
+	// 	})
+	// 		.then((response) => response.json())
+	// 		.then((data) => {
+	// 			let client_id = data.client_id;
+	// 			let client_secret = data.client_secret;
+	// 			let redirect_uri = data.redirect_uri;
+	// 			localStorage.setItem(
+	// 				'app_data',
+	// 				JSON.stringify({ client_id, client_secret, redirect_uri, mastodon_server })
+	// 			);
+	// 			let redirect_url = `${mastodon_server}/oauth/authorize?client_id=${client_id}&redirect_uri=${redirect_uri}&response_type=code&scope=read`;
+	// 			window.location.href = redirect_url;
+	// 		})
+	// 		.catch((err) => console.log(err));
+	// };
 </script>
 
 <svelte:head>
@@ -251,7 +246,7 @@
 			<label class="label">
 				<span>Username</span>
 				<input name="username" class="input" placeholder="Username" bind:value={username} />
-				{#if !data.profile?.username}<div class="pl-3 text-sm">
+				{#if !profile?.username}<div class="pl-3 text-sm">
 						Set a username to claim your profile page.
 					</div>{/if}
 			</label>
@@ -259,10 +254,13 @@
 				<span>Display Name</span>
 				<input name="display_name" class="input" placeholder={username} bind:value={display_name} />
 			</label>
+
+			<!-- Temporarily disable avatars -->
 			<label>
 				<span>Avatar</span>
 				<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
 			</label>
+
 			<label class="label">
 				<span>Bio</span>
 				<textarea
@@ -357,41 +355,7 @@
 				</div>
 			</label>
 
-			<label class="label">
-				<span>Location</span>
-				<input name="location" class="input" bind:value={location} />
-			</label>
-			<label class="label">
-				<span>Contact Info</span>
-				<input
-					name="contact_info"
-					class="input"
-					placeholder="Email, phone, etc."
-					bind:value={contact_info}
-				/>
-
-				<div class="pl-3 text-sm">Contact info will only be shown to logged-in users.</div>
-			</label>
-			{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
-				<label class="label">
-					<span>Work Capacity</span>
-					<select class="select" name="work_capacity" bind:value={work_capacity}>
-						<option value={null}>Not Specified</option>
-						<option value="part_time">Part Time</option>
-						<option value="full_time">Full Time</option>
-					</select>
-				</label>
-				<label class="label">
-					<span>Work Compensation</span>
-					<select class="select" name="work_compensation" bind:value={work_compensation}>
-						<option value={null}>Not Specified</option>
-						<option value="paid">Paid</option>
-						<option value="volunteer">Volunteer</option>
-					</select>
-				</label>
-			{/if}
-
-			<label class="label">
+			<!-- <label class="label">
 				<span>Sub-Profiles</span>
 				<div class="row flex gap-2">
 					<input
@@ -406,8 +370,7 @@
 				</div>
 			</label>
 
-			<input type="hidden" name="mastodon_username" bind:value={mastodon_username} />
-			<input type="hidden" name="mastodon_access_token" bind:value={mastodon_access_token} />
+			<input type="hidden" name="mastodon_username" bind:value={mastodon_username} /> -->
 
 			<button class="variant-filled btn mt-4"> Save </button>
 		</form>

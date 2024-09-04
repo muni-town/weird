@@ -10,5 +10,10 @@ export default defineConfig({
 		host: '0.0.0.0',
 		port: 9523,
 		strictPort: true
+	},
+	build: {
+		rollupOptions: {
+			external: 'sharp'
+		}
 	}
 });

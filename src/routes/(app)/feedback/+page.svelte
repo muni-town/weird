@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { pow_work_wasm } from '$lib/spow/spow-wasm';
+	import { Pow } from '$lib/pow';
 	import { checkResponse } from '$lib/utils';
 
 	let email = $state('');
@@ -20,9 +20,10 @@
 		processing = true;
 		event.preventDefault();
 		try {
+			// TODO: add proof-of-work challenge for feedback form.
 			let challenge = await get_pow_challenge();
 			console.debug('Computing proof of work', challenge);
-			powInput.value = (await pow_work_wasm(challenge)) || '';
+			powInput.value = Pow.work(challenge) || '';
 			console.debug('Completed proof of work', powInput.value);
 			if (powInput.value == '') {
 				processing = false;

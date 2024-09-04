@@ -6,127 +6,46 @@ have questions!
 
 ## Overview
 
-The overall architecture is pictured below:
+Weird is made up of 3 different services: **Weird** itself, the **Rauthy** auth server, and the
+**Leaf RPC server**.
 
-![image](./docs/weird-architecture.png)
+![image](./docs/services.png)
 
-## Web Instance
+<small> _Leaf icon by <a href="https://github.com/jtblabs/jtb-icons?ref=svgrepo.com"
+target="_blank">Jtblabs</a> in Logo License via <a href="https://www.svgrepo.com/"
+target="_blank">SVG Repo</a>._ </small>
 
-The web application that we run at [Weird.One](https://weird.one) is an example of a Weird "Web Instance".
+### Weird
 
-It encompasses everything that is needed to run an instance of a Weird web server.
+The Weird service is the main application. It is written using [SvelteKit] and TypeScript.
 
-### SvelteKit
+The entire web experience is implemented in the Weird service, and it includes both the browser
+frontend, and the backend server-side logic. If you want to make a change to something that a user
+can see or interact with, it is in the Weird service.
 
-The web application front-end is implemented with [SvelteKit](https://kit.svelte.dev).
+Data modeling is also done in the Weird service. So if we need to store a new kind of data, or
+create a new kind of page, all those changes will happen in Weird.
 
-Front-end in this case doesn't not mean "client-side" only. The app is mostly server-side rendered
-using SvelteKit's SSR and client-side hydration feature, and all of the public API endpoints are
-implemented in SvelteKit also.
+[SvelteKit]: https://kit.svelte.dev
 
-### Rauthy Auth Server
+### Rauthy
 
-[Rauthy] is our OIDC auth server, and it powers all of our login functionality. Rauthy hosts an HTTP
-API at `/auth/v1` and our SvelteKit server will proxy requests to that subpath to the Rauthy server.
+[Rauthy] is the auth server used by Weird. It provides login and OIDC functionality, so that other
+services can use Weird as an identity provider.
 
-Because we want to customize the Rauthy login/signup pages to fit seamlessly into our app, the
-SvelteKit server also overrides certain Rauthy paths to provide a custom UI. For example the
-SvelteKit app will override the `/auth/v1/account` route with a custom account page, but all
-of the Rauthy API endpoints for updating the account are proxied to the Rauthy server.
-
-Ruathy also acts as an OIDC provider so other apps can [login with Weird](./docs/login-with-weird.md).
+Rauthy is not exposed directly, but all of it's HTTP endpoints, which are prefixed with `/auth/v1`,
+are proxied by the Weird service to the Rauthy server. The Weird server also overrides many of the
+endpoints the provide customized versions of the UI for logging-in, etc. so that we can give an integrated look-and feel.
 
 [Rauthy]: https://github.com/sebadob/rauthy
 
-### Backend
+### Leaf RPC Server ( LRPCS )
 
-The SvelteKit app uses the "Backend" server like a database. All of the persistent data is managed
-through the backend API. The backend API, in turn, uses the Weird Core Rust library to actually
-store and load data.
+The Leaf RPC server is Weird's "database". The Leaf server implements a draft version of the [Leaf
+Protocol][lpd], and exposes a WebSocket interface so that it can be controlled by Weird.
 
-## Weird Core
+The Leaf server can also connect to other Leaf servers though the Leaf protocol. This will
+eventually allow Weird to federate with other Weird instances, and synchronize with offline-capable
+desktop applications in the future.
 
-All of the core logic for loading and storing data is managed by the Weird Core library. We put this
-in it's own library so that it can be used by Weird apps, such as desktop, mobile, and
-offline-compatible web applications.
-
-### GData & Iroh
-
-All of the data in Weird is stored using [Iroh], with our own, custom `GData` graph format wrapped
-around it.
-
-GData ( name subject to change ) provides a standard format for representing graph data on top of
-Iroh documents.
-
-Iroh documents are eventually consistent key-value stores. Both the keys and the values are made up
-of a list of bytes, but our app wants to deal with things like numbers, Strings, booleans, etc., not
-just bytes.
-
-GData gives us a way to store data on Iroh that, instead of just using bytes:
-
-- Uses typed arrays of `KeySegment`s as keys.
-  - Each `KeySegment` may be any of:
-    - `Bool`
-    - `Uint` ( unsigned integer )
-    - `Int` ( signed integer )
-    - `String`
-    - `Bytes`
-- Uses a custom `Value` type for values.
-  - Each `Value` may be any of:
-    - `Null`
-    - `Bool`
-    - `Uint`
-    - `Int`
-    - `Float`
-    - `String`
-    - `Bytes`
-    - `Link`
-    - `Map`
-
-Having these data types makes it much easier to deal with the key-value store like a kind of JSON
-store. That said, it is just a key-value store, is it is rather limited on query features, so things
-like indexes must be manually implemented if necessary.
-
-Also, there is no strong consistency or ACID compliance. All writes are eventually consistent.
-
-[Iroh]: https://iroh.computer/
-
-## Federation
-
-Iroh's super power is that it allows us to synchronize our data store with other Iroh nodes. These
-nodes might be other web instances, or even mobile or desktop apps. The eventually-consistent Iroh
-documents used for storage allow the local apps to support offline storage and editing, a feature
-that is very important to us.
-
-Other web instances are _also_ able to replicate data to and from each-other, allowing us to create
-a global, federated network of Weird web instances and apps, that can all interact seamlessly.
-
-Iroh does the majority of the heavy lifting allowing us to easily implement federated features that
-would otherwise take a lot of engineering effort.
-
-Using Iroh, and making federation work, will still take a lot of thought and experimentation. As of
-the time of writing, the big picture ideas for how to make federation work are described in the
-[How to Federate?][htf] post.
-
-[htf]: https://zicklag.katharos.group/blog/how-to-federate/
-
-The level of federation that we already have working is described below.
-
-### Resolving Profiles From Other Web Instances
-
-Weird is able to load user profiles from other Weird web instances if you place the domain of the
-other weird instance after the username in the URL: `https://weird.one/u/zicklag@muni.town`.
-
-What this does is cause the `weird.one` instance to make a TXT DNS query to `instance.weird.muni.town`.
-The TXT record is expected to contain an Iroh `DocTicket`, which tells `weird.one` where to go to
-connect to `muni.town`'s Weird instance, and which document it store's it's data in.
-
-`weird.one` will then join and replicate `muni.town`'s data, search for the `zicklag` user, and load
-and display `zicklag`'s profile.
-
-### Next Steps
-
-The next step in setting up federation is to create a global tag index that all instances will use
-to lookup users that have specific tags. Similar to this, there may be a global user/instance index
-that will allow instances and users to add themselves to the global network so that other instances
-can find them.
+[lpd]: https://github.com/commune-os/agentic-fediverse/blob/master/leaf-protocol-draft.md#leaf-protocol-draft

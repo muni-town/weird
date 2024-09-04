@@ -143,26 +143,6 @@
 		{/if}
 
 		<div>
-			{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
-				{#if is_author}
-					<select bind:value={profile.work_compensation} style="width: fit-content;">
-						<option value="">Not Specified</option>
-						<option value="paid">Paid</option>
-						<option value="volunteer">Volunteer</option>
-					</select>
-				{:else}
-					<span>{printWorkCompensation(profile.work_compensation)}</span> |
-				{/if}
-				{#if is_author}
-					<select bind:value={profile.work_capacity} style="width: fit-content;">
-						<option value="">Not Specified</option>
-						<option value="full_time">Full Time</option>
-						<option value="part_time">Part Time</option>
-					</select>
-				{:else}
-					<span>{printWorkCapacity(profile.work_capacity)}</span> |
-				{/if}
-			{/if}
 			{#if is_author}
 				<span contenteditable="true" bind:textContent={profile.location}></span>
 			{:else}

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { pow_work_wasm } from '$lib/spow/spow-wasm';
 	import { get_pow_challenge } from '$lib/rauthy/client';
 	import { checkResponse } from '$lib/utils';
 	import { env } from '$env/dynamic/public';
+	import { Pow } from '$lib/pow';
 
 	let processing = $state(false);
 	let error: string | null = $state(null);
@@ -15,7 +15,7 @@
 		try {
 			let challenge = await get_pow_challenge();
 			console.debug('Computing proof of work');
-			pow = await pow_work_wasm(challenge);
+			pow = Pow.validate(challenge);
 			console.debug('Completed proof of work');
 			if (!pow) {
 				error = 'Error computing proof of work, you may need a browser update.';

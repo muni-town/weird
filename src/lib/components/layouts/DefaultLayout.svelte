@@ -5,6 +5,8 @@
 	import { AppBar } from '@skeletonlabs/skeleton';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 
+	const HOME_PAGE_URL = 'https://home.weird.one/';
+
 	const userInfo = getUserInfo();
 
 	const drawerStore = getDrawerStore();
@@ -23,7 +25,9 @@
 		><img src="/logo.png" alt="Weird Logo" width="40px" /></svelte:fragment
 	>
 	<svelte:fragment slot="default"
-		><h1 class="text-xl font-bold"><a href="/">{env.PUBLIC_INSTANCE_NAME}</a></h1></svelte:fragment
+		><h1 class="text-xl font-bold">
+			<a href={HOME_PAGE_URL}>{env.PUBLIC_INSTANCE_NAME}</a>
+		</h1></svelte:fragment
 	>
 	<svelte:fragment slot="trail">
 		<div class="hidden items-center gap-3 sm:flex">

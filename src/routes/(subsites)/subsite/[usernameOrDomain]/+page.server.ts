@@ -1,48 +1,21 @@
 import type { PageServerLoad } from './$types';
-import { backendFetch } from '$lib/backend';
-import { getSession } from '$lib/rauthy/server';
-import type { Profile } from '../../../(app)/auth/v1/account/proxy+page.server';
-import { checkResponse } from '$lib/utils';
+import { getProfileByDomain, getProfileByUsername, type Profile } from '$lib/leaf/profile';
+import { error } from '@sveltejs/kit';
+import { env } from '$env/dynamic/public';
 
 export const load: PageServerLoad = async ({
-	fetch,
-	request,
-	params,
-	cookies,
-	url
+	params
 }): Promise<{
-	profile: Profile | { error: string };
+	profile: Profile;
 	params: typeof params;
-	token: string | undefined;
-	is_author: boolean;
 }> => {
-	const token = cookies.get('token');
-	let { userInfo } = await getSession(fetch, request);
-	const loggedIn = !!userInfo;
-
-	let resp = await backendFetch(fetch, `/profile/username/${params.usernameOrDomain}`);
-	let profile: Profile | { error: string } = await resp.json();
-	if ('error' in profile) {
-		resp = await backendFetch(fetch, `/profile/domain/${params.usernameOrDomain}`);
-		await checkResponse(resp);
-		profile = await resp.json();
-		if ('error' in profile) {
-			throw 'User not found';
+	let profile = await getProfileByUsername(`${params.usernameOrDomain}@${env.PUBLIC_DOMAIN}`);
+	if (!profile) {
+		profile = await getProfileByDomain(params.usernameOrDomain);
+		if (!profile) {
+			return error(404, 'Profile not found.');
 		}
 	}
 
-	if (!loggedIn) {
-		profile.contact_info = undefined;
-	}
-
-	let is_author = false;
-	if (token) {
-		const is_author_resp = await backendFetch(fetch, `/token/${url.host}/verify`, {
-			method: 'POST',
-			headers: [['x-token-auth', token!]]
-		});
-		is_author = is_author_resp.ok;
-	}
-
-	return { profile, params: { ...params }, token, is_author: is_author };
+	return { profile, params: { ...params } };
 };

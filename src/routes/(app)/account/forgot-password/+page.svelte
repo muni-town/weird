@@ -26,7 +26,7 @@
 			localStorage.setItem('justResetPassword', 'true');
 			window.location.replace('?success');
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 		}
 	}
 </script>

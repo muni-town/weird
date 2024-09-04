@@ -1,38 +1,36 @@
 import { env } from '$env/dynamic/public';
-import { backendFetch } from '$lib/backend';
+import { type Profile, setProfileById, setAvatarById } from '$lib/leaf/profile';
 import { getSession } from '$lib/rauthy/server';
-import { checkResponse, type CheckResponseError } from '$lib/utils';
-import { fail, type Actions, redirect } from '@sveltejs/kit';
+import { type CheckResponseError } from '$lib/utils';
+import { fail, type Actions } from '@sveltejs/kit';
+import { RawImage } from 'leaf-proto/components';
+import sharp from 'sharp';
 
 export const actions = {
 	default: async ({ fetch, request }) => {
 		let { userInfo } = await getSession(fetch, request);
+		if (!userInfo) return fail(403, { error: 'Not logged in' });
+
 		const data = await request.formData();
-		let token = data.get('token');
-		if (token === '') token = null;
 
-		if (!userInfo) {
-			if (!token) return fail(400, { error: 'Must be logged in to update profile.' });
-		}
-
-		let username = data.get('username');
+		let username = data.get('username')?.toString() || undefined;
 		if (username === '') {
-			username = null;
+			username = undefined;
 		} else {
 			if (!username?.includes('@')) username = `${username}@${env.PUBLIC_DOMAIN}`;
 		}
-		let display_name = data.get('display_name');
+		let display_name = data.get('display_name')?.toString() || undefined;
 		if (display_name === '') {
-			display_name = null;
+			display_name = undefined;
 		}
-		let location = data.get('location');
-		if (location == '') {
-			location = null;
-		}
-		let contact_info = data.get('contact_info');
-		if (contact_info == '') {
-			contact_info = null;
-		}
+		// let location = data.get('location');
+		// if (location == '') {
+		// 	location = null;
+		// }
+		// let contact_info = data.get('contact_info');
+		// if (contact_info == '') {
+		// 	contact_info = null;
+		// }
 		let tagsInput = data.get('tags');
 		let tags: string[] = [];
 		if (tagsInput) {
@@ -52,17 +50,17 @@ export const actions = {
 			links.push({ url, label });
 		}
 
-		let work_capacity = data.get('work_capacity');
-		if (work_capacity == '') {
-			work_capacity = null;
-		}
-		let work_compensation = data.get('work_compensation');
-		if (work_compensation == '') {
-			work_compensation = null;
-		}
-		let bio = data.get('bio');
-		if (bio == '') {
-			bio = null;
+		// let work_capacity = data.get('work_capacity');
+		// if (work_capacity == '') {
+		// 	work_capacity = null;
+		// }
+		// let work_compensation = data.get('work_compensation');
+		// if (work_compensation == '') {
+		// 	work_compensation = null;
+		// }
+		let bio = data.get('bio')?.toString() || undefined;
+		if (bio === '') {
+			bio = undefined;
 		}
 		let mastodon_server = data.get('mastodon_server');
 		if (mastodon_server == '') {
@@ -72,101 +70,49 @@ export const actions = {
 		if (mastodon_username == '') {
 			mastodon_username = null;
 		}
-		let mastodon_access_token = data.get('mastodon_access_token');
-		if (mastodon_access_token == '') {
-			mastodon_access_token = null;
+		const mastodon_profile =
+			(mastodon_server &&
+				mastodon_username && {
+					server: mastodon_server.toString(),
+					username: mastodon_username.toString()
+				}) ||
+			undefined;
+
+		let pubpage_theme = data.get('subsite_theme')?.toString() || undefined;
+		if (pubpage_theme === '') {
+			pubpage_theme = undefined;
 		}
 
-		let subsite_theme = data.get('subsite_theme');
-		if (subsite_theme == '') {
-			subsite_theme = null;
-		}
-
-		const json = JSON.stringify({
+		const profile: Profile = {
 			username,
 			display_name,
-			location,
-			contact_info,
 			tags,
 			links,
-			work_capacity,
-			work_compensation,
 			bio,
-			mastodon_server,
-			mastodon_username,
-			mastodon_access_token,
-			subsite_theme
-		});
+			mastodon_profile,
+			pubpage_theme
+		};
 
-		if (token) {
-			try {
-				const originHeader = request.headers.get('Origin');
-				const origin = originHeader ? new URL(originHeader).host : undefined;
-				const resp = await backendFetch(fetch, `/profile/by-token/${origin}`, {
-					method: 'post',
-					headers: [
-						['content-type', 'application/json'],
-						['x-token-auth', token as string]
-					],
-					body: json
-				});
-				await checkResponse(resp);
-			} catch (e) {
-				console.error('Error updating profile:', e);
-				const data = e;
-				return fail(400, { error: `Error updating profile: ${data.error}` });
+		try {
+			const avatarData = data.get('avatar') as File;
+			if (avatarData.name != '') {
+				const origData = new Uint8Array(await avatarData.arrayBuffer());
+				const resized = new Uint8Array(
+					(await sharp(origData).resize(256, 256).webp().toBuffer()).buffer
+				);
+				await setAvatarById(userInfo.id, new RawImage('image/webp', resized));
 			}
-			try {
-				const avatarData = data.get('avatar') as File;
-				if (avatarData.name != '') {
-					const body = new FormData();
-					body.append('avatar', avatarData);
-					const originHeader = request.headers.get('Origin');
-					const origin = originHeader ? new URL(originHeader).host : undefined;
-					const resp = await backendFetch(fetch, `/avatar/by-token/${origin}`, {
-						method: 'post',
-						body,
-						headers: [['x-token-auth', token as string]]
-					});
-					await checkResponse(resp);
-				}
-			} catch (e) {
-				console.error('Error updating profile:', e);
-				const data = JSON.parse((e as CheckResponseError).data);
-				return fail(400, { error: `Error updating profile avatar: ${data.error}` });
-			}
-		} else {
-			try {
-				const resp = await backendFetch(fetch, `/profile/${userInfo.id}`, {
-					method: 'post',
-					headers: [['content-type', 'application/json']],
-					body: json
-				});
-				await checkResponse(resp);
-			} catch (e) {
-				console.error('Error updating profile:', e);
-				const data = e;
-				return fail(400, { error: `Error updating profile: ${data.error}` });
-			}
-			try {
-				const avatarData = data.get('avatar') as File;
-				if (avatarData.name != '') {
-					const body = new FormData();
-					body.append('avatar', avatarData);
-					const resp = await backendFetch(fetch, `/profile/${userInfo.id}/avatar`, {
-						method: 'post',
-						body,
-						headers: [['x-token-auth', token as string]]
-					});
-					await checkResponse(resp);
-				}
-			} catch (e) {
-				console.error('Error updating profile:', e);
-				const data = JSON.parse((e as CheckResponseError).data);
-				return fail(400, { error: `Error updating profile avatar: ${data.error}` });
-			}
+		} catch (e) {
+			console.error('Error updating profile:', e);
+			const data = JSON.parse((e as CheckResponseError).data);
+			return fail(400, { error: `Error updating profile avatar: ${data.error}` });
 		}
 
-		return token ? 'ok' : redirect(301, '/auth/v1/account');
+		try {
+			await setProfileById(userInfo.id, profile);
+		} catch (e) {
+			console.error('Error updating profile:', e);
+			return fail(400, { error: `Error updating profile: ${e}` });
+		}
 	}
 } satisfies Actions;

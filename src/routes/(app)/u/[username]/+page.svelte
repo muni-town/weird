@@ -1,31 +1,10 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { PUBLIC_SHOW_WORK_CAPACITY } from '$env/static/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import { parseUsername } from '$lib/utils';
-	import type { WorkCapacity, WorkCompensation } from '../../auth/v1/account/proxy+page.server';
 	import type { PageData } from './$types';
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
-
-	const printWorkCapacity = (c: WorkCapacity): string => {
-		if (c == 'full_time') {
-			return 'Full Time';
-		} else if (c == 'part_time') {
-			return 'Part Time';
-		} else {
-			return 'Not Specified';
-		}
-	};
-	const printWorkCompensation = (c: WorkCompensation): string => {
-		if (c == 'paid') {
-			return 'Paid';
-		} else if (c == 'volunteer') {
-			return 'Volunteer';
-		} else {
-			return 'Not Specified';
-		}
-	};
 </script>
 
 <svelte:head>
@@ -73,40 +52,14 @@
 						</span>
 					</div>
 				{/if}
-				{#if profile.location}
-					<div>
-						<strong>Location: </strong>
-						{profile.location}
-					</div>
-				{/if}
-				{#if profile.contact_info}
-					<div>
-						<strong>Contact Info: </strong>
-						{profile.contact_info}
-					</div>
-				{/if}
-				{#if env.PUBLIC_SHOW_WORK_CAPACITY == 'true'}
-					{#if profile.work_capacity}
-						<div>
-							<strong>Work Capacity: </strong>
-							{printWorkCapacity(profile.work_capacity)}
-						</div>
-					{/if}
-					{#if profile.work_compensation}
-						<div>
-							<strong>Work Compensation: </strong>
-							{printWorkCompensation(profile.work_compensation)}
-						</div>
-					{/if}
-				{/if}
-				{#if profile.mastodon_server && profile.mastodon_username && profile.username}
+				<!-- {#if profile.mastodon_profile}
 					<a
 						class="variant-ghost btn"
-						href={`/u/${parseUsername(profile.username!).name}/mastodon`}
+						href={`/u/${profile.username}/mastodon`}
 					>
 						View Mastodon Profile
 					</a>
-				{/if}
+				{/if} -->
 			</div>
 		</div>
 	</main>

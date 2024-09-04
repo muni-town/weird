@@ -106,6 +106,8 @@ async fn handle_client(
 async fn handle_req(leaf: &LeafIroh, req: Req) -> Resp {
     let kind = match req.kind {
         ReqKind::Authenticate(_) => {
+            // TODO: we can hit this somehow when restarting the RPC server while Weird tries to
+            // reconnect to it and send it messages.
             panic!("authenticate request should be handled outside this function")
         }
         ReqKind::ReadEntity(link) => read_entity(leaf, link).await,

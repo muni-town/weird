@@ -1,6 +1,7 @@
 import { BorshSchema, borshSerialize, borshDeserialize, type Unit } from 'borsher';
 import { blake3 } from '@noble/hashes/blake3';
 export { BorshSchema, borshDeserialize, borshSerialize, type Unit };
+import ReconnectingWebSocket from 'reconnecting-websocket';
 
 import rawBase32encode from 'base32-encode';
 import rawBase32decode from 'base32-decode';
@@ -378,8 +379,11 @@ export class GetComponentsResult {
 }
 
 export class RpcClient {
-	#ws: WebSocket;
+	#ws: ReconnectingWebSocket;
+	#auth_token: undefined | string;
+	#authenticated: boolean = false;
 	#ready: Promise<void>;
+	#set_websocket_ready: undefined | (() => void) = undefined;
 	#next_req_id: bigint = 0n;
 	#pending_reqs: Map<bigint, (resp: Resp) => void> = new Map();
 
@@ -390,6 +394,23 @@ export class RpcClient {
 	}
 
 	async #send_req(kind: ReqKind): Promise<Resp> {
+		if (this.#auth_token && !this.#authenticated) {
+			const resp = await this.#send_req_inner({ Authenticate: this.#auth_token });
+			if (resp.result && 'Ok' in resp.result) {
+				const respKind = resp.result.Ok;
+				if (!('Authenticated' in respKind)) {
+					throw 'Error authenticating';
+				}
+			} else {
+				throw `Error while authenticating: ${resp.result.Err}`;
+			}
+			this.#authenticated = true;
+		}
+
+		return await this.#send_req_inner(kind);
+	}
+
+	async #send_req_inner(kind: ReqKind): Promise<Resp> {
 		return new Promise(async (resolve) => {
 			await this.#ready;
 			const req: Req = {
@@ -404,33 +425,25 @@ export class RpcClient {
 	}
 
 	constructor(url: string, auth_token?: string) {
-		this.#ws = new WebSocket(url);
-		let auth_req: Promise<Resp> | undefined = undefined;
-		let websocket_ready: () => void;
+		this.#auth_token = auth_token;
+		this.#ws = new ReconnectingWebSocket(url) as any;
 		this.#ready = new Promise((resolve) => {
-			websocket_ready = resolve;
+			this.#set_websocket_ready = resolve;
 		});
 
-		if (auth_token) {
-			auth_req = this.#send_req({ Authenticate: auth_token });
-		}
+		this.#ws.onclose = () => {
+			this.#authenticated = false;
+			this.#ready = new Promise((resolve) => {
+				this.#set_websocket_ready = resolve;
+			});
+		};
 		this.#ws.onopen = async () => {
-			websocket_ready();
-			if (auth_req) {
-				const resp = await auth_req;
-				if (resp.result && 'Ok' in resp.result) {
-					const respKind = resp.result.Ok;
-					if (!('Authenticated' in respKind)) {
-						throw 'Error authenticating';
-					}
-				} else {
-					throw `Error while authenticating: ${resp.result.Err}`;
-				}
-			}
+			this.#set_websocket_ready!();
 		};
 
-		this.#ws.onmessage = (ev: MessageEvent) => {
-			const resp: Resp = borshDeserialize(RespSchema, ev.data);
+		this.#ws.onmessage = async (ev: MessageEvent) => {
+			const data = 'arrayBuffer' in ev.data ? new Uint8Array(await ev.data.arrayBuffer()) : ev.data;
+			const resp: Resp = borshDeserialize(RespSchema, data);
 			this.#pending_reqs.get(resp.id)!(resp);
 			this.#pending_reqs.delete(resp.id);
 		};

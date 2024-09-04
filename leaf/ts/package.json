@@ -9,6 +9,7 @@
 		"@noble/hashes": "^1.4.0",
 		"base32-decode": "^1.0.0",
 		"base32-encode": "^1.0.0",
-		"borsher": "^3.5.0"
+		"borsher": "^3.5.0",
+		"reconnecting-websocket": "^4.4.0"
 	}
 }

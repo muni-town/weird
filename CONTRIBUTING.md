@@ -4,7 +4,7 @@ Thanks for your help in improving the project!
 
 ## Contributor License Compromise
 
-Independent contributions (i.e., individual pull requests) from anyone other than the Weird team ([Erlend Sogge Heggen][erlend] a d [Kapono Haws][kapono]) are dual-licensed as [Polyform NonCommercial][polyform] (granted to Weird as the _licensor_) and [Blue Oak Model License v1.0][blueoak].
+Independent contributions (i.e., individual pull requests) from anyone other than the Weird team ([Erlend Sogge Heggen][erlend] and [Kapono Haws][kapono]) are dual-licensed as [Polyform NonCommercial][polyform] (granted to Weird as the _licensor_) and [Blue Oak Model License v1.0][blueoak].
 
 Thusly all independent contributors retain ownership of their contributions, albeit non-exclusively. In other words, your contributions belong equally to you as to the Weird project.
 
@@ -93,7 +93,6 @@ You can do this by running `just comply` followed by `just check`.
 
 [erlend]: https://github.com/erlend-sh/
 [kapono]: https://github.com/zicklag/
-[joe]: https://github.com/hnb-ku
 [polyform]: https://polyformproject.org/licenses/noncommercial/1.0.0/
 [blueoak]: https://blueoakcouncil.org/license/1.0.0
 [osi-approved]: https://opensource.org/license/blue-oak-model-license

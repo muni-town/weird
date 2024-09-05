@@ -15,14 +15,21 @@
 		try {
 			let challenge = await get_pow_challenge();
 			console.debug('Computing proof of work');
-			pow = Pow.validate(challenge);
-			console.debug('Completed proof of work');
+			console.log(challenge);
+			pow = Pow.work(challenge);
+			console.debug('Completed proof of work', pow);
 			if (!pow) {
-				error = 'Error computing proof of work, you may need a browser update.';
+				error = 'Error computing proof of work.';
 				processing = false;
 				return;
 			}
+		} catch (e) {
+			processing = false;
+			error = `Error computing proof of work: ${e}`;
+			return;
+		}
 
+		try {
 			const home = new URL(window.location.href);
 			home.pathname = '/auth/v1/account';
 			const registerResp = await fetch('/auth/v1/users/register', {
@@ -41,7 +48,8 @@
 			window.location.replace('/account/register/confirmation');
 		} catch (e) {
 			processing = false;
-			error = 'Email address is invalid.';
+			error = `Error registering user: ${JSON.stringify(e)}`;
+			return;
 		}
 	}
 </script>

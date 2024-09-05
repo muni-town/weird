@@ -1,4 +1,4 @@
-import { Pow } from './wasm/spow-wasm.js';
+import { Pow } from './wasm/spow-server-wasm.js';
 
 Pow.init_random();
 

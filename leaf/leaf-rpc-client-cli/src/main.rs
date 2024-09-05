@@ -1,6 +1,9 @@
 use clap::Parser;
 use iroh_base::base32;
-use leaf_rpc_client::{leaf_protocol::prelude::{Description, Name}, Uri};
+use leaf_rpc_client::{
+    leaf_protocol::prelude::{Description, Name},
+    Uri,
+};
 
 // TODO: turn this into a simple CLI or maybe a repl for accessing/modifying leaf data.
 #[derive(clap::Parser, Debug, Clone)]

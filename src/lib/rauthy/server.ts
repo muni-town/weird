@@ -131,7 +131,7 @@ export async function getSession(
 
 	const headers = new Headers(request.headers);
 	headers.delete('content-length');
-	const toDelete = []
+	const toDelete = [];
 	for (const header of headers) {
 		if (header[0].toLowerCase().startsWith('sec-')) {
 			toDelete.push(header[0]);

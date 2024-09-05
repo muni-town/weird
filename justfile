@@ -43,4 +43,4 @@ lint:
     cargo clippy --workspace --all-targets --all-features
     pnpm run lint
     # Run `typos  --write-changes` to fix the mistakes
-    typos --exclude 'src/lib/pow/wasm/*'
+    typos

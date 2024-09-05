@@ -35,5 +35,5 @@ jobs:
       - name: Lint codebase
         shell: bash
         run: |
-          just comply
+          just check
 

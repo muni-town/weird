@@ -5,8 +5,8 @@ and licensed as [PolyForm NonCommercial v1.0](https://polyformproject.org/licens
 
 An exception is made for the contents of `/leaf`, licensed under [Blue Oak Model License v1.0](https://blueoakcouncil.org/license/1.0.0).
 
-> **Note**  
-Further information is provided in [CONTRIBUTING.md](https://github.com/muni-town/weird/blob/main/CONTRIBUTING.md)
+> **Note**\
+> Further information is provided in [CONTRIBUTING.md](https://github.com/muni-town/weird/blob/main/CONTRIBUTING.md)
 
 ### PolyForm Countdown to Blue Oak
 
@@ -14,7 +14,7 @@ By utilizing [PolyForm Countdown](https://writing.kemitchell.com/2023/12/01/Poly
 
 `{start date}` is automatically set to each version-release date.
 
-- - - 
+---
 
 # PolyForm Countdown License Grant
 
@@ -35,7 +35,7 @@ start date above.
 ## Scope
 
 This license grant applies only to this release, not to
-any other releases.  Other releases may come with their
+any other releases. Other releases may come with their
 own license grants.
 
 ## Reliability

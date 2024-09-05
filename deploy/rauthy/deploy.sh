@@ -10,4 +10,3 @@ kraft cloud deploy \
   -e DATABASE_URL=postgresql://postgres:password@weird-rauthy-postgres.internal/postgres \
   -M 250 \
   khaws/weird-rauthy
-  

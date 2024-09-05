@@ -48,4 +48,4 @@ The Leaf server can also connect to other Leaf servers though the Leaf protocol.
 eventually allow Weird to federate with other Weird instances, and synchronize with offline-capable
 desktop applications in the future.
 
-[lpd]: https://github.com/commune-os/agentic-fediverse/blob/master/leaf-protocol-draft.md#leaf-protocol-draft
+[lpd]: https://github.com/muni-town/agentic-fediverse/blob/master/leaf-protocol-draft.md#leaf-protocol-draft

@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"description": "Leaf protocol RPC client.",
 	"keywords": [],
-	"author": "Commune Developers ( https://github.com/commune-os )",
+	"author": "Muni Town Developers ( https://github.com/muni-town )",
 	"license": "BlueOak-1.0.0",
 	"dependencies": {
 		"@noble/hashes": "^1.4.0",

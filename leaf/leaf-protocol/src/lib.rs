@@ -1,6 +1,6 @@
 //! Rust implementation of the [Leaf Protocol draft][lp].
 //!
-//! [lp]: https://github.com/commune-os/agentic-fediverse/blob/49791e6b3ec1df5e0a8604476417e88eed1f9497/leaf-protocol-draft.md
+//! [lp]: https://github.com/muni-town/agentic-fediverse/blob/49791e6b3ec1df5e0a8604476417e88eed1f9497/leaf-protocol-draft.md
 
 pub mod components;
 pub mod store;

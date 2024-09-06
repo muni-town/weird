@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 fastwebsockets = { version = "=0.8.0", features = ["upgrade", "unstable-split"] }
 hyper = "1.4.1"
-hyper-util = { version = "0.1.6", features = ["tokio"] }
 tokio = "1.39.2"
 
 anyhow = "1.0.86"

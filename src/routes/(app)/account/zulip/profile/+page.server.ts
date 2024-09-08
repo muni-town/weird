@@ -1,4 +1,4 @@
-import type { ZulipMessage } from '$lib/types/zulip.js';
+import type { Subscription, ZulipMessage } from '$lib/types/zulip.js';
 
 export async function load({ url }) {
 	const anchor = 'newest'; // You can also use a specific message ID
@@ -11,7 +11,7 @@ export async function load({ url }) {
 
 	const authHeader = 'Basic ' + btoa(email + ':' + apiKey);
 	try {
-		const response = await fetch(
+		const msgResp = await fetch(
 			`${domain}/api/v1/messages?anchor=${anchor}&num_before=${numBefore}&num_after=${numAfter}`,
 			{
 				method: 'GET',
@@ -20,8 +20,19 @@ export async function load({ url }) {
 				}
 			}
 		);
-		const data = await response.json();
-		return { messages: data.messages as ZulipMessage[] };
+		const msgRespData = await msgResp.json();
+
+		const subscribedChannelResp = await fetch(`${domain}/api/v1/users/me/subscriptions`, {
+			method: 'GET',
+			headers: {
+				Authorization: authHeader
+			}
+		});
+		const subscribedChannelData = await subscribedChannelResp.json();
+		return {
+			messages: msgRespData.messages as ZulipMessage[],
+			subscriptions: subscribedChannelData?.subscriptions as Subscription[]
+		};
 	} catch (error: any) {
 		console.log('Error....', error.message);
 	}

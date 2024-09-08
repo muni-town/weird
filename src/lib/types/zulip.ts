@@ -7,3 +7,11 @@ export type ZulipMessage = {
 	avatar_url?: string | null;
 	display_recipient?: string;
 };
+
+export type Subscription = {
+	stream_id: number;
+	name: string;
+	description: string;
+	date_created: number;
+	is_muted: boolean;
+};

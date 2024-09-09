@@ -18,12 +18,12 @@ jobs:
     steps:
       - name: "CLC Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLC Document and I hereby sign the CLC') || github.event_name == 'pull_request_target'
-        uses: commune-os/clc-assistant@master
+        uses: muni-town/clc-assistant@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
-          path-to-document: 'https://github.com/commune-os/weird/blob/a583615a9d34d913f5e63065768cdbe02750ae43/CONTRIBUTING.md' # e.g. a CLA or a DCO document
+          path-to-document: 'https://github.com/muni-town/weird/blob/a583615a9d34d913f5e63065768cdbe02750ae43/CONTRIBUTING.md' # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: 'clc-signatures'
           allowlist: zicklag,erlend-sh,hnb-ku

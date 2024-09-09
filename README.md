@@ -83,4 +83,4 @@ Not essential for groking Weird app development, but useful for broad-view conte
 8. Mutual Peers Grid (p2p net)
 9. Auth v3 (Nomadic ID)
 
-If you want to chat about Weird and our vision for it feel free to join our [Discord Server](https://discord.gg/mbQYgFVBQx) or our bridge [Matrix Space](https://matrix.to/#/#discord:commune.sh).
+If you want to chat about Weird and our vision for it feel free to join our [Discord Server](https://discord.gg/mbQYgFVBQx) or our bridge [Matrix Space](https://matrix.to/#/##muni-town:commune.sh).

@@ -13,4 +13,4 @@ It would also have a `NameDescription` component, and maybe a `Slug` component t
 Each chat message would have an `Author` component that would contain a link to another Entity that has the info describing the author of the chat. The author, for example, would have an Image component that would be used for their avatar, as well as a `NameDescription`, and a `Slug` ( we should discuss a standard component for `Slug` or `MachineName` or something eventually ).
 In Rust, each component will be a Rust struct or Enum that derives `BorshSerialize` and `BorshDeserialize`, as well as custom `HasBorshSchema`, and `Component` traits.
 
-[lp]: https://github.com/commune-os/agentic-fediverse/blob/main/leaf-protocol-draft.md
+[lp]: https://github.com/muni-town/agentic-fediverse/blob/main/leaf-protocol-draft.md

@@ -1,15 +1,9 @@
 {
 	"compilerOptions": {
-		"rootDirs": [
-			".",
-		],
+		"rootDirs": ["."],
 		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
-		"lib": [
-			"esnext",
-			"DOM",
-			"DOM.Iterable"
-		],
+		"lib": ["esnext", "DOM", "DOM.Iterable"],
 		"moduleResolution": "bundler",
 		"module": "esnext",
 		"noEmit": true,
@@ -26,7 +20,5 @@
 		"strict": true,
 		"moduleResolution": "bundler"
 	},
-	"exclude": [
-		"./docs"
-	]
+	"exclude": ["./docs"]
 }

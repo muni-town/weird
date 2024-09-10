@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      cheerio:
+        specifier: ^1.0.0
+        version: 1.0.0
       linktree-scraper:
         specifier: ^0.3.0
         version: 0.3.0(webpack@5.94.0)

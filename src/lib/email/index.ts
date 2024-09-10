@@ -9,5 +9,5 @@ export const mailer = nodemailer.createTransport({
 		user: env.SMTP_USER,
 		pass: env.SMTP_PASS
 	}
-});
+} as any);
 export const mail_from = env.SMTP_FROM;

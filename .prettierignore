@@ -10,3 +10,4 @@ yarn.lock
 
 static/
 src/lib/pow/wasm
+leaf/ts/docs

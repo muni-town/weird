@@ -13,7 +13,7 @@ members = [
 
 [workspace.package]
 edition = "2021"
-repository = "https://github.com/commune-os/weird/"
+repository = "https://github.com/muni-town/weird/"
 
 # [patch.crates-io]
 # iroh = { path = "../iroh/iroh" }

@@ -72,9 +72,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse CLI args.
     let args = &*ARGS;
 
-    // TODO: move this to a separate WASM module for SvelteKit.
-    spow::pow::Pow::init_random()?;
-
     // Initialize the leaf store and Iroh node
     let node = Node::persistent(&ARGS.data_dir).await?.spawn().await?;
     let leaf_store = LeafIrohStore::new(node.client().clone());

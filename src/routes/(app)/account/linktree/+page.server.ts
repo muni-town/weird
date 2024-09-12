@@ -1,3 +1,4 @@
+import { LINKTREE_PROFILE_PATH } from '$lib/constants.js';
 import { redirect } from '@sveltejs/kit';
 
 export const actions = {
@@ -10,6 +11,6 @@ export const actions = {
 			};
 		}
 
-		throw redirect(302, `/account/linktree/profile?username=${username}`);
+		throw redirect(302, `${LINKTREE_PROFILE_PATH}?username=${username}`);
 	}
 };

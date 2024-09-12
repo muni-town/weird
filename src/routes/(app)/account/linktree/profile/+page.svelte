@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import Icon from '@iconify/svelte';
-	import { ICONS_MAP } from '$lib/linktree';
+	import { LINKTREE_ICONS_MAP } from '$lib/constants.js';
 	export let data;
 </script>
 
@@ -24,7 +24,7 @@
 		<div class="flex items-center gap-4">
 			{#each data.account.socialLinks as link (link.type)}
 				<a href={link.url} target="_blank" class="transition duration-300 hover:scale-110">
-					<Icon icon={ICONS_MAP[link.type]} class="h-8 w-8" />
+					<Icon icon={LINKTREE_ICONS_MAP[link.type]} class="h-8 w-8" />
 				</a>
 			{/each}
 		</div>

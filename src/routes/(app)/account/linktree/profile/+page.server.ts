@@ -1,12 +1,13 @@
-import { scrapeLinktreeProfile } from '$lib/linktree.js';
+import { scrapeLinktreeAccount } from 'linktree-parser';
 import { redirect } from '@sveltejs/kit';
-import fs from 'fs';
+
 export async function load({ url }) {
 	const username = url.searchParams.get('username');
 	if (!username) throw redirect(302, '/account/linktree');
-	const account = await scrapeLinktreeProfile(username);
+	const { account, error } = await scrapeLinktreeAccount(username);
+	console.log(account, error);
 
-	if (!account) {
+	if (error || !account) {
 		throw redirect(302, '/account/linktree');
 	}
 

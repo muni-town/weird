@@ -69,9 +69,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.45)
-      cheerio:
-        specifier: ^1.0.0
-        version: 1.0.0
       cookie:
         specifier: ^0.6.0
         version: 0.6.0
@@ -93,6 +90,9 @@ importers:
       leaf-proto:
         specifier: workspace:*
         version: link:leaf/ts
+      linktree-parser:
+        specifier: ^1.5.0
+        version: 1.5.0(typescript@5.6.2)
       nodemailer:
         specifier: ^6.9.15
         version: 6.9.15
@@ -1437,6 +1437,11 @@ packages:
 
   linkify-it@5.0.0:
     resolution: {integrity: sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==}
+
+  linktree-parser@1.5.0:
+    resolution: {integrity: sha512-nK0Uu+K5ZQ7boZnYwj3x4vbNoYuH5wSt2UXHQcO4z5i5m7cSX/FPc8WtrEhybiKLP6bLQbf0VxqT4YF9ioswrg==}
+    peerDependencies:
+      typescript: ^5.0.0
 
   locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
@@ -3368,6 +3373,11 @@ snapshots:
   linkify-it@5.0.0:
     dependencies:
       uc.micro: 2.1.0
+
+  linktree-parser@1.5.0(typescript@5.6.2):
+    dependencies:
+      cheerio: 1.0.0
+      typescript: 5.6.2
 
   locate-character@3.0.0: {}
 

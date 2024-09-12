@@ -10,6 +10,16 @@ const CODEBERG_ERR_REDIRECT_PATH = '/account/codeberg';
 
 const CODEBERG_USER_API = `${CODEBERG_URI}/api/v1/users`;
 
+const LINKTREE_PROFILE_PATH = '/account/linktree/profile';
+
+const LINKTREE_ICONS_MAP: { [key: string]: string } = {
+	FACEBOOK: 'mingcute:facebook-line',
+	X: 'mingcute:twitter-line',
+	INSTAGRAM: 'mdi:instagram',
+	GITHUB: 'mdi:github',
+	EMAIL_ADDRESS: 'material-symbols:mail-outline',
+	YOUTUBE: 'mingcute:youtube-line'
+};
 export {
 	GH_BASE_URL,
 	GH_USER_API,
@@ -20,5 +30,7 @@ export {
 	CODEBERG_URI,
 	CODEBERG_SUCCESS_REDIRECT_PATH,
 	CODEBERG_ERR_REDIRECT_PATH,
-	CODEBERG_USER_API
+	CODEBERG_USER_API,
+	LINKTREE_PROFILE_PATH,
+	LINKTREE_ICONS_MAP
 };

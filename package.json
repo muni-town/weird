@@ -38,6 +38,7 @@
 		"eslint-plugin-svelte": "^2.43.0",
 		"keyv": "^4.5.4",
 		"leaf-proto": "workspace:*",
+		"linktree-parser": "^1.5.0",
 		"nodemailer": "^6.9.15",
 		"oauth-pkce": "^0.0.7",
 		"postcss": "^8.4.45",
@@ -55,8 +56,7 @@
 		"vite": "^5.4.3",
 		"vite-plugin-top-level-await": "^1.4.4",
 		"vite-plugin-wasm": "^3.3.0",
-		"ws": "^8.18.0",
-		"cheerio": "^1.0.0"
+		"ws": "^8.18.0"
 	},
 	"dependencies": {
 		"sharp": "^0.33.5"

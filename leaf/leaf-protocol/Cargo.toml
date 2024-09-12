@@ -1,8 +1,14 @@
 [package]
 name = "leaf-protocol"
-version = "0.1.0"
-edition = "2021"
-license = "BlueOak-1.0.0"
+description = "Rust implementation of the Leaf Protocol."
+version.workspace       = true
+authors.workspace       = true
+edition.workspace       = true
+license.workspace       = true
+repository.workspace    = true
+documentation.workspace = true
+categories.workspace    = true
+keywords.workspace      = true
 
 [features]
 default = ["backend_iroh"]
@@ -11,12 +17,14 @@ backend_iroh = ["iroh", "quick_cache", "tokio", "once_cell"]
 [dependencies]
 anyhow = "1.0.86"
 borsh = { version = "1.5.1", features = ["derive"] }
-leaf-protocol-macros = { version = "0.1.0", path = "./macros" }
-leaf-protocol-types = { version = "0.1.0", path = "./types" }
+leaf-protocol-macros = { version = "0.0.1", path = "./macros" }
+leaf-protocol-types = { version = "0.0.1", path = "./types" }
 
 # backend_iroh
 futures = { version = "0.3.30", default-features = false }
 iroh = { version = "0.22.0", optional = true }
 once_cell = { version = "1.19.0", optional = true }
 quick_cache = { version = "0.6.1", optional = true }
-tokio = { version = "1.39.1", default-features = false, features = ["rt"], optional = true }
+tokio = { version = "1.39.1", default-features = false, features = [
+    "rt",
+], optional = true }

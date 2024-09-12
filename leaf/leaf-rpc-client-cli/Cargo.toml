@@ -1,11 +1,18 @@
 [package]
 name = "leaf-rpc-client-cli"
-version = "0.1.0"
-edition = "2021"
+description = "CLI client for the Leaf RPC server."
+version.workspace       = true
+authors.workspace       = true
+edition.workspace       = true
+license.workspace       = true
+repository.workspace    = true
+documentation.workspace = true
+categories.workspace    = true
+keywords.workspace      = true
 
 [dependencies]
 anyhow = "1.0.86"
 clap = { version = "4.5.13", features = ["derive"] }
 iroh-base = "0.22.0"
-leaf-rpc-client = { path = "../leaf-rpc-client" }
+leaf-rpc-client = { path = "../leaf-rpc-client", version = "0.0.1" }
 tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread"] }

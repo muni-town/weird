@@ -1,8 +1,15 @@
 [package]
 name = "leaf-rpc-server"
-version = "0.1.0"
 default-run = "leaf-rpc-server"
-edition = "2021"
+description = "The Leaf RPC server."
+version.workspace       = true
+authors.workspace       = true
+edition.workspace       = true
+license.workspace       = true
+repository.workspace    = true
+documentation.workspace = true
+categories.workspace    = true
+keywords.workspace      = true
 
 [dependencies]
 anyhow = "1.0.86"
@@ -18,5 +25,5 @@ tower-http = { version = "0.5.2", features = ["trace"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
-leaf-protocol = { path = "../leaf-protocol" }
-leaf-rpc-proto = { path = "../leaf-rpc-proto" }
+leaf-protocol = { path = "../leaf-protocol", version = "0.0.1" }
+leaf-rpc-proto = { path = "../leaf-rpc-proto", version = "0.0.1" }

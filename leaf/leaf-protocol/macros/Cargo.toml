@@ -1,7 +1,14 @@
 [package]
 name = "leaf-protocol-macros"
-version = "0.1.0"
-edition = "2021"
+description = "Macros for the leaf-protocol crate."
+version.workspace       = true
+edition.workspace       = true
+authors.workspace       = true
+license.workspace       = true
+repository.workspace    = true
+documentation.workspace = true
+categories.workspace    = true
+keywords.workspace      = true
 
 [lib]
 proc-macro = true
@@ -10,7 +17,7 @@ proc-macro = true
 borsh = "1.5.1"
 iroh-base = "0.22.0"
 iroh-blake3 = "1.4.5"
-leaf-protocol-types = { version = "0.1.0", path = "../types" }
+leaf-protocol-types = { version = "0.0.1", path = "../types" }
 proc-macro2 = "1.0.86"
 quote = "1.0"
 unsynn = "0.0.8"

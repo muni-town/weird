@@ -12,8 +12,14 @@ members = [
 ]
 
 [workspace.package]
+version = "0.0.1"
 edition = "2021"
+authors = ["Weird / Leaf Contributors"]
+documentation = "https://github.com/muni-town/agentic-fediverse/blob/main/leaf-protocol-draft.md"
 repository = "https://github.com/muni-town/weird/"
+keywords = ["p2p", "leaf", "protocol", "local-first", "offline"]
+categories = ["network-programming"]
+license = "BlueOak-1.0.0"
 
 # [patch.crates-io]
 # iroh = { path = "../iroh/iroh" }

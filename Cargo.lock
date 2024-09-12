@@ -2245,7 +2245,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-protocol"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "borsh",
@@ -2260,7 +2260,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-protocol-macros"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "borsh",
  "iroh-base",
@@ -2274,7 +2274,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-protocol-types"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "borsh",
  "iroh-base",
@@ -2282,7 +2282,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-rpc-client"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -2298,7 +2298,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-rpc-client-cli"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -2309,7 +2309,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-rpc-proto"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "borsh",
  "leaf-protocol",
@@ -2317,7 +2317,7 @@ dependencies = [
 
 [[package]]
 name = "leaf-rpc-server"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "axum",

@@ -1,14 +1,14 @@
 [package]
 name = "leaf-protocol-types"
-description = "Core types for the leaf protocol."
-version.workspace       = true
-edition.workspace       = true
-authors.workspace       = true
-license.workspace       = true
-repository.workspace    = true
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
-categories.workspace    = true
-keywords.workspace      = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core types for the leaf protocol."
 
 [dependencies]
 borsh = { version = "1.5.1", features = ["derive"] }

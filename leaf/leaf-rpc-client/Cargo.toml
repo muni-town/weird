@@ -1,20 +1,17 @@
 [package]
 name = "leaf-rpc-client"
-description = "Rust client for the Leaf RPC server."
-version.workspace       = true
-authors.workspace       = true
-edition.workspace       = true
-license.workspace       = true
-repository.workspace    = true
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
-categories.workspace    = true
-keywords.workspace      = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Rust client for the Leaf RPC server."
 
 [dependencies]
-fastwebsockets = { version = "=0.8.0", features = [
-    "upgrade",
-    "unstable-split",
-] }
+fastwebsockets = { version = "=0.8.0", features = ["upgrade", "unstable-split"] }
 hyper = "1.4.1"
 tokio = "1.39.2"
 

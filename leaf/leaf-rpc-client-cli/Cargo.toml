@@ -1,14 +1,14 @@
 [package]
 name = "leaf-rpc-client-cli"
-description = "CLI client for the Leaf RPC server."
-version.workspace       = true
-authors.workspace       = true
-edition.workspace       = true
-license.workspace       = true
-repository.workspace    = true
+version.workspace = true
+authors.workspace = true
+categories.workspace = true
 documentation.workspace = true
-categories.workspace    = true
-keywords.workspace      = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "CLI client for the Leaf RPC server."
 
 [dependencies]
 anyhow = "1.0.86"

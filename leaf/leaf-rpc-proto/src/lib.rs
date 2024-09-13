@@ -49,6 +49,9 @@ pub enum ReqKind {
     CreateSubspace,
     ImportSubspaceSecret(SubspaceSecretKey),
     GetSubspaceSecret(SubspaceId),
+    GetLocalSecret(String),
+    SetLocalSecret(String, Option<String>),
+    ListLocalSecrets,
 }
 
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug)]
@@ -72,4 +75,7 @@ pub enum RespKind {
     CreateSubspace(SubspaceId),
     ImportSubspaceSecret(SubspaceId),
     GetSubspaceSecret(Option<SubspaceSecretKey>),
+    GetLocalSecret(Option<String>),
+    SetLocalSecret,
+    ListLocalSecrets(HashMap<String, String>),
 }

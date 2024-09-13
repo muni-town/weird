@@ -91,7 +91,10 @@ export type ReqKind =
 	| { GetNamespaceSecret: NamespaceSecretKey }
 	| { CreateSubspace: Unit }
 	| { ImportSubspaceSecret: SubspaceSecretKey }
-	| { GetSubspaceSecret: SubspaceId };
+	| { GetSubspaceSecret: SubspaceId }
+	| { GetLocalSecret: string }
+	| { SetLocalSecret: { key: string; value?: string } }
+	| { ListLocalSecrets: Unit };
 export const ReqKindSchema = BorshSchema.Enum({
 	Authenticate: BorshSchema.String,
 	ReadEntity: ExactLinkSchema,
@@ -115,7 +118,13 @@ export const ReqKindSchema = BorshSchema.Enum({
 	GetNamespaceSecret: NamespaceIdSchema,
 	CreateSubspace: BorshSchema.Unit,
 	ImportSubspaceSecret: SubspaceSecretKeySchema,
-	GetSubspaceSecret: SubspaceIdSchema
+	GetSubspaceSecret: SubspaceIdSchema,
+	GetLocalSecret: BorshSchema.String,
+	SetLocalSecret: BorshSchema.Struct({
+		key: BorshSchema.String,
+		value: BorshSchema.Option(BorshSchema.String)
+	}),
+	ListLocalSecrets: BorshSchema.Unit
 });
 
 export type Req = {
@@ -175,7 +184,10 @@ export type RespKind =
 	| { GetNamespaceSecret: NamespaceSecretKey | null }
 	| { CreateSubspace: SubspaceId }
 	| { ImportSubspaceSecret: SubspaceId }
-	| { GetSubspaceSecret: SubspaceSecretKey | null };
+	| { GetSubspaceSecret: SubspaceSecretKey | null }
+	| { GetLocalSecret: string | null }
+	| { SetLocalSecret: Unit }
+	| { ListLocalSecrets: { key: string; value: string }[] };
 export const RespKindSchema = BorshSchema.Enum({
 	Authenticated: BorshSchema.Unit,
 	ReadEntity: BorshSchema.Option(
@@ -191,7 +203,12 @@ export const RespKindSchema = BorshSchema.Enum({
 	GetNamespaceSecret: BorshSchema.Option(NamespaceSecretKeySchema),
 	CreateSubspace: SubspaceIdSchema,
 	ImportSubspaceSecret: SubspaceIdSchema,
-	GetSubspaceSecret: BorshSchema.Option(SubspaceSecretKeySchema)
+	GetSubspaceSecret: BorshSchema.Option(SubspaceSecretKeySchema),
+	GetLocalSecret: BorshSchema.Option(BorshSchema.String),
+	SetLocalSecret: BorshSchema.Unit,
+	ListLocalSecrets: BorshSchema.Vec(
+		BorshSchema.Struct({ key: BorshSchema.String, value: BorshSchema.String })
+	)
 });
 
 export type RespResult = { Err: string } | { Ok: RespKind };
@@ -649,6 +666,59 @@ export class RpcClient {
 		const respKind = this.#unwrap_resp(resp);
 		if ('GetSubspaceSecret' in respKind) {
 			return (respKind.GetSubspaceSecret && new Uint8Array(respKind.GetSubspaceSecret)) || null;
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	/**
+	 * Get's the value of a private secret that is stored locally on the Leaf RPC server and not
+	 * shared over the network like the rest of the normal Leaf entity data, which is treated as
+	 * public.
+	 *
+	 * @param key the key of the secret to get.
+	 * @returns the value of the secret if it is present.
+	 */
+	async get_local_secret(key: string): Promise<string | null> {
+		const resp = await this.#send_req({ GetLocalSecret: key });
+		const respKind = this.#unwrap_resp(resp);
+		if ('GetLocalSecret' in respKind) {
+			return respKind.GetLocalSecret;
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	/**
+	 * Set's the value of a private secret that is stored locally on the Leaf RPC server and not
+	 * shared over the network like the rest of the normal Leaf entity data, which is treated as
+	 * public.
+	 *
+	 * @param key the key of the secret to get.
+	 * @param value the value to set the secret to, or `undefined` if you want to delete it.
+	 * @returns the value of the secret if it is present.
+	 */
+	async set_local_secret(key: string, value?: string): Promise<void> {
+		const resp = await this.#send_req({ SetLocalSecret: { key, value } });
+		const respKind = this.#unwrap_resp(resp);
+		if ('SetLocalSecret' in respKind) {
+			return;
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	/**
+	 * Lists all the keys and values of the private secrets that are stored locally on the Leaf RPC
+	 * server.
+	 *
+	 * @returns the list of secrets.
+	 */
+	async list_local_secrets(): Promise<{ key: string; value: string }[]> {
+		const resp = await this.#send_req({ ListLocalSecrets: {} });
+		const respKind = this.#unwrap_resp(resp);
+		if ('ListLocalSecrets' in respKind) {
+			return respKind.ListLocalSecrets;
 		} else {
 			throw 'Invalid RPC response';
 		}

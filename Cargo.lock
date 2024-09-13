@@ -2328,6 +2328,7 @@ dependencies = [
  "leaf-protocol",
  "leaf-rpc-proto",
  "once_cell",
+ "redb 2.1.2",
  "reqwest",
  "tokio",
  "tower-http",

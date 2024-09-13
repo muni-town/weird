@@ -32,9 +32,12 @@ pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
 pub static CLIENT: Lazy<reqwest::Client> =
     Lazy::new(|| reqwest::ClientBuilder::new().build().unwrap());
 
+const SECRET_TABLE: redb::TableDefinition<&str, String> = redb::TableDefinition::new("secrets");
+
 pub type AppState = Arc<AppStateInner>;
 pub struct AppStateInner {
     pub leaf: LeafIroh,
+    pub secretdb: Arc<redb::Database>,
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -77,6 +80,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let leaf_store = LeafIrohStore::new(node.client().clone());
     let leaf = Leaf::new(leaf_store);
 
+    let secretdb = Arc::new(redb::Builder::new().create(ARGS.data_dir.join("secrets"))?);
+    {
+        let tx = secretdb.begin_write()?;
+        {
+            // Make sure that secrets table exists
+            tx.open_table(SECRET_TABLE)?;
+        }
+        tx.commit()?;
+    }
+
     // Spawn a task to handle the debug CLI commands
     let iroh = node.client().clone();
     tokio::spawn(handle_cli_prompts(iroh));
@@ -85,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let router = Router::new()
         .route("/", get(proto::ws_handler))
         .layer(TraceLayer::new_for_http())
-        .with_state(Arc::new(AppStateInner { leaf }));
+        .with_state(Arc::new(AppStateInner { leaf, secretdb }));
 
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", args.port)).await?;
     tracing::info!("Starting server on port {}", args.port);

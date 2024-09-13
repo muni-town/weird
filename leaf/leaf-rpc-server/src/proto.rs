@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use axum::{extract::State, response::IntoResponse};
 use fastwebsockets::{Frame, OpCode, Payload, WebSocketError};
@@ -6,7 +6,7 @@ use futures::StreamExt;
 use leaf_protocol::prelude::*;
 use leaf_rpc_proto::*;
 
-use crate::{AppState, ARGS};
+use crate::{AppState, ARGS, SECRET_TABLE};
 
 pub async fn ws_handler(
     state: State<AppState>,
@@ -28,6 +28,7 @@ async fn handle_client(
     fut: fastwebsockets::upgrade::UpgradeFut,
 ) -> Result<(), WebSocketError> {
     let leaf = &state.leaf;
+    let secretdb = state.secretdb.clone();
     let mut ws = fastwebsockets::FragmentCollector::new(fut.await?);
     let mut authenticated = false;
 
@@ -48,7 +49,7 @@ async fn handle_client(
                     let req = Req::deserialize(&mut &*frame.payload)?;
 
                     if authenticated {
-                        let resp = handle_req(leaf, req).await;
+                        let resp = handle_req(leaf, secretdb.clone(), req).await;
                         let mut buf = Vec::new();
                         resp.serialize(&mut buf)?;
                         ws.write_frame(Frame::binary(Payload::Owned(buf))).await?;
@@ -103,7 +104,7 @@ async fn handle_client(
     Ok(())
 }
 
-async fn handle_req(leaf: &LeafIroh, req: Req) -> Resp {
+async fn handle_req(leaf: &LeafIroh, secretdb: Arc<redb::Database>, req: Req) -> Resp {
     let kind = match req.kind {
         ReqKind::Authenticate(_) => {
             // TODO: we can hit this somehow when restarting the RPC server while Weird tries to
@@ -130,6 +131,9 @@ async fn handle_req(leaf: &LeafIroh, req: Req) -> Resp {
         ReqKind::CreateSubspace => create_subspace(leaf).await,
         ReqKind::ImportSubspaceSecret(secret) => import_subspace_secret(leaf, secret).await,
         ReqKind::GetSubspaceSecret(subspace) => get_subspace_secret(leaf, subspace).await,
+        ReqKind::GetLocalSecret(key) => get_local_secret(secretdb, key).await,
+        ReqKind::SetLocalSecret(key, value) => set_local_secret(secretdb, key, value).await,
+        ReqKind::ListLocalSecrets => list_local_secrets(secretdb).await,
     };
     Resp {
         id: req.id,
@@ -254,4 +258,66 @@ async fn get_subspace_secret(
     Ok(RespKind::GetSubspaceSecret(
         leaf.get_subspace_secret(subspace).await?,
     ))
+}
+
+async fn get_local_secret(
+    secretdb: Arc<redb::Database>,
+    key: String,
+) -> std::result::Result<RespKind, anyhow::Error> {
+    tokio::task::spawn_blocking(move || {
+        let transaction = secretdb.begin_read()?;
+        let value = {
+            let table = transaction.open_table(SECRET_TABLE)?;
+            let v = table.get(key.as_str())?;
+            v.map(|guard| guard.value())
+        };
+
+        Ok(RespKind::GetLocalSecret(value))
+    })
+    .await
+    .map_err(|_| anyhow::format_err!("Error executing database operation"))?
+}
+
+async fn set_local_secret(
+    secretdb: Arc<redb::Database>,
+    key: String,
+    value: Option<String>,
+) -> std::result::Result<RespKind, anyhow::Error> {
+    tokio::task::spawn_blocking(move || {
+        let transaction = secretdb.begin_write()?;
+        {
+            let mut table = transaction.open_table(SECRET_TABLE)?;
+            if let Some(value) = value {
+                table.insert(key.as_str(), value)?;
+            } else {
+                table.remove(key.as_str())?;
+            }
+        }
+        transaction.commit()?;
+
+        Ok(RespKind::SetLocalSecret)
+    })
+    .await
+    .map_err(|_| anyhow::format_err!("Error executing database operation"))?
+}
+
+async fn list_local_secrets(
+    secretdb: Arc<redb::Database>,
+) -> std::result::Result<RespKind, anyhow::Error> {
+    tokio::task::spawn_blocking(move || {
+        let mut map = HashMap::default();
+        let transaction = secretdb.begin_read()?;
+        {
+            let table = transaction.open_table(SECRET_TABLE)?;
+            let records = table.range::<&str>(..)?;
+            for record in records {
+                let (key, value) = record?;
+                map.insert(key.value().into(), value.value());
+            }
+        };
+
+        Ok(RespKind::ListLocalSecrets(map))
+    })
+    .await
+    .map_err(|_| anyhow::format_err!("Error executing database operation"))?
 }

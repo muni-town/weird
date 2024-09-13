@@ -24,6 +24,7 @@ tokio = { version = "1.37.0", default-features = false, features = ["macros"] }
 tower-http = { version = "0.5.2", features = ["trace"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+redb = "2.1.2"
 
 leaf-protocol = { path = "../leaf-protocol", version = "0.0.1" }
 leaf-rpc-proto = { path = "../leaf-rpc-proto", version = "0.0.1" }

@@ -1,0 +1,61 @@
+services:
+  smtp4dev:
+    image: rnwood/smtp4dev
+    ports:
+      - '8091:80'
+      - '2525:25'
+
+  set-rauthy-volume-owner:
+    image: alpine
+    command: chown -R 10001:10001 /app/data
+    volumes:
+      - rauthy:/app/data
+
+  rauthy:
+    image: ghcr.io/sebadob/rauthy:0.23.5-lite
+    depends_on:
+      - set-rauthy-volume-owner
+      - smtp4dev
+    environment:
+      PUB_URL: localhost:9523
+      DATABASE_URL: 'sqlite:/app/data/rauthy.db'
+      BOOTSTRAP_ADMIN_EMAIL: admin@localhost.de
+      BOOTSTRAP_ADMIN_PASSWORD_PLAIN: adminadmin
+      COOKIE_MODE: danger-insecure
+      COOKIE_SET_PATH: false
+      SMTP_URL: smtp4dev
+      SMTP_DANGER_INSECURE_PORT: 25
+      SMTP_USERNAME: dummy
+      SMTP_PASSWORD: dummy
+      SMTP_FROM: rauthy@localhost.de
+      SMTP_DANGER_INSECURE: true
+      EMAIL_SUB_PREFIX: Weird.One
+      LOG_LEVEL_ACCESS: Verbose
+      http_proxy:
+      https_proxy:
+    volumes:
+      - rauthy:/app/data
+
+  backend:
+    image: leaf-rpc-server:main
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - data:/data
+    build:
+      dockerfile: leaf-rpc-server.Dockerfile
+
+  weird:
+    image: weird:main
+    env_file: .env.local
+    environment:
+      RAUTHY_URL: http://rauthy:8080
+      BACKEND_URL: http://backend:7431
+    ports:
+      - 9523:3000
+    build:
+      dockerfile: weird.Dockerfile
+
+volumes:
+  rauthy:
+  data:

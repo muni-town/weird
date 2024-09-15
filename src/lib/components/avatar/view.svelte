@@ -5,7 +5,7 @@
 	let { user_id, username, width }: { user_id?: string; username?: string; width?: string } =
 		$props();
 	const fallback = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${username}`;
-	let src = (user_id && `/account/${user_id}/avatar`) || (username && `/a/${username}/avatar`);
+	let src = (user_id && `/account/${user_id}/avatar`) || (username && `/${username}/avatar`);
 </script>
 
 <Avatar

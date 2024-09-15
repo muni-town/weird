@@ -142,7 +142,7 @@
 		</span>
 
 		<div class="links">
-			<a href={`${env.PUBLIC_URL}/a/${profile.username}`} class="link">Weird</a>
+			<a href={`${env.PUBLIC_URL}/${profile.username}`} class="link">Weird</a>
 			{#if profile.links}
 				{#each profile.links as link}
 					{#if is_author}

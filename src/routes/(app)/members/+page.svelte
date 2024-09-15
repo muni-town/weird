@@ -73,7 +73,7 @@
 					<div class="mb-3 flex flex-col flex-wrap items-center gap-4">
 						<Avatar width="w-[5em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
 						<h2 class="text-2xl font-semibold">
-							<a href={`/a/${profile.username}`} class="card-link">
+							<a href={`/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}
 							</a>
 						</h2>

@@ -12,7 +12,7 @@
 
 	let theme: string = $state(profile.pubpage_theme || 'minimal');
 	let unsavedChanges = $state(false);
-	let avatar = $state(`/a/${profile.username}/avatar`);
+	let avatar = $state(`/${profile.username}/avatar`);
 	let fallbackAvatar = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${profile.username}`;
 
 	let setUnsavedChanges = (value: boolean) => {

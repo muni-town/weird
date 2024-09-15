@@ -193,8 +193,8 @@
 					<strong class="pr-2">Public Profile:</strong>
 					<span class="text-base">
 						{#if parsedUsername}
-							<a class="underline" href={`${baseUrl}a/${parsedUsername.name}`}>
-								{`${baseUrl}a/${parsedUsername.name}`}
+							<a class="underline" href={`${baseUrl}${parsedUsername.name}`}>
+								{`${baseUrl}${parsedUsername.name}`}
 							</a>
 						{:else}<span class="text-surface-400">Username Not Set</span>{/if}
 					</span>

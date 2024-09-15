@@ -53,6 +53,17 @@ Steps to get Weird running locally.
 - You will be able to hit the app at <http://localhost:9523>
 - To see emails sent by the system you can go to the development SMTP viewer at <http://localhost:8091>
 
+### Fully Containerized Setup
+
+The steps above partially containerize the environment, leaving the backend (`leaf-rpc-server`) and frontend (`weird's svletekit`) running locally.
+To fully containerize all services, follow the steps below:
+
+```bash
+$ docker compose -f compose.local.yaml up -d
+```
+
+The ports remain the same, so you can continue accessing services on the previous ports, such as <http://localhost:9523>, as usual.
+
 ## Pull Requests
 
 Even tiny pull requests (e.g., one character pull request fixing a typo in documentation) are greatly appreciated. Before making a large change, it is usually a good idea to first open an issue describing the change to solicit feedback and guidance. This will increase the likelihood of the PR getting merged.

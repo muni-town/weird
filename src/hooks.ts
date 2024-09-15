@@ -1,10 +1,13 @@
-import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 import type { Reroute } from '@sveltejs/kit';
 
 const subdomainRegex = new RegExp(
 	`(.*)\.${env.PUBLIC_DOMAIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
 );
+
+/** This is a regular expression that will match on anything in the format of `/[username]/avatar`
+ * and is used to allow requests to avatars through on user pubpages without going cross-origin. */
+const avatarRegexp = new RegExp(/\/([^\/]*)\/avatar/);
 
 export const reroute: Reroute = ({ url }) => {
 	if (
@@ -23,7 +26,9 @@ export const reroute: Reroute = ({ url }) => {
 		let usernameSubdomain = url.host.match(subdomainRegex)?.[1];
 		const subsite = usernameSubdomain ? usernameSubdomain : url.host;
 		return `/subsite/${subsite}`;
-	} else {
+	} else if (url.pathname.match(avatarRegexp)) {
 		return url.pathname;
 	}
+
+	throw 'Invalid domain';
 };

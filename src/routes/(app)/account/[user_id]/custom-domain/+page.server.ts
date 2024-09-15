@@ -12,20 +12,6 @@ export const load: PageServerLoad = async ({
 }): Promise<{ profile?: Profile; serverIp?: string; dnsChallenge?: string }> => {
 	let serverIp;
 	let dnsChallenge;
-	let resp;
-	// try {
-	// 	resp = await fetch(
-	// 		`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(env.PUBLIC_DOMAIN)}`,
-	// 		{
-	// 			headers: [['accept', 'application/dns-json']]
-	// 		}
-	// 	);
-	// 	await checkResponse(resp);
-	// 	const serverIpJson: { Answer?: { name: string; data: string }[] } = await resp.json();
-	// 	serverIp = serverIpJson.Answer?.[0].data;
-	// } catch (e) {
-	// 	console.error('Error fetching DNS over http', e);
-	// }
 
 	let { userInfo } = await getSession(fetch, request);
 	if (userInfo) {

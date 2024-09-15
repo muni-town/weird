@@ -58,6 +58,6 @@
 			.then((res) => console.log(res.json()))
 			.catch((err) => console.log(err));
 		localStorage.removeItem('reloaded');
-		window.location.href = `/u/${pageData.profile.username}/mastodon`;
+		window.location.href = `/a/${pageData.profile.username}/mastodon`;
 	});
 </script>

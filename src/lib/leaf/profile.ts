@@ -2,7 +2,7 @@ import { BorshSchema, Component, type ExactLink, type PathSegment } from 'leaf-p
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import { instance_link, leafClient } from '.';
 import { env } from '$env/dynamic/public';
-import _ from 'underscore';
+import _, { last } from 'underscore';
 
 export const PROFILE_PREFIX: PathSegment = { String: 'profiles' };
 
@@ -156,6 +156,17 @@ export class WeirdCustomDomain extends Component {
 	static specification(): Component[] {
 		return [new CommonMark(`An optional custom domain for the user's pubpage.`)];
 	}
+}
+
+/**
+ * Append a string subpath to the provided link
+ */
+export function appendSubpath(link: ExactLink, pathSegment: string): ExactLink {
+	return {
+		namespace: link.namespace,
+		subspace: link.subspace,
+		path: [...link.path, { String: pathSegment }]
+	};
 }
 
 export function profileLinkById(rauthyId: string): ExactLink {
@@ -341,4 +352,50 @@ export async function listDomains(): Promise<string[]> {
 		}
 	}
 	return domains;
+}
+
+/**
+ * List the entities, one level deep, with a string path segment below the provided `link`.
+ *
+ * @param link The link to the entity/path to list the children of.
+ * @returns A list of entities that are one string path segment deeper than the `link`.
+ */
+export async function listChildren(link: ExactLink): Promise<string[]> {
+	const entities = await leafClient.list_entities(link);
+	const paths: string[] = [];
+
+	for (const childLink of entities) {
+		if (childLink.path.length == link.path.length + 1) {
+			const lastSegment = childLink.path[childLink.path.length - 1];
+			if ('String' in lastSegment) {
+				paths.push(lastSegment.String);
+			}
+		}
+	}
+	return paths;
+}
+
+/** Save the markdown content to the given link. The `Name` of the entity will also be set to the
+ * string in the last path segment in the link.
+ *
+ * This will delete the page entity if `markdown` is not set. */
+export async function setMarkdownPage(pageLink: ExactLink, markdown?: string) {
+	if (markdown) {
+		let lastSegment = pageLink.path[pageLink.path.length - 1];
+		if (!('String' in lastSegment)) {
+			throw 'Only string final segments supported right now.';
+		}
+
+		await leafClient.add_components(pageLink, [
+			new Name(lastSegment.String),
+			new CommonMark(markdown)
+		]);
+	} else {
+		await leafClient.del_entity(pageLink);
+	}
+}
+
+/** Get the content for a markdown page at the given link */
+export async function getMarkdownPage(link: ExactLink): Promise<string | undefined> {
+	return (await leafClient.get_components(link, [CommonMark]))?.get(CommonMark)?.value;
 }

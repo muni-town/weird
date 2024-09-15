@@ -24,8 +24,6 @@
 	let bio = $state(profile?.bio || '');
 	let links = $state(profile?.links || []);
 	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
-	let mastodon_server = $state(profile?.mastodon_profile?.server || '');
-	let mastodon_username = $state(profile?.mastodon_profile?.username || '');
 
 	let tags = $state(profile?.tags || []);
 	let tagsString = $state((profile?.tags || []).join(', '));
@@ -170,6 +168,9 @@
 				<li>
 					<a href={`/account/${userInfo.id}/custom-domain`}> Site Generation </a>
 				</li>
+				<li>
+					<a href={`/account/pages`}> Pages </a>
+				</li>
 			</ol>
 		</section>
 
@@ -192,8 +193,8 @@
 					<strong class="pr-2">Public Profile:</strong>
 					<span class="text-base">
 						{#if parsedUsername}
-							<a class="underline" href={`${baseUrl}u/${parsedUsername.name}`}>
-								{`${baseUrl}u/${parsedUsername.name}`}
+							<a class="underline" href={`${baseUrl}a/${parsedUsername.name}`}>
+								{`${baseUrl}a/${parsedUsername.name}`}
 							</a>
 						{:else}<span class="text-surface-400">Username Not Set</span>{/if}
 					</span>

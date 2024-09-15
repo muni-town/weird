@@ -1,8 +1,9 @@
 <script lang="ts">
-	import snarkdown from 'snarkdown';
+	import { marked } from 'marked';
+
 	export let data;
 </script>
 
-<div class="markdown mx-auto max-w-2xl overflow-x-auto px-4 py-12">
-	{@html snarkdown(data.repo)}
+<div class="prose mx-auto max-w-2xl overflow-x-auto px-4 py-12 dark:prose-invert">
+	{@html marked.parse(data.repo)}
 </div>

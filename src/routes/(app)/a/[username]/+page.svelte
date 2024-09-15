@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
-	import { parseUsername } from '$lib/utils';
 	import type { PageData } from './$types';
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
@@ -60,6 +59,14 @@
 						View Mastodon Profile
 					</a>
 				{/if} -->
+				{#if data.pages.length > 0}
+					<h3 class="mt-4 text-center text-2xl font-bold">Pages</h3>
+					{#each data.pages as page}
+						<a class="variant-ghost btn font-mono" href={`/a/${profile.username}/${page}`}>
+							{page}
+						</a>
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</main>

@@ -73,18 +73,13 @@
 					<div class="mb-3 flex flex-col flex-wrap items-center gap-4">
 						<Avatar width="w-[5em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
 						<h2 class="text-2xl font-semibold">
-							<a href={`/u/${profile.username}`} class="card-link">
+							<a href={`/a/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}
 							</a>
 						</h2>
 					</div>
 
 					<div class="flex max-w-full flex-col gap-4">
-						{#if profile.location}
-							<div>
-								{profile.location}
-							</div>
-						{/if}
 						{#if profile.tags && profile.tags.length > 0}
 							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
 								{#each profile.tags as tag}<button
@@ -94,11 +89,6 @@
 									>
 										{tag}
 									</button>{/each}
-							</div>
-						{/if}
-						{#if profile.contact_info}
-							<div>
-								{profile.contact_info}
 							</div>
 						{/if}
 					</div>

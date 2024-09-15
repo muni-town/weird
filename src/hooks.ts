@@ -23,9 +23,7 @@ export const reroute: Reroute = ({ url }) => {
 		let usernameSubdomain = url.host.match(subdomainRegex)?.[1];
 		const subsite = usernameSubdomain ? usernameSubdomain : url.host;
 		return `/subsite/${subsite}`;
-	} else if (url.pathname.startsWith(`/a/`)) {
+	} else {
 		return url.pathname;
 	}
-
-	throw 'Invalid domain';
 };

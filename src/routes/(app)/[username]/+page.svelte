@@ -62,7 +62,7 @@
 				{#if data.pages.length > 0}
 					<h3 class="mt-4 text-center text-2xl font-bold">Pages</h3>
 					{#each data.pages as page}
-						<a class="variant-ghost btn font-mono" href={`/${profile.username}/${page}`}>
+						<a class="variant-ghost btn font-mono" href={`/${data.params.username}/${page}`}>
 							{page}
 						</a>
 					{/each}

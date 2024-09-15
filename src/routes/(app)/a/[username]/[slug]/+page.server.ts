@@ -1,9 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { appendSubpath, getMarkdownPage, profileLinkByUsername } from '$lib/leaf/profile';
 import { error } from '@sveltejs/kit';
-import DOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
 import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
 import { PUBLIC_DOMAIN } from '$env/static/public';
 
 export const load: PageServerLoad = async ({
@@ -21,6 +20,6 @@ export const load: PageServerLoad = async ({
 	return {
 		slug: params.slug,
 		username: params.username,
-		html: DOMPurify(new JSDOM().window).sanitize(marked.parse(markdown) as string)
+		html: sanitizeHtml(marked.parse(markdown) as string)
 	};
 };

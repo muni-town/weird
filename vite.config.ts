@@ -15,5 +15,5 @@ export default defineConfig({
 		rollupOptions: {
 			external: 'sharp'
 		}
-	}
+	},
 });

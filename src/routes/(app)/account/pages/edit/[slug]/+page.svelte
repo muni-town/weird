@@ -2,7 +2,7 @@
 	import type { CodeJar } from 'codejar';
 	import type { PageData } from './$types';
 	import { onMount } from 'svelte';
-	import DOMPurify from 'dompurify';
+	import sanitizeHtml from 'sanitize-html';
 	import { browser } from '$app/environment';
 	import { marked } from 'marked';
 
@@ -15,7 +15,7 @@
 
 	$effect(() => {
 		if (browser) {
-			html = DOMPurify.sanitize(marked.parse(markdown) as string);
+			html = sanitizeHtml(marked.parse(markdown) as string);
 		}
 	});
 

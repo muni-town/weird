@@ -46,7 +46,7 @@ Steps to get Weird running locally.
 - Clone the repo.
 - `just setup`, Or`docker compose up -d && pnpm i`
 - `just dev`, Or `pnpm run dev`
-- In a separate terminal `cargo r -p backend`
+- In a separate terminal `cargo r`
 
 ### Result
 

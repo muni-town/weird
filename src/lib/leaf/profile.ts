@@ -14,6 +14,7 @@ export interface Profile {
 	tags: string[];
 	bio?: string;
 	links: { label?: string; url: string }[];
+	lists: {label: string, links: { label?: string; url: string }[]}[];
 	mastodon_profile?: {
 		username: string;
 		server: string;
@@ -61,6 +62,34 @@ An example use would be hashtags or some equivalent.`)
 	}
 }
 
+export class Lists extends Component{
+	value: {label: string, links: {label?: string, url: string}[]}[] = [];
+	constructor(lists: {label: string, links: {label?: string, url: string}[]}[]) {
+		super();
+		this.value = lists;
+	}
+	static componentName(): string {
+		return 'Lists';
+	}
+	static borshSchema(): BorshSchema {
+		return BorshSchema.Vec(BorshSchema.Struct({
+			label: BorshSchema.String,
+			links: BorshSchema.Vec(
+				BorshSchema.Struct({
+					label: BorshSchema.Option(BorshSchema.String),
+					url: BorshSchema.String
+				})
+			)
+		}));
+	}
+	static specification(): Component[] {
+		return [
+			new CommonMark(`A list of named lists of links associated to the entity.
+
+Each list has a label and a list of links, where each link has an optional label and a URL.`)
+		];
+	}
+}
 export class WebLink {
 	label?: string;
 	url: string;
@@ -217,7 +246,8 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		WeirdCustomDomain,
 		MastodonProfile,
 		WeirdPubpageTheme,
-		WebLinks
+		WebLinks,
+		Lists
 	]);
 	return (
 		(ent && {
@@ -228,7 +258,8 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 			custom_domain: ent.get(WeirdCustomDomain)?.value,
 			links: ent.get(WebLinks)?.value || [],
 			mastodon_profile: ent.get(MastodonProfile)?.value,
-			pubpage_theme: ent.get(WeirdPubpageTheme)?.value
+			pubpage_theme: ent.get(WeirdPubpageTheme)?.value,
+			lists: ent.get(Lists)?.value || []
 		}) ||
 		undefined
 	);
@@ -259,6 +290,7 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 		: delComponents.push(WeirdPubpageTheme);
 	add_components.push(new WebLinks(profile.links));
 	add_components.push(new Tags(profile.tags));
+	add_components.push(new Lists(profile.lists));
 
 	// NOTE: We don't set the user domain with this function. Setting the domain should be done
 	// separately with `setCustomDomain()`.

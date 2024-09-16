@@ -52,7 +52,8 @@ Essential building blocks:
 
 - SvelteKit
 - [Rauthy](https://github.com/sebadob/rauthy) ([OIDC](https://developer.okta.com/blog/2019/10/21/illustrated-guide-to-oauth-and-oidc))
-- Leaf Server ![Crates.io Version](https://img.shields.io/crates/v/leaf-protocol)
+- Leaf Server <a href="https://crates.io/crates/leaf-protocol"><img src="https://img.shields.io/crates/v/leaf-protocol" />
+  </a>
   - Rust
   - [Iroh](https://n0.computer)
   - [Willow](https://n0.computer)

@@ -14,7 +14,7 @@ export interface Profile {
 	tags: string[];
 	bio?: string;
 	links: { label?: string; url: string }[];
-	lists: {label: string, links: { label?: string; url: string }[]}[];
+	lists: { label: string; links: { label?: string; url: string }[] }[];
 	mastodon_profile?: {
 		username: string;
 		server: string;
@@ -62,9 +62,9 @@ An example use would be hashtags or some equivalent.`)
 	}
 }
 
-export class Lists extends Component{
-	value: {label: string, links: {label?: string, url: string}[]}[] = [];
-	constructor(lists: {label: string, links: {label?: string, url: string}[]}[]) {
+export class Lists extends Component {
+	value: { label: string; links: { label?: string; url: string }[] }[] = [];
+	constructor(lists: { label: string; links: { label?: string; url: string }[] }[]) {
 		super();
 		this.value = lists;
 	}
@@ -72,15 +72,17 @@ export class Lists extends Component{
 		return 'Lists';
 	}
 	static borshSchema(): BorshSchema {
-		return BorshSchema.Vec(BorshSchema.Struct({
-			label: BorshSchema.String,
-			links: BorshSchema.Vec(
-				BorshSchema.Struct({
-					label: BorshSchema.Option(BorshSchema.String),
-					url: BorshSchema.String
-				})
-			)
-		}));
+		return BorshSchema.Vec(
+			BorshSchema.Struct({
+				label: BorshSchema.String,
+				links: BorshSchema.Vec(
+					BorshSchema.Struct({
+						label: BorshSchema.Option(BorshSchema.String),
+						url: BorshSchema.String
+					})
+				)
+			})
+		);
 	}
 	static specification(): Component[] {
 		return [

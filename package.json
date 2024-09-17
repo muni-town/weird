@@ -61,10 +61,16 @@
 		"vite-plugin-top-level-await": "^1.4.4",
 		"vite-plugin-wasm": "^3.3.0",
 		"ws": "^8.18.0",
-		"zlib-sync": "^0.1.9"
+		"zlib-sync": "^0.1.9",
+		"proxy-agent": "^6.4.0",
+		"sharp": "^0.33.5",
+		"undici": "^6.19.8"
 	},
-	"dependencies": {
-		"sharp": "^0.33.5"
-	},
-	"type": "module"
+	"dependencies": {},
+	"type": "module",
+	"pnpm": {
+		"patchedDependencies": {
+			"@discordjs/util": "patches/@discordjs__util.patch"
+		}
+	}
 }

@@ -16,6 +16,6 @@ export const actions = {
 		);
 		discord_tokens[userInfo.id] = discord_id;
 		leafClient.set_local_secret('discord_tokens', JSON.stringify(discord_tokens));
-        return "Okay";
+		return 'Okay';
 	}
 };

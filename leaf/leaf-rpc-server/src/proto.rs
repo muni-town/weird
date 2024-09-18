@@ -104,7 +104,7 @@ async fn handle_client(
     Ok(())
 }
 
-async fn handle_req(leaf: &LeafIroh, secretdb: Arc<redb::Database>, req: Req) -> Resp {
+async fn handle_req(leaf: &LeafIroh, secretdb: Arc<Option<redb::Database>>, req: Req) -> Resp {
     let kind = match req.kind {
         ReqKind::Authenticate(_) => {
             // TODO: we can hit this somehow when restarting the RPC server while Weird tries to
@@ -261,10 +261,14 @@ async fn get_subspace_secret(
 }
 
 async fn get_local_secret(
-    secretdb: Arc<redb::Database>,
+    secretdb: Arc<Option<redb::Database>>,
     key: String,
 ) -> std::result::Result<RespKind, anyhow::Error> {
     tokio::task::spawn_blocking(move || {
+        let Some(secretdb) = &*secretdb else {
+            anyhow::bail!("Local store not enabled on this RPC server.")
+        };
+
         let transaction = secretdb.begin_read()?;
         let value = {
             let table = transaction.open_table(SECRET_TABLE)?;
@@ -279,11 +283,15 @@ async fn get_local_secret(
 }
 
 async fn set_local_secret(
-    secretdb: Arc<redb::Database>,
+    secretdb: Arc<Option<redb::Database>>,
     key: String,
     value: Option<String>,
 ) -> std::result::Result<RespKind, anyhow::Error> {
     tokio::task::spawn_blocking(move || {
+        let Some(secretdb) = &*secretdb else {
+            anyhow::bail!("Local store not enabled on this RPC server.")
+        };
+
         let transaction = secretdb.begin_write()?;
         {
             let mut table = transaction.open_table(SECRET_TABLE)?;
@@ -302,9 +310,13 @@ async fn set_local_secret(
 }
 
 async fn list_local_secrets(
-    secretdb: Arc<redb::Database>,
+    secretdb: Arc<Option<redb::Database>>,
 ) -> std::result::Result<RespKind, anyhow::Error> {
     tokio::task::spawn_blocking(move || {
+        let Some(secretdb) = &*secretdb else {
+            anyhow::bail!("Local store not enabled on this RPC server.")
+        };
+
         let mut map = HashMap::default();
         let transaction = secretdb.begin_read()?;
         {

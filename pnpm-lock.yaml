@@ -12,16 +12,6 @@ patchedDependencies:
 importers:
 
   .:
-    dependencies:
-      proxy-agent:
-        specifier: ^6.4.0
-        version: 6.4.0
-      sharp:
-        specifier: ^0.33.5
-        version: 0.33.5
-      undici:
-        specifier: ^6.19.8
-        version: 6.19.8
     devDependencies:
       '@geoffcodesthings/tailwind-md-base':
         specifier: ^1.1.0
@@ -134,9 +124,15 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.5.14
         version: 0.5.14(prettier-plugin-svelte@3.2.6(prettier@3.3.3)(svelte@5.0.0-next.239))(prettier@3.3.3)
+      proxy-agent:
+        specifier: ^6.4.0
+        version: 6.4.0
       sanitize-html:
         specifier: ^2.13.0
         version: 2.13.0
+      sharp:
+        specifier: ^0.33.5
+        version: 0.33.5
       svelte:
         specifier: 5.0.0-next.239
         version: 5.0.0-next.239
@@ -158,6 +154,9 @@ importers:
       underscore:
         specifier: ^1.13.7
         version: 1.13.7
+      undici:
+        specifier: ^6.19.8
+        version: 6.19.8
       vite:
         specifier: ^5.4.3
         version: 5.4.3(@types/node@20.16.5)

@@ -3,11 +3,24 @@ import Discord, {
 	InteractionContextType,
 	ApplicationCommandType
 } from 'discord.js';
-import { GatewayIntentBits } from 'discord.js';
 import { env } from '$env/dynamic/private';
 import { env as PublicEnv } from '$env/dynamic/public';
 import { getProfileById, setProfileById } from '$lib/leaf/profile';
-import { leafClient } from '$lib/leaf';
+import { getDiscordUserRauthyId } from '$lib/leaf/discord';
+import Keyv from 'keyv';
+
+const discordLoginLinkIds = new Keyv({ namespace: 'discord-login-links' });
+
+export const createDiscordLoginLinkId = async (discordId: string): Promise<string> => {
+	const linkid = crypto.randomUUID();
+	// Create a login link that is valid for 10 minutes
+	await discordLoginLinkIds.set(linkid, discordId, 10 * 60 * 1000);
+	return linkid;
+};
+
+export const getDiscordIdForLoginLink = async (loginLink: string): Promise<string | undefined> => {
+	return await discordLoginLinkIds.get(loginLink);
+};
 
 const LOGIN_CMD = 'weird-login';
 const IMPORT_LINKS_CMD = 'Import links to Weird profile';
@@ -54,11 +67,9 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('interactionCreate', async function (interaction) {
 	if (interaction.isChatInputCommand() && interaction.commandName === LOGIN_CMD) {
-		interaction.user.send(
-			`Please go to this link to authenticate: ${PublicEnv.PUBLIC_URL}/app/discord_bot_authenticator?q=${interaction.user.id}`
-		);
+		const linkId = await createDiscordLoginLinkId(interaction.user.id);
 		interaction.reply({
-			content: 'I have sent you a DM with the link to authenticate.',
+			content: `Please go to this link to authenticate: ${PublicEnv.PUBLIC_URL}/connect/to/discord/${linkId}`,
 			ephemeral: true
 		});
 	} else if (
@@ -75,24 +86,21 @@ client.on('interactionCreate', async function (interaction) {
 			});
 			return;
 		}
-		const discord_tokens = JSON.parse(
-			(await leafClient.get_local_secret('discord_tokens')) ?? '{}'
-		);
-		const userId = Object.keys(discord_tokens).find(
-			(key) => discord_tokens[key] === interaction.user.id
-		);
-		const sendNeedsAuthenticateMessage = () =>
+		const userId = await getDiscordUserRauthyId(interaction.user.id);
+		if (!userId) {
 			interaction.reply({
-				content: 'You need to authenticate first. Use the command `/weird_auth` to authenticate.',
+				content: 'You need to authenticate first. Use the command `/weird-login` to authenticate.',
 				ephemeral: true
 			});
-		if (!userId) {
-			sendNeedsAuthenticateMessage();
 			return;
 		}
 		let profile = await getProfileById(userId);
 		if (!profile) {
-			sendNeedsAuthenticateMessage();
+			interaction.reply({
+				content:
+					'The Weird user linked to your Discord account no longer exists. Use the `/weird-login` command to login to a new Weird account.',
+				ephemeral: true
+			});
 			return;
 		}
 		let edited = false;

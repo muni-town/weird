@@ -2,7 +2,7 @@ import { BorshSchema, Component, type ExactLink, type PathSegment } from 'leaf-p
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import { instance_link, leafClient } from '.';
 import { env } from '$env/dynamic/public';
-import _, { last } from 'underscore';
+import _ from 'underscore';
 
 export const PROFILE_PREFIX: PathSegment = { String: 'profiles' };
 

@@ -19,7 +19,9 @@ export const createDiscordLoginLinkId = async (discordId: string): Promise<strin
 };
 
 export const getDiscordIdForLoginLink = async (loginLink: string): Promise<string | undefined> => {
-	return await discordLoginLinkIds.get(loginLink);
+	const discordId = await discordLoginLinkIds.get(loginLink);
+	if (discordId) await discordLoginLinkIds.delete(loginLink);
+	return discordId;
 };
 
 const LOGIN_CMD = 'weird-login';

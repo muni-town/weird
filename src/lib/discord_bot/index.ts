@@ -134,10 +134,12 @@ client.on('interactionCreate', async function (interaction) {
 });
 
 export const client_login = async () => {
-	try {
-		await rest.put(Discord.Routes.applicationCommands(env.DISCORD_CLIENT_ID), { body: commands });
-		await client.login(env.DISCORD_TOKEN);
-	} catch (e) {
-		console.error(`Error logging in discord bot: ${e}`);
+	if (env.DISCORD_CLIENT_ID) {
+		try {
+			await rest.put(Discord.Routes.applicationCommands(env.DISCORD_CLIENT_ID), { body: commands });
+			await client.login(env.DISCORD_TOKEN);
+		} catch (e) {
+			console.error(`Error logging in discord bot: ${e}`);
+		}
 	}
 };

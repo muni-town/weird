@@ -65,6 +65,9 @@
 		"vite-plugin-wasm": "^3.3.0",
 		"ws": "^8.18.0"
 	},
+	"dependencies": {
+		"zlib-sync": "^0.1.9"
+	},
 	"type": "module",
 	"pnpm": {
 		"patchedDependencies": {

@@ -32,6 +32,6 @@ export async function setDiscordUserRauthyId(discordId: string, rauthyId: string
 
 export async function getDiscordUserRauthyId(discordId: string): Promise<string | undefined> {
 	const discordLink = discordUserLinkById(discordId);
-	const ent = await leafClient.get_components(discordLink, [RauthyUserId]);
+	const ent = await leafClient.get_components(discordLink, RauthyUserId);
 	return ent?.get(RauthyUserId)?.value;
 }

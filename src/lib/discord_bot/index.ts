@@ -5,10 +5,21 @@ import Discord, {
 } from 'discord.js';
 import { env } from '$env/dynamic/private';
 import { env as PublicEnv } from '$env/dynamic/public';
-import { getProfileById, setProfileById } from '$lib/leaf/profile';
+import {
+	getProfile,
+	getProfileById,
+	profileLinkByDomain,
+	profileLinkById as getProfileLinkById,
+	setProfileById,
+	appendSubpath,
+	WebLinks
+} from '$lib/leaf/profile';
 import { getDiscordUserRauthyId } from '$lib/leaf/discord';
 import Keyv from 'keyv';
+import { leafClient } from '$lib/leaf';
+import { Name } from 'leaf-proto/components';
 
+// TODO: allow using Redis for key-value storage so that it can be clustered properly.
 const discordLoginLinkIds = new Keyv({ namespace: 'discord-login-links' });
 
 export const createDiscordLoginLinkId = async (discordId: string): Promise<string> => {
@@ -71,7 +82,7 @@ client.on('interactionCreate', async function (interaction) {
 	if (interaction.isChatInputCommand() && interaction.commandName === LOGIN_CMD) {
 		const linkId = await createDiscordLoginLinkId(interaction.user.id);
 		interaction.reply({
-			content: `Please go to this link to authenticate: ${PublicEnv.PUBLIC_URL}/connect/to/discord/${linkId}`,
+			content: `Please go to this link to authenticate: ${PublicEnv.PUBLIC_URL}/connect/discord/${linkId}`,
 			ephemeral: true
 		});
 	} else if (
@@ -96,7 +107,8 @@ client.on('interactionCreate', async function (interaction) {
 			});
 			return;
 		}
-		let profile = await getProfileById(userId);
+		const profileLink = getProfileLinkById(userId);
+		const profile = await getProfile(profileLink);
 		if (!profile) {
 			interaction.reply({
 				content:
@@ -105,24 +117,18 @@ client.on('interactionCreate', async function (interaction) {
 			});
 			return;
 		}
-		let edited = false;
-		for (let list of profile['lists']) {
-			if (list.label === 'discord_links') {
-				list.links = [...list.links, ...links.map((link) => ({ url: link }))];
-				edited = true;
-			}
+
+		const discordListLink = appendSubpath(profileLink, 'discord-links');
+		const ent = await leafClient.get_components(discordListLink, WebLinks);
+		const webLinks = ent?.get(WebLinks)?.value || [];
+		for (const link of links) {
+			webLinks.push({ url: link });
 		}
-		if (!edited) {
-			profile['lists'].push({
-				label: 'discord_links',
-				links: links.map((link) => ({ url: link }))
-			});
-		}
-		try {
-			await setProfileById(userId, profile!);
-		} catch (e) {
-			console.log('error', e);
-		}
+		await leafClient.add_components(discordListLink, [
+			new Name('Discord Links'),
+			new WebLinks(webLinks)
+		]);
+
 		interaction.reply({
 			content: `Links imported successfully (http://${PublicEnv.PUBLIC_DOMAIN}/${profile.username}/discord_links):\n${links.join('\n')}`,
 			ephemeral: true

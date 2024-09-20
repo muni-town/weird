@@ -14,7 +14,6 @@ export interface Profile {
 	tags: string[];
 	bio?: string;
 	links: { label?: string; url: string }[];
-	lists: { label: string; links: { label?: string; url: string }[] }[];
 	mastodon_profile?: {
 		username: string;
 		server: string;
@@ -62,36 +61,6 @@ An example use would be hashtags or some equivalent.`)
 	}
 }
 
-export class Lists extends Component {
-	value: { label: string; links: { label?: string; url: string }[] }[] = [];
-	constructor(lists: { label: string; links: { label?: string; url: string }[] }[]) {
-		super();
-		this.value = lists;
-	}
-	static componentName(): string {
-		return 'Lists';
-	}
-	static borshSchema(): BorshSchema {
-		return BorshSchema.Vec(
-			BorshSchema.Struct({
-				label: BorshSchema.String,
-				links: BorshSchema.Vec(
-					BorshSchema.Struct({
-						label: BorshSchema.Option(BorshSchema.String),
-						url: BorshSchema.String
-					})
-				)
-			})
-		);
-	}
-	static specification(): Component[] {
-		return [
-			new CommonMark(`A list of named lists of links associated to the entity.
-
-Each list has a label and a list of links, where each link has an optional label and a URL.`)
-		];
-	}
-}
 export class WebLink {
 	label?: string;
 	url: string;
@@ -192,11 +161,11 @@ export class WeirdCustomDomain extends Component {
 /**
  * Append a string subpath to the provided link
  */
-export function appendSubpath(link: ExactLink, pathSegment: string): ExactLink {
+export function appendSubpath(link: ExactLink, ...pathSegments: string[]): ExactLink {
 	return {
 		namespace: link.namespace,
 		subspace: link.subspace,
-		path: [...link.path, { String: pathSegment }]
+		path: [...link.path, ...pathSegments.map((x) => ({ String: x }))]
 	};
 }
 
@@ -207,7 +176,7 @@ export async function profileLinkByUsername(username: string): Promise<ExactLink
 	const profilesLink = instance_link([PROFILE_PREFIX]);
 	const entities = await leafClient.list_entities(profilesLink);
 	for (const link of entities) {
-		const ent = await leafClient.get_components(link, [Username]);
+		const ent = await leafClient.get_components(link, Username);
 		if (ent) {
 			const u = ent.get(Username);
 			if (u && u.value == username) {
@@ -227,7 +196,7 @@ export async function profileLinkByDomain(domain: string): Promise<ExactLink | u
 	const profilesLink = instance_link([PROFILE_PREFIX]);
 	const entities = await leafClient.list_entities(profilesLink);
 	for (const link of entities) {
-		const ent = await leafClient.get_components(link, [WeirdCustomDomain]);
+		const ent = await leafClient.get_components(link, WeirdCustomDomain);
 		if (ent) {
 			const u = ent.get(WeirdCustomDomain);
 			if (u && u.value == domain) {
@@ -240,7 +209,8 @@ export async function profileLinkByDomain(domain: string): Promise<ExactLink | u
 }
 
 export async function getProfile(link: ExactLink): Promise<Profile | undefined> {
-	let ent = await leafClient.get_components(link, [
+	let ent = await leafClient.get_components(
+		link,
 		Name,
 		Description,
 		Username,
@@ -248,9 +218,8 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		WeirdCustomDomain,
 		MastodonProfile,
 		WeirdPubpageTheme,
-		WebLinks,
-		Lists
-	]);
+		WebLinks
+	);
 	return (
 		(ent && {
 			username: ent.get(Username)?.value,
@@ -260,8 +229,7 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 			custom_domain: ent.get(WeirdCustomDomain)?.value,
 			links: ent.get(WebLinks)?.value || [],
 			mastodon_profile: ent.get(MastodonProfile)?.value,
-			pubpage_theme: ent.get(WeirdPubpageTheme)?.value,
-			lists: ent.get(Lists)?.value || []
+			pubpage_theme: ent.get(WeirdPubpageTheme)?.value
 		}) ||
 		undefined
 	);
@@ -292,7 +260,6 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 		: delComponents.push(WeirdPubpageTheme);
 	add_components.push(new WebLinks(profile.links));
 	add_components.push(new Tags(profile.tags));
-	add_components.push(new Lists(profile.lists));
 
 	// NOTE: We don't set the user domain with this function. Setting the domain should be done
 	// separately with `setCustomDomain()`.
@@ -320,7 +287,7 @@ export async function setAvatar(link: ExactLink, avatar: RawImage): Promise<void
 	await leafClient.add_components(link, [avatar]);
 }
 export async function getAvatar(link: ExactLink): Promise<RawImage | undefined> {
-	const ent = await leafClient.get_components(link, [RawImage]);
+	const ent = await leafClient.get_components(link, RawImage);
 	return ent?.get(RawImage);
 }
 
@@ -372,7 +339,7 @@ export async function listDomains(): Promise<string[]> {
 	const domains: string[] = [];
 
 	for (const link of entities) {
-		const ent = await leafClient.get_components(link, [WeirdCustomDomain, Username]);
+		const ent = await leafClient.get_components(link, WeirdCustomDomain, Username);
 		if (!ent) continue;
 		const domain = ent.get(WeirdCustomDomain);
 		const username = ent.get(Username);
@@ -431,5 +398,5 @@ export async function setMarkdownPage(pageLink: ExactLink, markdown?: string) {
 
 /** Get the content for a markdown page at the given link */
 export async function getMarkdownPage(link: ExactLink): Promise<string | undefined> {
-	return (await leafClient.get_components(link, [CommonMark]))?.get(CommonMark)?.value;
+	return (await leafClient.get_components(link, CommonMark))?.get(CommonMark)?.value;
 }

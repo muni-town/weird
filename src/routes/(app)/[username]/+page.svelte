@@ -51,19 +51,11 @@
 						</span>
 					</div>
 				{/if}
-				<!-- {#if profile.mastodon_profile}
-					<a
-						class="variant-ghost btn"
-						href={`/u/${profile.username}/mastodon`}
-					>
-						View Mastodon Profile
-					</a>
-				{/if} -->
 				{#if data.pages.length > 0}
 					<h3 class="mt-4 text-center text-2xl font-bold">Pages</h3>
 					{#each data.pages as page}
-						<a class="variant-ghost btn font-mono" href={`/${data.params.username}/${page}`}>
-							{page}
+						<a class="variant-ghost btn" href={`/${data.params.username}/${page.slug}`}>
+							{page.name || page.slug}
 						</a>
 					{/each}
 				{/if}

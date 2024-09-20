@@ -566,7 +566,7 @@ export class RpcClient {
 
 	async get_components(
 		link: ExactLink,
-		components: (new (...any: any) => Component)[]
+		...components: (new (...any: any) => Component)[]
 	): Promise<GetComponentsResult | null> {
 		const schemas = components.map((component) => (component as any).schemaId());
 		const resp = await this.#send_req({

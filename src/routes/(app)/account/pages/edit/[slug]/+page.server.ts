@@ -1,28 +1,29 @@
 import type { Actions, PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
-import {
-	profileLinkById,
-	appendSubpath,
-	getMarkdownPage,
-	setMarkdownPage as setMarkdownPage
-} from '$lib/leaf/profile';
+import { profileLinkById, appendSubpath, WebLinks, WebLink } from '$lib/leaf/profile';
 import { error } from '@sveltejs/kit';
+import { leafClient } from '$lib/leaf';
+import { CommonMark, Name } from 'leaf-proto/components';
 
 export const load: PageServerLoad = async ({
 	fetch,
 	request,
 	params
-}): Promise<{ slug: string; markdown?: string }> => {
+}): Promise<{ slug: string; pageName?: string; links?: WebLink[]; markdown?: string }> => {
 	let { userInfo } = await getSession(fetch, request);
-	if (userInfo) {
-		const profileLink = profileLinkById(userInfo.id);
-		const pageLink = appendSubpath(profileLink, params.slug);
-		const markdown = await getMarkdownPage(pageLink);
+	if (!userInfo) return error(403, 'You must be logged in');
 
-		return { slug: params.slug, markdown };
-	} else {
-		return { slug: params.slug };
-	}
+	const profileLink = profileLinkById(userInfo.id);
+	const pageLink = appendSubpath(profileLink, params.slug);
+
+	const ent = await leafClient.get_components(pageLink, CommonMark, WebLinks, Name);
+	if (!ent) return { slug: params.slug };
+
+	let pageName = ent.get(Name)?.value;
+	let links = ent.get(WebLinks)?.value;
+	let markdown = ent.get(CommonMark)?.value;
+
+	return { slug: params.slug, pageName, links, markdown };
 };
 
 export const actions = {
@@ -34,15 +35,37 @@ export const actions = {
 		const formData = await request.formData();
 		const slug = formData.get('slug')?.toString();
 		if (!slug) return error(400, 'Missing slug');
+
 		const profileLink = profileLinkById(userInfo.id);
 		const pageLink = appendSubpath(profileLink, slug);
 
 		if (formData.get('delete')) {
-			await setMarkdownPage(pageLink);
+			await leafClient.del_entity(pageLink);
 		} else {
+			const pageName = formData.get('pageName')?.toString();
 			const markdown = formData.get('markdown')?.toString();
-			if (!markdown) return error(400, 'Missing markdown');
-			await setMarkdownPage(pageLink, markdown);
+			const linksStr = formData.get('links')?.toString();
+			const links = linksStr ? (JSON.parse(linksStr) as WebLink[]) : undefined;
+
+			const toDelete = [];
+			const toAdd = [];
+			if (!pageName) {
+				toDelete.push(Name);
+			} else {
+				toAdd.push(new Name(pageName));
+			}
+			if (!markdown) {
+				toDelete.push(CommonMark);
+			} else {
+				toAdd.push(new CommonMark(markdown));
+			}
+			if (!links) {
+				toDelete.push(WebLinks);
+			} else {
+				toAdd.push(new WebLinks(links));
+			}
+			await leafClient.del_components(pageLink, toDelete);
+			await leafClient.add_components(pageLink, toAdd);
 		}
 	}
 } satisfies Actions;

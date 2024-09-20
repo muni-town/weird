@@ -26,6 +26,8 @@ pub struct Args {
     pub data_dir: PathBuf,
     #[arg(default_value = "7431", env)]
     pub port: u16,
+    #[arg(long, env)]
+    pub enable_local_store: bool,
 }
 
 pub static ARGS: Lazy<Args> = Lazy::new(Args::parse);
@@ -37,7 +39,7 @@ const SECRET_TABLE: redb::TableDefinition<&str, String> = redb::TableDefinition:
 pub type AppState = Arc<AppStateInner>;
 pub struct AppStateInner {
     pub leaf: LeafIroh,
-    pub secretdb: Arc<redb::Database>,
+    pub secretdb: Arc<Option<redb::Database>>,
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -80,15 +82,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let leaf_store = LeafIrohStore::new(node.client().clone());
     let leaf = Leaf::new(leaf_store);
 
-    let secretdb = Arc::new(redb::Builder::new().create(ARGS.data_dir.join("secrets"))?);
-    {
-        let tx = secretdb.begin_write()?;
+    let secretdb = if ARGS.enable_local_store {
+        tracing::info!(
+            "Local store has been enabled. Note that the local store is **not** clusterable."
+        );
+        let db = redb::Builder::new().create(ARGS.data_dir.join("secrets.redb"))?;
         {
-            // Make sure that secrets table exists
-            tx.open_table(SECRET_TABLE)?;
+            let tx = db.begin_write()?;
+            {
+                // Make sure that secrets table exists
+                tx.open_table(SECRET_TABLE)?;
+            }
+            tx.commit()?;
         }
-        tx.commit()?;
-    }
+        Arc::new(Some(db))
+    } else {
+        Arc::new(None)
+    };
 
     // Spawn a task to handle the debug CLI commands
     let iroh = node.client().clone();

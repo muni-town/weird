@@ -566,7 +566,7 @@ export class RpcClient {
 
 	async get_components(
 		link: ExactLink,
-		components: (new (...any: any) => Component)[]
+		...components: (new (...any: any) => Component)[]
 	): Promise<GetComponentsResult | null> {
 		const schemas = components.map((component) => (component as any).schemaId());
 		const resp = await this.#send_req({
@@ -679,11 +679,11 @@ export class RpcClient {
 	 * @param key the key of the secret to get.
 	 * @returns the value of the secret if it is present.
 	 */
-	async get_local_secret(key: string): Promise<string | null> {
+	async get_local_secret(key: string): Promise<string | undefined> {
 		const resp = await this.#send_req({ GetLocalSecret: key });
 		const respKind = this.#unwrap_resp(resp);
 		if ('GetLocalSecret' in respKind) {
-			return respKind.GetLocalSecret;
+			return respKind.GetLocalSecret || undefined;
 		} else {
 			throw 'Invalid RPC response';
 		}

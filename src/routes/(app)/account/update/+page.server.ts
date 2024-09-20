@@ -49,7 +49,7 @@ export const actions = {
 			let label = linkLabelsInput[i].toString();
 			links.push({ url, label });
 		}
-
+		let lists = JSON.parse(data.get('lists')?.toString() || '[]');
 		// let work_capacity = data.get('work_capacity');
 		// if (work_capacity == '') {
 		// 	work_capacity = null;
@@ -90,7 +90,8 @@ export const actions = {
 			links,
 			bio,
 			mastodon_profile,
-			pubpage_theme
+			pubpage_theme,
+			lists
 		};
 
 		try {

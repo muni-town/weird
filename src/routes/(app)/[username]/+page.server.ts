@@ -1,8 +1,16 @@
 import type { PageServerLoad } from './$types';
-import { listChildren, profileLinkByUsername, type Profile, getProfile } from '$lib/leaf/profile';
+import {
+	listChildren,
+	profileLinkByUsername,
+	type Profile,
+	getProfile,
+	appendSubpath
+} from '$lib/leaf/profile';
 import { env } from '$env/dynamic/public';
 import { error, redirect } from '@sveltejs/kit';
 import { parseUsername } from '$lib/utils';
+import { leafClient } from '$lib/leaf';
+import { Name } from 'leaf-proto/components';
 
 export const load: PageServerLoad = async ({
 	params
@@ -10,7 +18,7 @@ export const load: PageServerLoad = async ({
 	profile: Profile | { error: string };
 	username: { name: string; domain?: string };
 	params: typeof params;
-	pages: string[];
+	pages: { slug: string; name?: string }[];
 }> => {
 	const username = parseUsername(params.username);
 	if (username.domain == env.PUBLIC_DOMAIN) {
@@ -23,7 +31,17 @@ export const load: PageServerLoad = async ({
 	const profile: Profile | undefined = await getProfile(profileLink);
 	if (!profile) return error(404, `User not found: ${username}`);
 
-	const pages = await listChildren(profileLink);
+	const pageSlugs = await listChildren(profileLink);
+	const pages = (
+		await Promise.all(
+			pageSlugs.map(async (slug) => {
+				const link = appendSubpath(profileLink, slug);
+				const ent = await leafClient.get_components(link, Name);
+				if (!ent) return undefined;
+				return { slug, name: ent.get(Name)?.value };
+			})
+		)
+	).filter((x) => x) as { slug: string; name?: string }[];
 
 	return { profile, username, params: { ...params }, pages };
 };

@@ -23,6 +23,7 @@
 	let display_name = $state(profile?.display_name || '');
 	let bio = $state(profile?.bio || '');
 	let links = $state(profile?.links || []);
+	let lists = $state(profile?.lists || []);
 	let nextLink = $state({ label: '', url: '' } as { label?: string; url: string });
 
 	let tags = $state(profile?.tags || []);
@@ -355,6 +356,9 @@
 					{/each}
 				</div>
 			</label>
+
+			<!-- TODO: Edit lists -->
+			<input type="hidden" name="lists" value={JSON.stringify(lists)} />
 
 			<!-- <label class="label">
 				<span>Sub-Profiles</span>

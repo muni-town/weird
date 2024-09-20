@@ -1,5 +1,6 @@
 import Keyv from 'keyv';
 
+// TODO: allow using Redis for key-value storage so that it can be clustered properly.
 const store = new Keyv({ namespace: 'dns-challenge' });
 
 export const createChallenge = async (userId: string): Promise<string> => {

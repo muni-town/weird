@@ -7,10 +7,7 @@ import { env } from '$env/dynamic/private';
 import { env as PublicEnv } from '$env/dynamic/public';
 import {
 	getProfile,
-	getProfileById,
-	profileLinkByDomain,
 	profileLinkById as getProfileLinkById,
-	setProfileById,
 	appendSubpath,
 	WebLinks
 } from '$lib/leaf/profile';
@@ -130,7 +127,7 @@ client.on('interactionCreate', async function (interaction) {
 		]);
 
 		interaction.reply({
-			content: `Links imported successfully (http://${PublicEnv.PUBLIC_DOMAIN}/${profile.username}/discord_links):\n${links.join('\n')}`,
+			content: `Links imported successfully (http://${PublicEnv.PUBLIC_DOMAIN}/${profile.username}/discord-links):\n${links.join('\n')}`,
 			ephemeral: true
 		});
 	}

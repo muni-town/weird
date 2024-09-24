@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/public';
 import type { Reroute } from '@sveltejs/kit';
 
 const subdomainRegex = new RegExp(
-	`(.*)\.${env.PUBLIC_DOMAIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
+	`(.*)\.${env.PUBLIC_USER_DOMAIN_PARENT.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
 );
 
 /** This is a regular expression that will match on anything in the format of `/[username]/avatar`

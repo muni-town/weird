@@ -348,7 +348,7 @@ export async function listDomains(): Promise<string[]> {
 		} else if (username) {
 			const [name, domain] = username.value.split('@');
 			if (domain == env.PUBLIC_DOMAIN) {
-				domains.push(`${name}.${env.PUBLIC_DOMAIN}`);
+				domains.push(`${name}.${env.PUBLIC_USER_DOMAIN_PARENT}`);
 			}
 		}
 	}

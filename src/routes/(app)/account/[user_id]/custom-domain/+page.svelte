@@ -63,7 +63,7 @@
 
 	const siteUrl = profile?.custom_domain
 		? `https://${profile.custom_domain}`
-		: `${publicUrl.protocol}//${userName}.${env.PUBLIC_DOMAIN}`;
+		: `${publicUrl.protocol}//${userName}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
 </script>
 
 <svelte:head>

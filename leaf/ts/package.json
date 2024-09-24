@@ -14,5 +14,8 @@
 		"base32-encode": "^1.0.0",
 		"borsher": "^3.5.0",
 		"reconnecting-websocket": "^4.4.0"
+	},
+	"devDependencies": {
+		"typedoc": "^0.26.7"
 	}
 }

@@ -2,6 +2,7 @@
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import type { PageData } from './$types';
+	import { marked } from 'marked';
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
 </script>
@@ -24,9 +25,8 @@
 
 			<div class="flex flex-col gap-4">
 				{#if profile.bio}
-					<div>
-						<pre
-							class="mt-2 text-wrap rounded-lg bg-surface-300 p-3 font-sans text-base dark:bg-surface-900">{profile.bio}</pre>
+					<div class="prose mx-auto max-w-2xl overflow-x-auto px-4 py-12 dark:prose-invert">
+						{@html marked.parse(profile.bio)}
 					</div>
 				{/if}
 				{#if profile.links}

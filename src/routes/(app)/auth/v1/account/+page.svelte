@@ -7,7 +7,10 @@
 	import { parseUsername } from '$lib/utils';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import type { Profile } from '$lib/leaf/profile';
-
+	import Icon from '@iconify/svelte';
+	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { getToastStore } from '@skeletonlabs/skeleton';
+	import { marked } from 'marked';
 	const { data }: { data: PageData } = $props();
 	const profile: Profile | undefined = data.profile;
 	const providers = data.providers;
@@ -148,6 +151,43 @@
 	// 		})
 	// 		.catch((err) => console.log(err));
 	// };
+	const modalStore = getModalStore();
+	const toastStore = getToastStore();
+
+	const modal: ModalSettings = {
+		type: 'prompt',
+		// Data
+		title: 'Enter Github Username',
+		body: 'Provide your github username to fetch README.md',
+		// Populates the input value and attributes
+		value: '',
+		valueAttr: { type: 'text', required: true },
+		// Returns the updated response value
+		response: async (r: string) => {
+			if (r && r.trim().length) {
+				const formData = new FormData();
+				formData.append('username', r);
+				const resp = await fetch('/auth/v1/account', {
+					method: 'POST',
+					body: formData
+				});
+
+				if (resp.ok) {
+					const data = await resp.text();
+					if (data === '404: Not Found') {
+						const t = {
+							message: 'Github profile not exists',
+							hideDismiss: true,
+							timeout: 3000,
+							background: 'variant-filled-error'
+						};
+						toastStore.trigger(t);
+					}
+					bio = data;
+				}
+			}
+		}
+	};
 </script>
 
 <svelte:head>
@@ -264,17 +304,18 @@
 				<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
 			</label>
 
-			<label class="label">
-				<span>Bio</span>
-				<textarea
-					name="bio"
-					class="textarea"
-					placeholder="Tell people more about you..."
-					rows="5"
-					bind:value={bio}
-				>
-				</textarea>
-			</label>
+			<div>
+				<label for="bio" class="label mb-4">Description</label>
+				<input type="hidden" class="textarea" name="bio" bind:value={bio} />
+				<div class="prose dark:prose-invert">
+					{@html marked.parse(bio)}
+				</div>
+			</div>
+
+			<button onclick={() => modalStore.trigger(modal)} type="button" class="variant-filled btn">
+				<Icon icon="solar:import-broken" width={24} class="mr-1" />
+				Import description from github</button
+			>
 
 			<label>
 				<span>Links</span>

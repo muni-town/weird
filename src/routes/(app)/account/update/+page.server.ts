@@ -83,7 +83,7 @@ export const actions = {
 				const resized = new Uint8Array(
 					(await sharp(origData).resize(256, 256).webp().toBuffer()).buffer
 				);
-				await setAvatarById(sessionInfo.id, new RawImage('image/webp', resized));
+				await setAvatarById(sessionInfo.user_id, new RawImage('image/webp', resized));
 			}
 		} catch (e) {
 			console.error('Error updating profile:', e);
@@ -92,7 +92,7 @@ export const actions = {
 		}
 
 		try {
-			await setProfileById(sessionInfo.id, profile);
+			await setProfileById(sessionInfo.user_id, profile);
 		} catch (e) {
 			console.error('Error updating profile:', e);
 			return fail(400, { error: `Error updating profile: ${e}` });

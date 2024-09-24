@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({
 	let { sessionInfo } = await getSession(fetch, request);
 	if (!sessionInfo) return error(403, 'You must be logged in');
 
-	const profileLink = profileLinkById(sessionInfo.id);
+	const profileLink = profileLinkById(sessionInfo.user_id);
 	const pageLink = appendSubpath(profileLink, params.slug);
 
 	const ent = await leafClient.get_components(pageLink, CommonMark, WebLinks, Name);
@@ -36,7 +36,7 @@ export const actions = {
 		const slug = formData.get('slug')?.toString();
 		if (!slug) return error(400, 'Missing slug');
 
-		const profileLink = profileLinkById(sessionInfo.id);
+		const profileLink = profileLinkById(sessionInfo.user_id);
 		const pageLink = appendSubpath(profileLink, slug);
 
 		if (formData.get('delete')) {

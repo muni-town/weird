@@ -79,7 +79,7 @@
 					<a href="/auth/v1/account"> Profile </a>
 				</li>
 				<li>
-					<a href={`/account/${data.sessionInfo.id}/custom-domain`} class="variant-outline">
+					<a href={`/account/${data.sessionInfo.user_id}/custom-domain`} class="variant-outline">
 						Site Generation
 					</a>
 				</li>

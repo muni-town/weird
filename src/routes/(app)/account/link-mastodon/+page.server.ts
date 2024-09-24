@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({
 	let { sessionInfo } = await getSession(fetch, request);
 	if (!sessionInfo) return error(403, 'Not logged in');
 
-	const profile = await getProfileById(sessionInfo.id);
+	const profile = await getProfileById(sessionInfo.user_id);
 	if (!profile) return error(404, 'Profile not found');
 
 	return { profile, providers, params };

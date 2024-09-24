@@ -7,9 +7,9 @@ export const load: PageServerLoad = async ({
 	fetch,
 	request
 }): Promise<{ profile?: Profile; pages: string[] }> => {
-	let { userInfo } = await getSession(fetch, request);
-	if (userInfo) {
-		const profileLink = profileLinkById(userInfo.id);
+	let { sessionInfo } = await getSession(fetch, request);
+	if (sessionInfo) {
+		const profileLink = profileLinkById(sessionInfo.id);
 		const profile = await getProfile(profileLink);
 		if (!profile) return error(404, 'Profile not found');
 

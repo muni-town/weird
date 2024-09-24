@@ -4,9 +4,9 @@
 	import { env } from '$env/dynamic/public';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
 	import { AppBar } from '@skeletonlabs/skeleton';
-	import type { UserInfo } from '$lib/rauthy';
+	import type { SessionInfo } from '$lib/rauthy';
 
-	const { userInfo, children }: { userInfo?: UserInfo; children: Snippet } = $props();
+	const { sessionInfo, children }: { sessionInfo?: SessionInfo; children: Snippet } = $props();
 </script>
 
 <svelte:head>
@@ -24,7 +24,7 @@
 	>
 	<svelte:fragment slot="trail">
 		<div class="items-center gap-3 sm:flex">
-			{#if userInfo?.roles.includes('admin')}
+			{#if sessionInfo?.groups?.includes('admin')}
 				<a data-sveltekit-reload href="/__internal__/admin" class="variant-outline-warning btn"
 					>Admin</a
 				>
@@ -32,7 +32,7 @@
 
 			<a href="/members" class="variant-ghost btn">Members</a>
 
-			{#if !userInfo}
+			{#if !sessionInfo}
 				<a href="/auth/v1/account" class="variant-ghost btn">Login</a>
 				<a href="/auth/v1/users/register" class="variant-ghost btn">Register</a>
 			{:else}

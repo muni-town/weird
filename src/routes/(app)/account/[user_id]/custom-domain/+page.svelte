@@ -33,7 +33,7 @@
 			let resp;
 			try {
 				resp = await fetch(
-					`/account/${data.userInfo?.id}/custom-domain/check/${customDomain}/${data.dnsChallenge}`
+					`/account/${data.sessionInfo?.id}/custom-domain/check/${customDomain}/${data.dnsChallenge}`
 				);
 			} catch (_) {}
 			if (resp?.status == 200) {
@@ -68,7 +68,7 @@
 	<title>Profile | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-{#if data.userInfo && profile}
+{#if data.sessionInfo && profile}
 	<main class="flex items-start justify-center gap-5 pt-12">
 		<!-- TODO: Abstract This Sidebar into a Nested Layout Shared with the Profile Page -->
 		<section class="card px-5 py-4">
@@ -79,7 +79,7 @@
 					<a href="/auth/v1/account"> Profile </a>
 				</li>
 				<li>
-					<a href={`/account/${data.userInfo.id}/custom-domain`} class="variant-outline">
+					<a href={`/account/${data.sessionInfo.id}/custom-domain`} class="variant-outline">
 						Site Generation
 					</a>
 				</li>

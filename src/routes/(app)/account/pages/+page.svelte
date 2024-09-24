@@ -13,7 +13,7 @@
 	<title>Profile Pages | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-{#if data.userInfo && profile}
+{#if data.sessionInfo && profile}
 	<h1 class="my-3 flex justify-between text-3xl font-bold">
 		Pages
 

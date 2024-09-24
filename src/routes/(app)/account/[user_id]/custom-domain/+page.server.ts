@@ -13,10 +13,10 @@ export const load: PageServerLoad = async ({
 	let serverIp;
 	let dnsChallenge;
 
-	let { userInfo } = await getSession(fetch, request);
-	if (userInfo) {
-		dnsChallenge = await createChallenge(userInfo.id);
-		const profile = await getProfileById(userInfo.id);
+	let { sessionInfo } = await getSession(fetch, request);
+	if (sessionInfo) {
+		dnsChallenge = await createChallenge(sessionInfo.id);
+		const profile = await getProfileById(sessionInfo.id);
 		if (!profile) return error(404, 'Profile not found');
 
 		return { profile, serverIp, dnsChallenge };
@@ -27,8 +27,8 @@ export const load: PageServerLoad = async ({
 
 export const actions = {
 	default: async ({ request, fetch }) => {
-		let { userInfo } = await getSession(fetch, request);
-		if (!userInfo) {
+		let { sessionInfo } = await getSession(fetch, request);
+		if (!sessionInfo) {
 			throw 'User not logged in';
 		}
 		const formData = await request.formData();
@@ -36,19 +36,19 @@ export const actions = {
 		let resp;
 
 		if (customDomain && customDomain != '') {
-			const dnsChallenge = await createChallenge(userInfo.id);
+			const dnsChallenge = await createChallenge(sessionInfo.id);
 			try {
 				resp = await fetch(
-					`http://${customDomain}/__internal__/dns-challenge/${dnsChallenge}/${userInfo?.id}`
+					`http://${customDomain}/__internal__/dns-challenge/${dnsChallenge}/${sessionInfo?.id}`
 				);
 			} catch (_) {}
 			if (resp?.status != 200) {
 				throw 'Error validating DNS challenge';
 			}
 
-			await setCustomDomain(userInfo.id, customDomain.toString());
+			await setCustomDomain(sessionInfo.id, customDomain.toString());
 		} else {
-			await setCustomDomain(userInfo.id, undefined);
+			await setCustomDomain(sessionInfo.id, undefined);
 		}
 	}
 } satisfies Actions;

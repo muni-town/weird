@@ -7,6 +7,6 @@
 	const { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
-<OuterLayout userInfo={data.userInfo}>
+<OuterLayout sessionInfo={data.sessionInfo}>
 	{@render children()}
 </OuterLayout>

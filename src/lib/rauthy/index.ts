@@ -1,9 +1,11 @@
 export interface SessionInfo {
 	id: string;
 	user_id: string;
-	roles: string;
+	roles?: string;
+	groups?: string;
 	exp: string;
 	timeout: string;
+	state?: string;
 }
 
 export interface UserInfo {
@@ -21,8 +23,4 @@ export interface UserInfo {
 		| 'federated_password';
 	enabled: boolean;
 	groups: string[];
-	mastodon_server: string;
-	mastodon_username: string;
-	mastodon_access_token: string;
-	subsite_theme?: string;
 }

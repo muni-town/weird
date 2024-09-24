@@ -122,13 +122,7 @@ export async function register_user(opts: {
 // export async function reset_init(_opts: { user: string, token: string }) {
 // }
 
-export async function getSession(
-	fetch: typeof window.fetch,
-	request: Request
-): Promise<{ sessionInfo?: SessionInfo; userInfo?: UserInfo }> {
-	let sessionInfo: SessionInfo | undefined = undefined;
-	let userInfo: UserInfo | undefined = undefined;
-
+function cleanHeaders(request: Request): Headers {
 	const headers = new Headers(request.headers);
 	headers.delete('content-length');
 	const toDelete = [];
@@ -141,19 +135,40 @@ export async function getSession(
 		headers.delete(name);
 	}
 
+	return headers;
+}
+
+export async function getSession(
+	fetch: typeof window.fetch,
+	request: Request
+): Promise<{ sessionInfo?: SessionInfo /* userInfo?: UserInfo */ }> {
+	let sessionInfo: SessionInfo | undefined = undefined;
+
 	try {
 		const sessionInfoResp = await fetch('/auth/v1/oidc/sessioninfo', {
-			headers
+			headers: cleanHeaders(request)
 		});
 		await checkResponse(sessionInfoResp);
 		sessionInfo = await sessionInfoResp.json();
+	} catch (_) {}
 
+	return { sessionInfo /*, userInfo */ };
+}
+
+export async function getUserInfo(
+	fetch: typeof window.fetch,
+	request: Request
+): Promise<{ sessionInfo?: SessionInfo; userInfo?: UserInfo }> {
+	const { sessionInfo } = await getSession(fetch, request);
+	let userInfo: UserInfo | undefined = undefined;
+
+	try {
 		const userInfoResp = await fetch(`/auth/v1/users/${sessionInfo?.user_id}`, {
-			headers
+			headers: cleanHeaders(request)
 		});
 		await checkResponse(userInfoResp);
 		userInfo = await userInfoResp.json();
 	} catch (_) {}
 
-	return { sessionInfo, userInfo };
+	return { userInfo };
 }

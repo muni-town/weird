@@ -10,10 +10,10 @@ export const load: PageServerLoad = async ({
 	request,
 	params
 }): Promise<{ slug: string; pageName?: string; links?: WebLink[]; markdown?: string }> => {
-	let { userInfo } = await getSession(fetch, request);
-	if (!userInfo) return error(403, 'You must be logged in');
+	let { sessionInfo } = await getSession(fetch, request);
+	if (!sessionInfo) return error(403, 'You must be logged in');
 
-	const profileLink = profileLinkById(userInfo.id);
+	const profileLink = profileLinkById(sessionInfo.id);
 	const pageLink = appendSubpath(profileLink, params.slug);
 
 	const ent = await leafClient.get_components(pageLink, CommonMark, WebLinks, Name);
@@ -28,15 +28,15 @@ export const load: PageServerLoad = async ({
 
 export const actions = {
 	default: async ({ request, fetch }) => {
-		let { userInfo } = await getSession(fetch, request);
-		if (!userInfo) {
+		let { sessionInfo } = await getSession(fetch, request);
+		if (!sessionInfo) {
 			throw 'User not logged in';
 		}
 		const formData = await request.formData();
 		const slug = formData.get('slug')?.toString();
 		if (!slug) return error(400, 'Missing slug');
 
-		const profileLink = profileLinkById(userInfo.id);
+		const profileLink = profileLinkById(sessionInfo.id);
 		const pageLink = appendSubpath(profileLink, slug);
 
 		if (formData.get('delete')) {

@@ -30,10 +30,10 @@ export const load: PageServerLoad = async ({
 		console.error('Error getting providers:', e);
 	}
 
-	let { userInfo } = await getSession(fetch, request);
-	if (!userInfo) return error(403, 'Not logged in');
+	let { sessionInfo } = await getSession(fetch, request);
+	if (!sessionInfo) return error(403, 'Not logged in');
 
-	const profile = await getProfileById(userInfo.id);
+	const profile = await getProfileById(sessionInfo.id);
 	if (!profile) return error(404, 'Profile not found');
 
 	return { profile, providers, params };

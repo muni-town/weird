@@ -8,8 +8,8 @@ import sharp from 'sharp';
 
 export const actions = {
 	default: async ({ fetch, request }) => {
-		let { userInfo } = await getSession(fetch, request);
-		if (!userInfo) return fail(403, { error: 'Not logged in' });
+		let { sessionInfo } = await getSession(fetch, request);
+		if (!sessionInfo) return fail(403, { error: 'Not logged in' });
 
 		const data = await request.formData();
 
@@ -23,14 +23,6 @@ export const actions = {
 		if (display_name === '') {
 			display_name = undefined;
 		}
-		// let location = data.get('location');
-		// if (location == '') {
-		// 	location = null;
-		// }
-		// let contact_info = data.get('contact_info');
-		// if (contact_info == '') {
-		// 	contact_info = null;
-		// }
 		let tagsInput = data.get('tags');
 		let tags: string[] = [];
 		if (tagsInput) {
@@ -49,15 +41,6 @@ export const actions = {
 			let label = linkLabelsInput[i].toString();
 			links.push({ url, label });
 		}
-		let lists = JSON.parse(data.get('lists')?.toString() || '[]');
-		// let work_capacity = data.get('work_capacity');
-		// if (work_capacity == '') {
-		// 	work_capacity = null;
-		// }
-		// let work_compensation = data.get('work_compensation');
-		// if (work_compensation == '') {
-		// 	work_compensation = null;
-		// }
 		let bio = data.get('bio')?.toString() || undefined;
 		if (bio === '') {
 			bio = undefined;
@@ -90,8 +73,7 @@ export const actions = {
 			links,
 			bio,
 			mastodon_profile,
-			pubpage_theme,
-			lists
+			pubpage_theme
 		};
 
 		try {
@@ -101,7 +83,7 @@ export const actions = {
 				const resized = new Uint8Array(
 					(await sharp(origData).resize(256, 256).webp().toBuffer()).buffer
 				);
-				await setAvatarById(userInfo.id, new RawImage('image/webp', resized));
+				await setAvatarById(sessionInfo.id, new RawImage('image/webp', resized));
 			}
 		} catch (e) {
 			console.error('Error updating profile:', e);
@@ -110,7 +92,7 @@ export const actions = {
 		}
 
 		try {
-			await setProfileById(userInfo.id, profile);
+			await setProfileById(sessionInfo.id, profile);
 		} catch (e) {
 			console.error('Error updating profile:', e);
 			return fail(400, { error: `Error updating profile: ${e}` });

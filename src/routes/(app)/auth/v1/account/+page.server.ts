@@ -1,7 +1,8 @@
 import type { PageServerLoad } from './$types';
-import { getSession } from '$lib/rauthy/server';
+import { getUserInfo } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
 import { getProfileById, type Profile } from '$lib/leaf/profile';
+import type { UserInfo } from '$lib/rauthy';
 
 export interface Provider {
 	id: string;
@@ -11,7 +12,7 @@ export interface Provider {
 export const load: PageServerLoad = async ({
 	fetch,
 	request
-}): Promise<{ profile?: Profile; providers: Provider[] }> => {
+}): Promise<{ profile?: Profile; providers: Provider[]; userInfo?: UserInfo }> => {
 	let providers: Provider[] = [];
 	try {
 		const providersResp = await fetch('/auth/v1/providers/minimal', {
@@ -23,9 +24,9 @@ export const load: PageServerLoad = async ({
 		console.error('Error getting providers:', e);
 	}
 
-	let { userInfo } = await getSession(fetch, request);
+	let { userInfo } = await getUserInfo(fetch, request);
 	if (userInfo) {
-		return { profile: await getProfileById(userInfo.id), providers };
+		return { profile: await getProfileById(userInfo.id), providers, userInfo };
 	} else {
 		return { providers };
 	}

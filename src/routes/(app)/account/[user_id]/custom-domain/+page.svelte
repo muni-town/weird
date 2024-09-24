@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { getUserInfo } from '$lib/rauthy';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import type { PageData } from './$types';
 	import _ from 'underscore';
@@ -9,7 +8,6 @@
 	const profile = data.profile;
 	const userName = profile?.username?.split('@')[0];
 	const displayName = profile?.display_name;
-	const userInfo = getUserInfo();
 
 	const publicUrl = new URL(env.PUBLIC_URL);
 
@@ -35,7 +33,7 @@
 			let resp;
 			try {
 				resp = await fetch(
-					`/account/${userInfo?.id}/custom-domain/check/${customDomain}/${data.dnsChallenge}`
+					`/account/${data.userInfo?.id}/custom-domain/check/${customDomain}/${data.dnsChallenge}`
 				);
 			} catch (_) {}
 			if (resp?.status == 200) {
@@ -70,7 +68,7 @@
 	<title>Profile | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-{#if userInfo && profile}
+{#if data.userInfo && profile}
 	<main class="flex items-start justify-center gap-5 pt-12">
 		<!-- TODO: Abstract This Sidebar into a Nested Layout Shared with the Profile Page -->
 		<section class="card px-5 py-4">
@@ -81,7 +79,7 @@
 					<a href="/auth/v1/account"> Profile </a>
 				</li>
 				<li>
-					<a href={`/account/${userInfo.id}/custom-domain`} class="variant-outline">
+					<a href={`/account/${data.userInfo.id}/custom-domain`} class="variant-outline">
 						Site Generation
 					</a>
 				</li>

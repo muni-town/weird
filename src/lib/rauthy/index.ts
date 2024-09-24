@@ -1,5 +1,3 @@
-import { getContext, setContext } from 'svelte';
-
 export interface SessionInfo {
 	id: string;
 	user_id: string;
@@ -28,8 +26,3 @@ export interface UserInfo {
 	mastodon_access_token: string;
 	subsite_theme?: string;
 }
-
-export const setUserInfo = (info?: UserInfo) => setContext('userInfo', info);
-export const getUserInfo = () => getContext<UserInfo | undefined>('userInfo');
-export const setSessionInfo = (info?: SessionInfo) => setContext('sessionInfo', info);
-export const getSessionInfo = () => getContext<UserInfo | undefined>('sessionInfo');

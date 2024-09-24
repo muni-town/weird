@@ -1,6 +1,5 @@
 <script lang="ts">
 	import getPkce from 'oauth-pkce';
-	import { getUserInfo } from '$lib/rauthy';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
@@ -13,7 +12,6 @@
 	const profile: Profile | undefined = data.profile;
 	const providers = data.providers;
 
-	const userInfo = getUserInfo();
 	const PKCE_VERIFIER = 'pkce_verifier';
 
 	/** The username without the `@` 		*/
@@ -64,7 +62,7 @@
 		if (localStorage.getItem('isLoggingIn') === 'true') {
 			localStorage.removeItem('isLoggingIn');
 			window.location.reload();
-		} else if (!userInfo) {
+		} else if (!data.userInfo) {
 			getPkce(64, (error, { challenge, verifier }) => {
 				if (!error) {
 					localStorage.setItem(PKCE_VERIFIER, verifier);
@@ -80,17 +78,17 @@
 	});
 
 	const providerLinkPkce = async (provider_id: string, pkce_challenge: string) => {
-		const data = {
+		const info = {
 			pkce_challenge,
 			redirect_uri: window.location.href,
 			client_id: 'rauthy',
-			email: userInfo?.email,
+			email: data.userInfo?.email,
 			provider_id
 		};
 		await fetch(`/auth/v1/providers/${provider_id}/link`, {
 			method: 'POST',
 			headers: [['csrf-token', localStorage.getItem('csrfToken')!]],
-			body: JSON.stringify(data)
+			body: JSON.stringify(info)
 		})
 			.then(() => {
 				getPkce(64, async (error, { challenge, verifier }) => {
@@ -156,7 +154,7 @@
 	<title>Profile | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-{#if userInfo}
+{#if data.userInfo}
 	<main class="flex items-start justify-center gap-5 pt-12">
 		<section class="card px-5 py-4">
 			<h2 class="text-lg font-bold">{display_name}</h2>
@@ -166,7 +164,7 @@
 					<a href="/auth/v1/account" class="variant-outline"> Profile </a>
 				</li>
 				<li>
-					<a href={`/account/${userInfo.id}/custom-domain`}> Site Generation </a>
+					<a href={`/account/${data.userInfo.id}/custom-domain`}> Site Generation </a>
 				</li>
 				<li>
 					<a href={`/account/pages`}> Pages </a>
@@ -181,10 +179,14 @@
 			class="card flex w-[600px] max-w-[90%] flex-col gap-4 p-8 text-xl"
 		>
 			<div class="mb-4 flex items-center gap-3">
-				<Avatar user_id={userInfo.id} username={`${username}@${env.PUBLIC_DOMAIN}`} width="w-32" />
+				<Avatar
+					user_id={data.userInfo.id}
+					username={`${username}@${env.PUBLIC_DOMAIN}`}
+					width="w-32"
+				/>
 				<div>
 					<h1 class="my-3 text-4xl">Edit Profile</h1>
-					<div class="text-surface-300">{userInfo.email}</div>
+					<div class="text-surface-300">{data.userInfo.email}</div>
 				</div>
 			</div>
 
@@ -210,7 +212,7 @@
 					</span>
 				</div>
 			</div>
-			{#if providers && userInfo.account_type === 'password'}
+			{#if providers && data.userInfo.account_type === 'password'}
 				{#each providers as provider}
 					<button
 						type="button"
@@ -222,7 +224,7 @@
 					>
 				{/each}
 			{/if}
-			{#if userInfo.account_type === 'federated_password'}
+			{#if data.userInfo.account_type === 'federated_password'}
 				<div class="my-4 flex items-center justify-between">
 					<span>Your account is linked to a provider</span>
 					<button

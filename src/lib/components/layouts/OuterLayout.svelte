@@ -1,18 +1,12 @@
-<script>
+<script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	import { env } from '$env/dynamic/public';
-	import { getSessionInfo, getUserInfo } from '$lib/rauthy';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
 	import { AppBar } from '@skeletonlabs/skeleton';
-	import { getDrawerStore } from '@skeletonlabs/skeleton';
+	import type { UserInfo } from '$lib/rauthy';
 
-	const sessionInfo = getSessionInfo();
-	const userInfo = getUserInfo();
-
-	const drawerStore = getDrawerStore();
-
-	const openDrawer = () => {
-		drawerStore.open();
-	};
+	const { userInfo, children }: { userInfo?: UserInfo; children: Snippet } = $props();
 </script>
 
 <svelte:head>
@@ -29,8 +23,8 @@
 		</h1></svelte:fragment
 	>
 	<svelte:fragment slot="trail">
-		<div class="hidden items-center gap-3 sm:flex">
-			{#if sessionInfo?.roles.includes('admin')}
+		<div class="items-center gap-3 sm:flex">
+			{#if userInfo?.roles.includes('admin')}
 				<a data-sveltekit-reload href="/__internal__/admin" class="variant-outline-warning btn"
 					>Admin</a
 				>
@@ -61,29 +55,12 @@
 			</a>
 			<LightSwitch />
 		</div>
-		<div class="sm:hidden">
-			<button class="variant-ghost btn-icon" onclick={openDrawer} aria-label="Toggle drawer">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					fill="currentColor"
-					class="bi bi-list"
-					viewBox="0 0 16 16"
-				>
-					<path
-						fill-rule="evenodd"
-						d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"
-					/>
-				</svg>
-			</button>
-		</div>
 	</svelte:fragment>
 </AppBar>
 
 <div class="flex min-h-screen flex-col">
 	<div class="flex-grow">
-		<slot></slot>
+		{@render children()}
 	</div>
 
 	<footer class="bottom-0 p-4 text-center text-xs text-surface-300">

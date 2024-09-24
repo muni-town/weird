@@ -1,21 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
-	import { getUserInfo } from '$lib/rauthy';
 	import type { PageData } from './$types';
 	import _ from 'underscore';
 
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
 	const pages = data.pages;
-	const userInfo = getUserInfo();
 </script>
 
 <svelte:head>
 	<title>Profile Pages | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-{#if userInfo && profile}
+{#if data.userInfo && profile}
 	<h1 class="my-3 flex justify-between text-3xl font-bold">
 		Pages
 

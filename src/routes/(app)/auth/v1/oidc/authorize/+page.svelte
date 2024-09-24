@@ -3,15 +3,12 @@
 	import { env } from '$env/dynamic/public';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
-	import { getUserInfo } from '$lib/rauthy';
 	import { checkResponse } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import getPkce from 'oauth-pkce';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
-
-	const userInfo = getUserInfo();
 
 	let clientId = $state('');
 	let redirectUri = $state('');
@@ -88,7 +85,7 @@
 		challengeMethod = url.searchParams.get('code_challenge_method')!;
 
 		// If we already have a session, then we can just refresh, and redirect immediately.
-		if (userInfo) {
+		if (data.userInfo) {
 			refreshing = true;
 			const authResp = await fetch('/auth/v1/oidc/authorize/refresh', {
 				method: 'post',

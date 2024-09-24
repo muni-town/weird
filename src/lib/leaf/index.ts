@@ -24,7 +24,7 @@ export let WEIRD_NAMESPACE: Digest = null as any;
 export let INSTANCE_SUBSPACE: Digest = null as any;
 
 /** Create an ExactLink from a path in this Weird instance. */
-export function instance_link(path: PathSegment[]): ExactLink {
+export function instance_link(...path: PathSegment[]): ExactLink {
 	return {
 		namespace: WEIRD_NAMESPACE,
 		subspace: INSTANCE_SUBSPACE,

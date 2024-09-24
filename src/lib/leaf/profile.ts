@@ -170,10 +170,10 @@ export function appendSubpath(link: ExactLink, ...pathSegments: string[]): Exact
 }
 
 export function profileLinkById(rauthyId: string): ExactLink {
-	return instance_link([PROFILE_PREFIX, { String: rauthyId }]);
+	return instance_link(PROFILE_PREFIX, { String: rauthyId });
 }
 export async function profileLinkByUsername(username: string): Promise<ExactLink | undefined> {
-	const profilesLink = instance_link([PROFILE_PREFIX]);
+	const profilesLink = instance_link(PROFILE_PREFIX);
 	const entities = await leafClient.list_entities(profilesLink);
 	for (const link of entities) {
 		const ent = await leafClient.get_components(link, Username);
@@ -193,7 +193,7 @@ export async function profileLinkByUsername(username: string): Promise<ExactLink
 	return undefined;
 }
 export async function profileLinkByDomain(domain: string): Promise<ExactLink | undefined> {
-	const profilesLink = instance_link([PROFILE_PREFIX]);
+	const profilesLink = instance_link(PROFILE_PREFIX);
 	const entities = await leafClient.list_entities(profilesLink);
 	for (const link of entities) {
 		const ent = await leafClient.get_components(link, WeirdCustomDomain);
@@ -320,21 +320,21 @@ export async function setProfileById(rauthyId: string, profile: Profile): Promis
 	await setProfile(profileLinkById(rauthyId), profile);
 }
 
-export async function getProfiles(): Promise<Profile[]> {
-	const profilesLink = instance_link([PROFILE_PREFIX]);
+export async function getProfiles(): Promise<{ link: ExactLink; profile: Profile }[]> {
+	const profilesLink = instance_link(PROFILE_PREFIX);
 	const entities = await leafClient.list_entities(profilesLink);
-	const profiles: Profile[] = [];
+	const profiles: { profile: Profile; link: ExactLink }[] = [];
 
 	for (const link of entities) {
 		const profile = await getProfile(link);
 		if (!profile) continue;
-		profiles.push(profile);
+		profiles.push({ link, profile });
 	}
 	return profiles;
 }
 
 export async function listDomains(): Promise<string[]> {
-	const profilesLink = instance_link([PROFILE_PREFIX]);
+	const profilesLink = instance_link(PROFILE_PREFIX);
 	const entities = await leafClient.list_entities(profilesLink);
 	const domains: string[] = [];
 

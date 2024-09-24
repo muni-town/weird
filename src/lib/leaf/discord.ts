@@ -22,7 +22,7 @@ export class RauthyUserId extends Component {
 }
 
 export function discordUserLinkById(id: string): ExactLink {
-	return instance_link([DISCORD_PREFIX, { String: id }]);
+	return instance_link(DISCORD_PREFIX, { String: id });
 }
 
 export async function setDiscordUserRauthyId(discordId: string, rauthyId: string) {

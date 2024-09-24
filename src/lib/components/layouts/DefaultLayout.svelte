@@ -1,10 +1,11 @@
 <script>
 	import { env } from '$env/dynamic/public';
-	import { getUserInfo } from '$lib/rauthy';
+	import { getSessionInfo, getUserInfo } from '$lib/rauthy';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
 	import { AppBar } from '@skeletonlabs/skeleton';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 
+	const sessionInfo = getSessionInfo();
 	const userInfo = getUserInfo();
 
 	const drawerStore = getDrawerStore();
@@ -29,7 +30,14 @@
 	>
 	<svelte:fragment slot="trail">
 		<div class="hidden items-center gap-3 sm:flex">
+			{#if sessionInfo?.roles.includes('admin')}
+				<a data-sveltekit-reload href="/__internal__/admin" class="variant-outline-warning btn"
+					>Admin</a
+				>
+			{/if}
+
 			<a href="/members" class="variant-ghost btn">Members</a>
+
 			{#if !userInfo}
 				<a href="/auth/v1/account" class="variant-ghost btn">Login</a>
 				<a href="/auth/v1/users/register" class="variant-ghost btn">Register</a>

@@ -18,7 +18,7 @@ export const reroute: Reroute = ({ url }) => {
 	}
 
 	if (url.host == env.PUBLIC_TRAEFIK_CONFIG_HOST) {
-		return '/traefik-config';
+		return '/__internal__/traefik-config';
 	}
 
 	if (url.pathname == '/' || url.pathname == '') {

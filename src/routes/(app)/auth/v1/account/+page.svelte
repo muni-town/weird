@@ -306,8 +306,8 @@
 
 			<div>
 				<label for="bio" class="label mb-4">Description</label>
-				<input type="hidden" class="textarea" name="bio" bind:value={bio} />
-				<div class="prose dark:prose-invert">
+				<textarea rows="6" class="textarea" name="bio" bind:value={bio}></textarea>
+				<div class="prose mt-2 dark:prose-invert">
 					{@html marked.parse(bio)}
 				</div>
 			</div>

@@ -6,7 +6,7 @@ export async function POST(event: RequestEvent) {
 	if (!username) return new Response(null);
 
 	const repoResp = await fetch(
-		`https://raw.githubusercontent.com/${username}/${username}/main/README.md`
+		`https://raw.githubusercontent.com/${username}/${username}/HEAD/README.md`
 	);
 	const profile = await repoResp.text();
 	return new Response(profile);

@@ -12,8 +12,7 @@ const avatarRegexp = new RegExp(/\/([^\/]*)\/avatar/);
 export const reroute: Reroute = ({ url }) => {
 	if (
 		url.host == env.PUBLIC_DOMAIN ||
-		url.pathname.startsWith('/__internal__/dns-challenge') ||
-		url.pathname.startsWith('/pubpage-auth-callback')
+		url.pathname.startsWith('/__internal__/dns-challenge')
 	) {
 		return url.pathname;
 	}

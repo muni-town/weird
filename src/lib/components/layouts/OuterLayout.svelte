@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import type { SessionInfo } from '$lib/rauthy';
 
 	import { env } from '$env/dynamic/public';
-	import { LightSwitch } from '@skeletonlabs/skeleton';
 	import { AppBar } from '@skeletonlabs/skeleton';
-	import type { SessionInfo } from '$lib/rauthy';
 
 	const { sessionInfo, children }: { sessionInfo?: SessionInfo; children: Snippet } = $props();
 </script>
@@ -53,7 +52,6 @@
 					/>
 				</svg>
 			</a>
-			<LightSwitch />
 		</div>
 	</svelte:fragment>
 </AppBar>

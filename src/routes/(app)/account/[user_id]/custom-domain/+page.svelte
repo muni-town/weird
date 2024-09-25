@@ -96,7 +96,7 @@
 
 				<h2 class="mt-4 text-xl font-bold">Custom Domain</h2>
 
-				<div class="prose flex flex-col gap-2 text-base">
+				<div class="prose dark:prose-invert flex flex-col gap-2 text-base">
 					<p>
 						By default your site is hosted as a sub-domain of Weird.one, but you can also use your
 						own custom domain.

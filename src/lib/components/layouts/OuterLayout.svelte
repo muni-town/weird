@@ -62,7 +62,7 @@
 	</div>
 
 	<footer class="bottom-0 p-4 text-center text-xs text-surface-300">
-		Avatars generated with
+		Default avatars generated with
 		<a class="underline" href="https://dicebear.com">DiceBear</a> and the
 		<a class="underline" href={`https://dicebear.com/styles/${env.PUBLIC_DICEBEAR_STYLE}`}
 			>{env.PUBLIC_DICEBEAR_STYLE}</a

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
+	import MainContent from '$lib/components/theme/MainContent.svelte';
+	import SearchInput from '$lib/components/theme/SearchInput.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import { parseUsername } from '$lib/utils';
+	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
 
 	const { data }: { data: PageData } = $props();
@@ -10,6 +13,7 @@
 	let search = $state(data.search || '');
 
 	let filtered_profiles = $derived.by(() => {
+		console.log(search);
 		const words = search.split(' ');
 		return profiles
 			.filter((x: Profile) => {
@@ -17,7 +21,7 @@
 				if (search == '') return true;
 				for (const word of words) {
 					const wordLowercase = word.toLowerCase();
-					for (const field of [x.bio, x.username, ...(x.tags || [])]) {
+					for (const field of [x.username, ...(x.tags || [])]) {
 						const fieldLowercase = field?.toLowerCase();
 						if (wordLowercase && fieldLowercase && fieldLowercase.includes(wordLowercase)) {
 							return true;
@@ -37,32 +41,17 @@
 			});
 	});
 
-	let searchBox: HTMLInputElement;
-
-	const setSearch = (e: MouseEvent, s: string) => {
-		e.preventDefault();
-		search = s;
-		searchBox.focus();
-	};
+	let searchbox: SvelteComponent;
 </script>
 
 <svelte:head>
 	<title>{env.PUBLIC_MEMBERS_TITLE} | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<main class="flex max-w-full flex-col items-center">
+<MainContent>
 	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>
 
-	<div class="input-group input-group-divider mt-8 max-w-80 grid-cols-[1fr_auto]">
-		<input
-			bind:this={searchBox}
-			type="text"
-			class="input"
-			placeholder="Search..."
-			bind:value={search}
-		/>
-		<button class:invisible={search.length == 0} onclick={(e) => setSearch(e, '')}>x</button>
-	</div>
+	<SearchInput bind:this={searchbox} bind:search />
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
 		{#each filtered_profiles as profile (profile.username)}
@@ -85,7 +74,11 @@
 								{#each profile.tags as tag}<button
 										type="button"
 										class="text-surface-900-50-token btn relative rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
-										onclick={(e) => setSearch(e, tag)}
+										onclick={(e) => {
+											e.preventDefault();
+											search = tag;
+											searchbox.focus();
+										}}
 									>
 										{tag}
 									</button>{/each}
@@ -96,7 +89,7 @@
 			</div>
 		{/each}
 	</div>
-</main>
+</MainContent>
 
 <style>
 	.card-link::after {

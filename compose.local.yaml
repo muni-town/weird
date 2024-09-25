@@ -12,7 +12,7 @@ services:
       - rauthy:/app/data
 
   rauthy:
-    image: ghcr.io/sebadob/rauthy:0.23.5-lite
+    image: ghcr.io/sebadob/rauthy:0.25.0-lite
     depends_on:
       - set-rauthy-volume-owner
       - smtp4dev
@@ -49,6 +49,7 @@ services:
     image: weird:main
     env_file: .env.local
     environment:
+      BODY_SIZE_LIMIT: 15M
       RAUTHY_URL: http://rauthy:8080
       BACKEND_URL: http://backend:7431
     ports:

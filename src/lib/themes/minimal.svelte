@@ -190,7 +190,7 @@
 								onclick={() => deleteTag(tag)}>&times;</span
 							>
 						{:else}
-							<a href={`${env.PUBLIC_URL}/members?q=${tag}`} target="_blank" class="tag">
+							<a href={`${env.PUBLIC_URL}/people?q=${tag}`} target="_blank" class="tag">
 								{tag}
 							</a>
 						{/if}

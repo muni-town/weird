@@ -29,7 +29,7 @@
 				>
 			{/if}
 
-			<a href="/members" class="variant-ghost btn">Members</a>
+			<a href="/people" class="variant-ghost btn">People</a>
 
 			{#if !sessionInfo}
 				<a href="/auth/v1/account" class="variant-ghost btn">Login</a>

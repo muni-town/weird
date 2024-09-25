@@ -44,7 +44,7 @@
 							{#each profile.tags as tag}
 								<a
 									class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
-									href={`/members?q=${tag}`}
+									href={`/people?q=${tag}`}
 								>
 									{tag}
 								</a>

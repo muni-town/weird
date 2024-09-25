@@ -602,7 +602,7 @@ export class RpcClient {
 					}
 					map.set(ctor, list);
 				}
-				return new GetComponentsResult(resp.entity_digest, map);
+				return new GetComponentsResult(new Uint8Array(resp.entity_digest), map);
 			} else {
 				return null;
 			}

@@ -1,16 +1,14 @@
 import { env } from '$env/dynamic/public';
-import { getAvatarByUsername } from '$lib/leaf/profile';
+import { createImageResponse } from '$lib/image';
+import { profileLinkByUsername } from '$lib/leaf/profile';
 import { error, type RequestHandler } from '@sveltejs/kit';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ fetch, params }) => {
 	const username = params.username!.includes('@')
 		? params.username!
 		: `${params.username}@${env.PUBLIC_DOMAIN}`;
 
-	const avatar = params.username && (await getAvatarByUsername(username));
-	if (!avatar) return error(404, 'Avatar not found');
-
-	return new Response(new Uint8Array(avatar.value.data), {
-		headers: [['content-type', avatar.value.mimeType]]
-	});
+	const profileLink = await profileLinkByUsername(username);
+	if (!profileLink) return error(404, 'Avatar not found');
+	return await createImageResponse(profileLink, fetch, params.username);
 };

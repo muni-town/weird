@@ -1,5 +1,5 @@
 import { setGlobalDispatcher, EnvHttpProxyAgent } from 'undici';
-import { client_login } from './lib/discord_bot';
+import { client_login as discord_bot_login } from './lib/discord_bot';
 import { ProxyAgent } from 'proxy-agent';
 import https from 'https';
 import http from 'http';
@@ -12,4 +12,4 @@ if (process.env['HTTP_PROXY'] || process.env['HTTPS_PROXY'] || process.env['NO_P
 	setGlobalDispatcher(new EnvHttpProxyAgent());
 }
 
-await client_login();
+await discord_bot_login();

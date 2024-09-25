@@ -11,7 +11,6 @@
 	let linkUrl = '';
 
 	export let avatar: string;
-	export let fallbackAvatar;
 	export let profile: Profile;
 	export let token;
 	export let is_author;
@@ -101,15 +100,7 @@
 		<input type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
 		{#if is_author}
 			<figure class="avatar-figure">
-				<img
-					src={avatar}
-					width="200px"
-					alt="Avatar"
-					onerror={(ev: Event) => {
-						console.log('Image error!!!');
-						(ev.target as HTMLImageElement).src = fallbackAvatar;
-					}}
-				/>
+				<img src={avatar} width="200px" alt="Avatar" />
 				<figcaption class="avatar-figcaption">
 					<label
 						for="avatar"
@@ -120,15 +111,7 @@
 				</figcaption>
 			</figure>
 		{:else}
-			<img
-				src={avatar}
-				width="200px"
-				alt="Avatar"
-				onerror={(ev: Event) => {
-					console.log('Image error!!!');
-					(ev.target as HTMLImageElement).src = fallbackAvatar;
-				}}
-			/>
+			<img src={avatar} width="200px" alt="Avatar" />
 		{/if}
 		{#if is_author}
 			<h1

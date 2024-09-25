@@ -12,8 +12,7 @@
 
 	let theme: string = $state(profile.pubpage_theme || 'minimal');
 	let unsavedChanges = $state(false);
-	let avatar = $state(`/${profile.username}/avatar`);
-	let fallbackAvatar = `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${profile.username}`;
+	let avatar = $state(`/avatar`);
 
 	let setUnsavedChanges = (value: boolean) => {
 		unsavedChanges = value;
@@ -102,25 +101,9 @@
 		</div>
 	</div> -->
 {#if theme === 'minimal'}
-	<Minimal
-		{profile}
-		token={undefined}
-		is_author={false}
-		{setUnsavedChanges}
-		{avatar}
-		{fallbackAvatar}
-		{setAvatar}
-	/>
+	<Minimal {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
 {:else if theme === 'retro'}
-	<Retro
-		{profile}
-		token={undefined}
-		is_author={false}
-		{setUnsavedChanges}
-		{avatar}
-		{fallbackAvatar}
-		{setAvatar}
-	/>
+	<Retro {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
 {/if}
 
 {#if unsavedChanges}

@@ -1,17 +1,15 @@
 <script lang="ts">
-	import type { Profile } from '../../routes/(app)/auth/v1/account/proxy+page.server';
 	import { env } from '$env/dynamic/public';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
-	import { marked } from 'marked';
 	import { renderMarkdownSanitized } from '$lib/utils';
+	import type { Profile } from '$lib/leaf/profile';
 
 	let editingTags = false;
 	let linkLabel = '';
 	let linkUrl = '';
 
 	export let avatar: string;
-	export let fallbackAvatar;
 	export let profile: Profile;
 	export let token;
 	export let is_author;
@@ -105,23 +103,10 @@
 				width="200px"
 				alt="Avatar"
 				class="retro-avatar"
-				onerror={(ev: Event) => {
-					console.log('Image error!!!');
-					(ev.target as HTMLImageElement).src = fallbackAvatar;
-				}}
 				onclick={() => document.querySelector('input[name="avatar"]')?.click()}
 			/>
 		{:else}
-			<img
-				src={avatar}
-				width="200px"
-				alt="Avatar"
-				class="retro-avatar"
-				onerror={(ev: Event) => {
-					console.log('Image error!!!');
-					(ev.target as HTMLImageElement).src = fallbackAvatar;
-				}}
-			/>
+			<img src={avatar} width="200px" alt="Avatar" class="retro-avatar" />
 		{/if}
 		{#if is_author}
 			<h1 class="retro-name" bind:textContent={profile.display_name} contenteditable="true">

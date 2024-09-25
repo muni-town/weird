@@ -3,6 +3,8 @@
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
 	import type { Profile } from '$lib/leaf/profile';
+	import { renderMarkdownSanitized } from '$lib/utils';
+	import { marked } from 'marked';
 
 	let editingTags = false;
 	let linkLabel = '';
@@ -186,7 +188,9 @@
 					contenteditable="true"
 				></p>
 			{:else}
-				<p style="max-width: 800px; text-align:justify;">{profile.bio}</p>
+				<div class="prose mx-auto max-w-[800px] dark:prose-invert">
+					{@html renderMarkdownSanitized(profile.bio)}
+				</div>
 			{/if}
 		{/if}
 

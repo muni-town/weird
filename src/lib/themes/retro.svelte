@@ -3,6 +3,8 @@
 	import { env } from '$env/dynamic/public';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
+	import { marked } from 'marked';
+	import { renderMarkdownSanitized } from '$lib/utils';
 
 	let editingTags = false;
 	let linkLabel = '';
@@ -136,9 +138,9 @@
 					{profile.bio}
 				</blockquote>
 			{:else}
-				<blockquote>
-					{profile.bio}
-				</blockquote>
+				<div class="prose dark:prose-invert">
+					{@html renderMarkdownSanitized(profile.bio)}
+				</div>
 			{/if}
 		{/if}
 

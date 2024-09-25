@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
+	import { renderMarkdownSanitized } from '$lib/utils';
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
 	const { data }: { data: PageData } = $props();
@@ -26,7 +27,7 @@
 			<div class="flex flex-col gap-4">
 				{#if profile.bio}
 					<div class="prose mx-auto max-w-2xl overflow-x-auto px-4 py-12 dark:prose-invert">
-						{@html marked.parse(profile.bio)}
+						{@html renderMarkdownSanitized(profile.bio)}
 					</div>
 				{/if}
 				{#if profile.links}

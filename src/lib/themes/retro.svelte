@@ -4,6 +4,7 @@
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
 	import { marked } from 'marked';
+	import { renderMarkdownSanitized } from '$lib/utils';
 
 	let editingTags = false;
 	let linkLabel = '';
@@ -138,7 +139,7 @@
 				</blockquote>
 			{:else}
 				<div class="prose dark:prose-invert">
-					{@html marked.parse(profile.bio)}
+					{@html renderMarkdownSanitized(profile.bio)}
 				</div>
 			{/if}
 		{/if}

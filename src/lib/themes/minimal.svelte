@@ -3,6 +3,7 @@
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
 	import type { Profile } from '$lib/leaf/profile';
+	import { renderMarkdownSanitized } from '$lib/utils';
 	import { marked } from 'marked';
 
 	let editingTags = false;
@@ -188,7 +189,7 @@
 				></p>
 			{:else}
 				<div class="prose mx-auto max-w-[800px] dark:prose-invert">
-					{@html marked.parse(profile.bio)}
+					{@html renderMarkdownSanitized(profile.bio)}
 				</div>
 			{/if}
 		{/if}

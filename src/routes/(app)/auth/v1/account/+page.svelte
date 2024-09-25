@@ -4,7 +4,7 @@
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
-	import { parseUsername } from '$lib/utils';
+	import { parseUsername, renderMarkdownSanitized } from '$lib/utils';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import Icon from '@iconify/svelte';
@@ -308,7 +308,7 @@
 				<label for="bio" class="label mb-4">Description</label>
 				<textarea rows="6" class="textarea" name="bio" bind:value={bio}></textarea>
 				<div class="prose mt-2 dark:prose-invert">
-					{@html marked.parse(bio)}
+					{@html renderMarkdownSanitized(bio)}
 				</div>
 			</div>
 

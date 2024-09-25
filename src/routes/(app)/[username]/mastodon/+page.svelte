@@ -4,6 +4,7 @@
 	import Reply from '$lib/icons/Reply.svelte';
 	import Reblog from '$lib/icons/Reblog.svelte';
 	import Favorite from '$lib/icons/Favorite.svelte';
+	import sanitize from 'sanitize-html';
 	const { data }: { data: PageData } = $props();
 	const profile = data.profile;
 	let search = $state(data.search);
@@ -121,7 +122,7 @@
 				</div>
 			</div>
 			<span class="mastodon block p-6 text-sm md:text-base lg:text-lg"
-				>{@html mastodon_profile.description}</span
+				>{@html sanitize(mastodon_profile.description)}</span
 			>
 			<div class="justify-start md:flex md:flex-wrap md:items-center">
 				{#each mastodon_profile.fields as field}
@@ -190,7 +191,7 @@
 											<span class="text-xs text-gray-500">{status.reblog.account.acct}</span>
 										</div>
 									</div>
-									<p class="mastodon">{@html status.reblog.content}</p>
+									<p class="mastodon">{@html sanitize(status.reblog.content)}</p>
 								{/if}
 								{#if status.content.length > 0}
 									<div class="flex">
@@ -204,7 +205,7 @@
 											<span class="text-xs text-gray-500">{status.account.acct}</span>
 										</div>
 									</div>
-									<p class="mastodon">{@html status.content}</p>
+									<p class="mastodon">{@html sanitize(status.content)}</p>
 								{/if}
 								<div class="mastodon py-1">
 									{#if status.media_attachments.length > 0}

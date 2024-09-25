@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import { formatDistance } from 'date-fns';
+	import sanitize from 'sanitize-html';
 
 	export let data;
 	const messages = data.messages ?? [];
@@ -72,7 +73,7 @@
 						</small>
 					</header>
 					<p>
-						{@html message.content}
+						{@html sanitize(message.content)}
 					</p>
 					<div class="flex justify-end">
 						<span class="variant-filled badge">{message.display_recipient}</span>

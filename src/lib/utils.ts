@@ -1,3 +1,6 @@
+import { marked } from 'marked';
+import sanitizeHtml from 'sanitize-html';
+
 export interface CheckResponseError {
 	status: number;
 	statusText: string;
@@ -79,4 +82,9 @@ export function fetchUniqueGithubLanguage(repos: any[]) {
 	const languages = repos.map((repo) => repo.language).filter(Boolean);
 	const uniqueLanguages = new Set(languages);
 	return Array.from(uniqueLanguages);
+}
+
+/** Render the markdown string to sanitized HTML, ready for display in the app. */
+export function renderMarkdownSanitized(markdown: string): string {
+	return sanitizeHtml(marked.parse(markdown) as string);
 }

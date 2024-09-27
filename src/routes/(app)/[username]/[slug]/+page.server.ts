@@ -47,6 +47,10 @@ export const load: PageServerLoad = async ({
 
 	if (!(!!html || !!links)) return error(501, `Page kind not recognized`);
 
+	if (!pageName) {
+		pageName = env.PUBLIC_INSTANCE_NAME;
+	}
+
 	return {
 		slug: params.slug,
 		username: fullUsername,

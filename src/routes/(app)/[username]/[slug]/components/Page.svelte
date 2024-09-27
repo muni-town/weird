@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { PageData } from '../$types';
 
-	import PageHeader from './Header.svelte';
-	import PageContent from './Content.svelte';
-	import PageLinks from './Links.svelte';
+	import Header from './Header.svelte';
+	import Content from './Content.svelte';
+	import Links from './Links.svelte';
 
 	const { slug, username, links, html, pageName }: PageData = $props();
 </script>
@@ -13,7 +13,7 @@
 </svelte:head>
 
 <main class="flex flex-col items-center">
-	<PageHeader {username} {slug} />
-	<PageContent {html} />
-	<PageLinks {links} />
+	<Header {username} {slug} />
+	<Content {html} />
+	<Links {links} />
 </main>

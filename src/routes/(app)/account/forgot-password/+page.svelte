@@ -42,17 +42,17 @@
 		{#if success}
 			<aside class="alert variant-ghost-success">
 				<div class="alert-message">
-					<p>Your password reset email has been sent.</p>
+					<p>Your password reset email has been sent. You may now close this tab.</p>
 				</div>
 			</aside>
+		{:else}
+			<p>If you forgot your password, we can send you an email with a reset link.</p>
+			<label class="label">
+				<span>Email</span>
+				<input name="email" class="input" type="email" placeholder="Email" bind:value={email} />
+			</label>
+
+			<button class="variant-filled btn"> Send Link</button>
 		{/if}
-
-		<p>If you forgot your password, we can send you an email with a reset link.</p>
-		<label class="label">
-			<span>Email</span>
-			<input name="email" class="input" type="email" placeholder="Email" bind:value={email} />
-		</label>
-
-		<button class="variant-filled btn"> Send Link</button>
 	</form>
 </main>

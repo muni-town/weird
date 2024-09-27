@@ -32,8 +32,7 @@
 			<a href="/people" class="variant-ghost btn">People</a>
 
 			{#if !sessionInfo}
-				<a href="/auth/v1/account" class="variant-ghost btn">Login</a>
-				<a href="/auth/v1/users/register" class="variant-ghost btn">Register</a>
+				<a href="/auth/v1/account" class="variant-ghost btn">Sign-in</a>
 			{:else}
 				<a href="/auth/v1/account" class="variant-ghost btn">Profile</a>
 				<a href="/auth/v1/oidc/logout" class="variant-ghost btn">Logout</a>

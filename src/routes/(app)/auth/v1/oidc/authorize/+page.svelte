@@ -85,7 +85,7 @@
 		challengeMethod = url.searchParams.get('code_challenge_method')!;
 
 		// If we already have a session, then we can just refresh, and redirect immediately.
-		if (data.userInfo) {
+		if (data.sessionInfo) {
 			refreshing = true;
 			const authResp = await fetch('/auth/v1/oidc/authorize/refresh', {
 				method: 'post',
@@ -202,7 +202,7 @@
 					{!loggingIn ? 'Login' : 'Loading...'}
 				</button>
 
-				{#if providers}
+				{#if providers && providers.length > 0}
 					<div class="flex w-full flex-col items-center">
 						<div>Or Login With</div>
 						<div class="providers mt-2 flex flex-col gap-2">

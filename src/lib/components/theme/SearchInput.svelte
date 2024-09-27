@@ -1,5 +1,6 @@
 <script lang="ts">
-	let { search = $bindable(''), ...textinputProps }: { search: string, [key: string]: any } = $props();
+	let { search = $bindable(''), ...textinputProps }: { search: string; [key: string]: any } =
+		$props();
 
 	let searchBox: HTMLInputElement;
 

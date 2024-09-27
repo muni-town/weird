@@ -16,7 +16,7 @@ export const actions = {
 		let username = data.get('username')?.toString() || undefined;
 		if (username === '') {
 			username = undefined;
-		} else {
+		} else if (username) {
 			if (!username?.includes('@')) username = `${username}@${env.PUBLIC_DOMAIN}`;
 		}
 		let display_name = data.get('display_name')?.toString() || undefined;

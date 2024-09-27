@@ -18,8 +18,6 @@
 		not_recently_used: 'Not one of your %s recently used passwords'
 	};
 
-	console.log(data);
-
 	let password = $state('');
 	let error = $state('');
 	let passwordValidity: { [K in PolicyKey]?: { label: string; valid?: boolean } } = $state(

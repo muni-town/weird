@@ -80,7 +80,7 @@
 			});
 			await checkResponse(resp);
 			localStorage.setItem('justResetPassword', 'true');
-			window.location.replace('/auth/v1/account');
+			window.location.replace('/my-profile');
 		} catch (e) {
 			console.log(e);
 			password = '';

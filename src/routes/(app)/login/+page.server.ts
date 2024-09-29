@@ -1,3 +1,4 @@
+import { getSession } from '$lib/rauthy/server';
 import { checkResponse } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 

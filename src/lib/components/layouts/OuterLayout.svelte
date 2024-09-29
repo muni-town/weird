@@ -32,10 +32,10 @@
 			<a href="/people" class="variant-ghost btn">People</a>
 
 			{#if !sessionInfo}
-				<a href="/auth/v1/account" class="variant-ghost btn">Sign-in</a>
+				<a href="/login" class="variant-ghost btn">Sign-in</a>
 			{:else}
-				<a href="/auth/v1/account" class="variant-ghost btn">Profile</a>
-				<a href="/auth/v1/oidc/logout" class="variant-ghost btn">Logout</a>
+				<a href="/my-profile" class="variant-ghost btn">Profile</a>
+				<a href="/logout" class="variant-ghost btn">Logout</a>
 			{/if}
 			<a href="/feedback" class="variant-ghost btn btn-icon" title="Leave Feedback">
 				<svg

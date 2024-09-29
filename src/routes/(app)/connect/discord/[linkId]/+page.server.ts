@@ -4,19 +4,19 @@ import { setDiscordUserRauthyId } from '$lib/leaf/discord.js';
 import { getDiscordIdForLoginLink } from '$lib/discord_bot/index.js';
 
 export const load: ServerLoad = async ({ params, fetch, request }) => {
-	let { userInfo } = await getSession(fetch, request);
-	if (!userInfo) {
+	let { sessionInfo } = await getSession(fetch, request);
+	if (!sessionInfo) {
 		// TODO: hook up the login form so that it redirects back to this discord
 		// authentication once you are logged in.
-		return redirect(307, '/auth/v1/account');
+		return redirect(307, '/my-profile');
 	}
 	return { ...params };
 };
 
 export const actions = {
 	default: async ({ fetch, request }) => {
-		let { userInfo } = await getSession(fetch, request);
-		if (!userInfo) {
+		let { sessionInfo } = await getSession(fetch, request);
+		if (!sessionInfo) {
 			return fail(403, { error: 'You are not logged in' });
 		}
 		const data = await request.formData();
@@ -25,7 +25,7 @@ export const actions = {
 		const discordId = await getDiscordIdForLoginLink(linkId);
 		if (!discordId) return fail(400, { error: 'The login link has expired.' });
 
-		await setDiscordUserRauthyId(discordId, userInfo.id);
+		await setDiscordUserRauthyId(discordId, sessionInfo.user_id);
 
 		return { success: true };
 	}

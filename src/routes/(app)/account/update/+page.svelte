@@ -7,7 +7,7 @@
 
 	onMount(() => {
 		if (!form?.error) {
-			window.location.href = '/auth/v1/account';
+			window.location.href = '/my-profile';
 		}
 	});
 </script>

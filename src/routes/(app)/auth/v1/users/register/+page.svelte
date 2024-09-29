@@ -31,7 +31,7 @@
 
 		try {
 			const home = new URL(window.location.href);
-			home.pathname = '/auth/v1/account';
+			home.pathname = '/my-profile';
 			const registerResp = await fetch('/auth/v1/users/register', {
 				method: 'post',
 				body: JSON.stringify({
@@ -73,7 +73,7 @@
 		<input type="hidden" name="pow" value="" />
 
 		<p class="mt-4">
-			Already have an account? <a href="/auth/v1/account" class="underline">Login</a>.
+			Already have an account? <a href="/my-profile" class="underline">Login</a>.
 		</p>
 
 		<button class="variant-filled btn" disabled={processing}>

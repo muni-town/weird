@@ -10,6 +10,8 @@
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
 
+	const PKCE_VERIFIER = 'pkce_verifier';
+
 	let clientId = $state('');
 	let redirectUri = $state('');
 	let nonce = $state('');
@@ -17,22 +19,34 @@
 	let oidcState = $state('');
 	let challenge = $state('');
 	let challengeMethod = $state('');
-	let refreshing = $state(false);
-	let loggingIn = $state(false);
+	let loading = $state(false);
 
 	let justResetPassword = $state(false);
 
+	const getKey = (i: number) => {
+		let res = '';
+
+		const target = i || 8;
+		for (let i = 0; i < target; i += 1) {
+			let nextNumber = 60;
+			while ((nextNumber > 57 && nextNumber < 65) || (nextNumber > 90 && nextNumber < 97)) {
+				nextNumber = Math.floor(Math.random() * 74) + 48;
+			}
+			res = res.concat(String.fromCharCode(nextNumber));
+		}
+
+		return res;
+	};
+
 	async function handleAuthResp(authResp: Response) {
 		if (authResp.status == 202) {
-			localStorage.setItem('isLoggingIn', 'true');
-			window.location.replace(
-				`${new URL(window.location.href).pathname}/worker?redirect_uri=${encodeURIComponent(authResp.headers.get('location')!)}&csrf_token=${authResp.headers.get('csrf-token')}`
-			);
+			const redirectUri = authResp.headers.get('location');
+			window.location.href = redirectUri!;
 		} else if (!authResp.ok) {
 			console.error('Error logging in', authResp, await authResp.text());
 			error = 'Invalid email or password.';
 			password = '';
-			loggingIn = false;
+			loading = false;
 		}
 	}
 
@@ -76,17 +90,41 @@
 
 	onMount(async () => {
 		const url = new URL(window.location.href);
-		clientId = url.searchParams.get('client_id')!;
-		redirectUri = url.searchParams.get('redirect_uri')!;
-		nonce = url.searchParams.get('nonce')!;
-		scopes = url.searchParams.get('scope')!.split(' ');
-		oidcState = url.searchParams.get('state')!;
-		challenge = url.searchParams.get('code_challenge')!;
-		challengeMethod = url.searchParams.get('code_challenge_method')!;
+		const id = url.searchParams.get('client_id');
+
+		await new Promise<void>((resolve) => {
+			if (id) {
+				clientId = id;
+				redirectUri = url.searchParams.get('redirect_uri')!;
+				nonce = url.searchParams.get('nonce')!;
+				scopes = url.searchParams.get('scope')!.split(' ');
+				oidcState = url.searchParams.get('state')!;
+				challenge = url.searchParams.get('code_challenge')!;
+				challengeMethod = url.searchParams.get('code_challenge_method')!;
+				resolve();
+			} else {
+				// If the client ID is not set, then generate all the parameters for a local login
+				clientId = 'rauthy';
+				getPkce(64, async (error, { challenge: c, verifier }) => {
+					if (!error) {
+						localStorage.setItem(PKCE_VERIFIER, verifier);
+						challengeMethod = 'S256';
+						challenge = c;
+						nonce = getKey(24);
+						oidcState = 'account';
+						redirectUri = `${window.location.origin}/auth/v1/oidc/callback`;
+						scopes = ['openid', 'profile', 'email'];
+					} else {
+						console.log('Error generating pkce challenge', error);
+					}
+					resolve();
+				});
+			}
+		});
 
 		// If we already have a session, then we can just refresh, and redirect immediately.
 		if (data.sessionInfo) {
-			refreshing = true;
+			loading = true;
 			const authResp = await fetch('/auth/v1/oidc/authorize/refresh', {
 				method: 'post',
 				body: JSON.stringify({
@@ -120,7 +158,7 @@
 	async function onSubmit(e: SubmitEvent) {
 		e.preventDefault();
 
-		loggingIn = true;
+		loading = true;
 
 		const req = {
 			email,
@@ -151,7 +189,7 @@
 	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">
 		<h1 class="my-3 text-2xl">Login</h1>
 
-		{#if refreshing}
+		{#if loading}
 			<div class="flex justify-center p-5">
 				<ProgressRadial width="w-20" />
 			</div>
@@ -198,9 +236,7 @@
 					</p>
 				</div>
 
-				<button class="variant-filled btn" disabled={loggingIn}>
-					{!loggingIn ? 'Login' : 'Loading...'}
-				</button>
+				<button class="variant-filled btn"> Login </button>
 
 				{#if providers && providers.length > 0}
 					<div class="flex w-full flex-col items-center">

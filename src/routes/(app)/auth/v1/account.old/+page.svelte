@@ -74,7 +74,7 @@
 					const redirect_uri = `${window.location.origin}/auth/v1/oidc/callback`
 						.replaceAll(':', '%3A')
 						.replaceAll('/', '%2F');
-					window.location.href = `/auth/v1/oidc/authorize?client_id=rauthy&redirect_uri=${redirect_uri}&response_type=code&code_challenge=${challenge}&code_challenge_method=S256&scope=openid+profile+email&nonce=${nonce}&state=${s}`;
+					window.location.href = `/login?client_id=rauthy&redirect_uri=${redirect_uri}&response_type=code&code_challenge=${challenge}&code_challenge_method=S256&scope=openid+profile+email&nonce=${nonce}&state=${s}`;
 				}
 			});
 		}
@@ -201,7 +201,7 @@
 
 			<ol class="list-nav mt-4 flex flex-col gap-2">
 				<li>
-					<a href="/auth/v1/account" class="variant-outline"> Profile </a>
+					<a href="/my-profile" class="variant-outline"> Profile </a>
 				</li>
 				<li>
 					<a href={`/account/${data.userInfo.id}/custom-domain`}> Site Generation </a>

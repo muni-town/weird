@@ -1,13 +1,8 @@
-import type { RequestEvent } from './$types';
+import { proxy_to_rauthy } from '$lib/rauthy/server';
+import { redirect, type RequestHandler } from '@sveltejs/kit';
 
-export async function POST(event: RequestEvent) {
-	const formData = await event.request.formData();
-	const username = formData.get('username') as string;
-	if (!username) return new Response(null);
+export const GET: RequestHandler = async () => {
+	return redirect(303, '/my-profile');
+};
 
-	const repoResp = await fetch(
-		`https://raw.githubusercontent.com/${username}/${username}/HEAD/README.md`
-	);
-	const profile = await repoResp.text();
-	return new Response(profile);
-}
+export const fallback = proxy_to_rauthy;

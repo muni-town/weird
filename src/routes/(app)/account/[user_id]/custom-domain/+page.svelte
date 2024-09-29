@@ -76,7 +76,7 @@
 
 			<ol class="list-nav mt-4 flex flex-col gap-2">
 				<li>
-					<a href="/auth/v1/account"> Profile </a>
+					<a href="/my-profile"> Profile </a>
 				</li>
 				<li>
 					<a href={`/account/${data.sessionInfo.user_id}/custom-domain`} class="variant-outline">

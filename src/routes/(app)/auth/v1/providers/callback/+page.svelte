@@ -32,7 +32,7 @@
 			// webauthnData = await res.json();
 		} else if (res.status === 204) {
 			// in case of a 204, we have done a user federation on an existing account -> just redirect
-			window.location.replace('/auth/v1/account');
+			window.location.replace('/my-profile');
 		} else if (res.status === 403) {
 			// we will get a forbidden if for instance the user already exists but without
 			// any upstream provider link (or the wrong one)

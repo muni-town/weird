@@ -23,6 +23,12 @@ export const load: PageServerLoad = async ({
 	if (!userInfo) {
 		return redirect(303, '/login');
 	}
+	const profile = await getProfileById(userInfo.id);
+
+	if (!profile?.username) {
+		return redirect(303, '/claim-username');
+	}
+
 	let providers = [];
 	try {
 		const providersResp = await fetch('/auth/v1/providers/minimal', {
@@ -33,8 +39,6 @@ export const load: PageServerLoad = async ({
 	} catch (e) {
 		console.error('Error getting providers:', e);
 	}
-
-	const profile = await getProfileById(userInfo.id);
 
 	return { userInfo, providers, profile };
 };
@@ -130,36 +134,5 @@ export const actions = {
 			console.error('Error updating profile:', e);
 			return fail(400, { error: `Error updating profile: ${e}` });
 		}
-	},
-	claimUsername: async ({ fetch, request }) => {
-		const { sessionInfo } = await getSession(fetch, request);
-		if (!sessionInfo) return fail(403, { error: 'Not logged in' });
-
-		const formData = await request.formData();
-		const username = formData.get('username') as string;
-		if (!username) return fail(400, { error: 'Username not provided ' });
-
-		try {
-			await setProfileById(sessionInfo.user_id, {
-				username: `${username}@${env.PUBLIC_DOMAIN}`,
-				tags: [],
-				links: []
-			});
-		} catch (error) {
-			return fail(400, { error });
-		}
-
-		return redirect(303, '/my-profile');
-	},
-	fetchGitHubReadme: async ({ request }) => {
-		const formData = await request.formData();
-		const username = formData.get('username') as string;
-		if (!username) return new Response(null);
-
-		const repoResp = await fetch(
-			`https://raw.githubusercontent.com/${username}/${username}/HEAD/README.md`
-		);
-		const profile = await repoResp.text();
-		return profile;
 	}
 } satisfies Actions;

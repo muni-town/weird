@@ -4,7 +4,7 @@
 	import type { ActionData, PageData } from '../$types';
 	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
-	import { parseUsername, renderMarkdownSanitized } from '$lib/utils';
+	import { checkResponse, parseUsername, renderMarkdownSanitized } from '$lib/utils';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import Icon from '@iconify/svelte';
@@ -164,26 +164,18 @@
 		// Returns the updated response value
 		response: async (r: string) => {
 			if (r && r.trim().length) {
-				const formData = new FormData();
-				formData.append('username', r);
-				const resp = await fetch('/my-profile?/fetchGitHubReadme', {
-					method: 'POST',
-					body: formData
-				});
-
-				if (resp.ok) {
-					console.log();
-					const re = JSON.parse((await resp.json()).data)[0];
-					if (re === '404: Not Found') {
-						const t = {
-							message: 'Github profile not exists',
-							hideDismiss: true,
-							timeout: 3000,
-							background: 'variant-filled-error'
-						};
-						toastStore.trigger(t);
-					}
-					bio = re;
+				const repoResp = await fetch(`https://raw.githubusercontent.com/${r}/${r}/HEAD/README.md`);
+				try {
+					await checkResponse(repoResp);
+					bio = await repoResp.text();
+				} catch (e) {
+					toastStore.trigger({
+						message: 'Github profile not exists',
+						hideDismiss: true,
+						timeout: 3000,
+						background: 'variant-filled-error'
+					});
+					console.error('Error fetching GitHub README', e);
 				}
 			}
 		}

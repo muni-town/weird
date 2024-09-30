@@ -1,15 +1,13 @@
 <script lang="ts">
-	import type { CodeJar } from 'codejar';
 	import type { PageData } from './$types';
-	import { onMount } from 'svelte';
 	import sanitizeHtml from 'sanitize-html';
 	import { browser } from '$app/environment';
 	import { marked } from 'marked';
 
+	import CodeJar from '$lib/components/CodeJar.svelte';
+
 	const { data }: { data: PageData } = $props();
 
-	let editorElement: HTMLElement = $state(undefined) as any;
-	let editor: CodeJar | undefined = $state(undefined);
 	let markdown = $state(data.markdown || '');
 	let html = $state('');
 
@@ -17,19 +15,6 @@
 		if (browser) {
 			html = sanitizeHtml(marked.parse(markdown) as string);
 		}
-	});
-
-	onMount(async () => {
-		const { CodeJar } = await import('codejar');
-		editor = CodeJar(editorElement, () => {}, {
-			tab: '  ',
-			addClosing: false,
-			indentOn: /[]/
-		});
-		editor.updateCode(markdown);
-		editor.onUpdate((c) => {
-			markdown = c;
-		});
 	});
 </script>
 
@@ -42,10 +27,7 @@
 	</label>
 	<div class="mb-4 flex w-full justify-between gap-2">
 		<div class="w-full">
-			<div
-				bind:this={editorElement}
-				class="text-md w-full p-4 font-mono text-lg border-token rounded-container-token"
-			></div>
+			<CodeJar bind:content={markdown} />
 		</div>
 
 		<div class="prose w-full p-5 border-token rounded-container-token dark:prose-invert">

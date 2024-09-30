@@ -29,7 +29,6 @@ export const load: PageServerLoad = async ({ fetch, params, request }) => {
 	}
 
 	const { sessionInfo } = await getSession(fetch, request);
-	console.log(sessionInfo);
 	if (sessionInfo) {
 		const last = profileLink.path[profileLink.path.length - 1];
 		if ('String' in last && last.String == sessionInfo.user_id) {

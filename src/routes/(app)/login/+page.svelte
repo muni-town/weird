@@ -38,13 +38,14 @@
 		return res;
 	};
 
-	async function handleAuthResp(authResp: Response) {
+	async function handleAuthResp(authResp: Response, isRefresh = false) {
 		if (authResp.status == 202) {
 			const redirectUri = authResp.headers.get('location');
 			window.location.href = redirectUri!;
 		} else if (!authResp.ok) {
-			console.error('Error logging in', authResp, await authResp.text());
-			error = 'Invalid email or password.';
+			if (!isRefresh) {
+				error = 'Invalid email or password.';
+			}
 			password = '';
 			loading = false;
 		}
@@ -138,7 +139,7 @@
 				}),
 				headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
 			});
-			await handleAuthResp(authResp);
+			await handleAuthResp(authResp, true);
 			return;
 		}
 

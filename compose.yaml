@@ -31,6 +31,8 @@ services:
       SMTP_DANGER_INSECURE: true
       EMAIL_SUB_PREFIX: Weird.One
       LOG_LEVEL_ACCESS: Verbose
+      SESSION_LIFETIME: 27776000
+      SESSION_TIMEOUT: 27776000
       http_proxy:
       https_proxy:
     ports:

@@ -13,6 +13,8 @@
 	},
 	"devDependencies": {
 		"@iconify/svelte": "^4.0.2",
+		"@milkdown/kit": "^7.5.5",
+		"@milkdown/theme-nord": "^7.5.0",
 		"@skeletonlabs/skeleton": "^2.10.2",
 		"@skeletonlabs/tw-plugin": "^0.4.0",
 		"@sveltejs/adapter-node": "^5.2.3",

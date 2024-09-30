@@ -1,6 +1,10 @@
 <script lang="ts">
-	let { search = $bindable(''), ...textinputProps }: { search: string; [key: string]: any } =
-		$props();
+	import type { HTMLAttributes } from 'svelte/elements';
+
+	let {
+		search = $bindable(''),
+		...textinputProps
+	}: { search: string } & HTMLAttributes<HTMLInputElement> = $props();
 
 	let searchBox: HTMLInputElement;
 

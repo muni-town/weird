@@ -10,6 +10,13 @@
 	let editorElement: HTMLElement = $state(undefined) as any;
 	let editor: CodeJar | undefined = $state(undefined);
 
+	let internalContent = $state('');
+	$effect(() => {
+		if (internalContent != content && editor) {
+			editor.updateCode(content);
+		}
+	});
+
 	onMount(async () => {
 		const { CodeJar } = await import('codejar');
 		editor = CodeJar(editorElement, () => {}, {

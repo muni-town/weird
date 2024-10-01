@@ -53,15 +53,17 @@
 	$effect(() => {
 		// If the state editing state was changed outside of this component, then update our
 		// internal editor state.
-		if (bioEditor && internalBio != (editingState.profile.bio || '')) {
+		if (internalBio != (editingState.profile.bio || '')) {
 			internalBio = editingState.profile.bio || '';
-			const len = bioEditor.state.doc.content.size;
-			const newState = bioEditor.state.apply(
-				bioEditor.state.tr
-					.delete(0, len)
-					.insert(0, defaultMarkdownParser.parse(editingState.profile.bio || ''))
-			);
-			bioEditor.updateState(newState);
+			if (bioEditor) {
+				const len = bioEditor.state.doc.content.size;
+				const newState = bioEditor.state.apply(
+					bioEditor.state.tr
+						.delete(0, len)
+						.insert(0, defaultMarkdownParser.parse(editingState.profile.bio || ''))
+				);
+				bioEditor.updateState(newState);
+			}
 		}
 	});
 	function bioEditorPlugin(el: HTMLDivElement) {
@@ -129,8 +131,8 @@
 	</title>
 </svelte:head>
 
-<main class="flex flex-col items-center">
-	<div class="card m-4 mt-12 flex max-w-[600px] flex-col gap-4 p-8 text-xl">
+<main class="mx-4 flex w-full flex-col items-center">
+	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
 		<div class="flex items-center gap-4">
 			<Avatar username={profile.username} />
 			<h1 class="relative my-3 text-4xl">

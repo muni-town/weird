@@ -10,6 +10,7 @@
 	import { renderMarkdownSanitized } from '$lib/utils';
 	import type { PageData } from './$types';
 	import { editingState } from './state.svelte';
+	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -61,24 +62,7 @@
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(profile.bio || '')}
 				{:else}
-					<div class="absolute right-0 top-0">
-						<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}
-							>{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}</button
-						>
-						{#if !markdownMode}
-							<button class="variant-filled badge" onclick={() => bioEditorEl.focus()}
-								>Click to Edit!</button
-							>
-						{/if}
-					</div>
-					{#if !markdownMode}
-						<RichMarkdownEditor
-							bind:this={bioEditorEl}
-							bind:content={editingState.profile.bio as string}
-						/>
-					{:else}
-						<MarkdownEditor bind:content={editingState.profile.bio as string} />
-					{/if}
+					<CompositeMarkdownEditor bind:content={editingState.profile.bio as string} />
 				{/if}
 			</div>
 			{#if profile.links}

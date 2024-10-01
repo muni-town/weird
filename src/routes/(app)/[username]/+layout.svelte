@@ -74,11 +74,7 @@
 			{/if}
 		</div>
 		{#if editingState.editing}
-			<form
-				method="post"
-				class="flex flex-col gap-4"
-				enctype="multipart/form-data"
-			>
+			<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
 				<label>
 					Username
 					<input name="username" class="input" bind:value={editingUsernameProxy.value} />

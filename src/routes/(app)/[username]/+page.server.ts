@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({ fetch, params, request }) => {
 };
 
 export const actions = {
-	update: async ({ fetch, request }) => {
+	default: async ({ fetch, request }) => {
 		let { sessionInfo } = await getSession(fetch, request);
 		if (!sessionInfo) return fail(403, { error: 'Not logged in' });
 

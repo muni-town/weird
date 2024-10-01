@@ -4,6 +4,7 @@
 	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import { checkResponse } from '$lib/utils';
 	import { editingState } from './state.svelte';
+	import { env } from '$env/dynamic/public';
 
 	let { children }: { children: Snippet } = $props();
 	let data = $derived($page.data);
@@ -38,15 +39,33 @@
 			}
 		}
 	};
+
+	let editingUsernameProxy = $state({
+		get value() {
+			return editingState.profile.username?.split('@')[0];
+		},
+		set value(value) {
+			editingState.profile.username = `${value}@${env.PUBLIC_DOMAIN}`;
+		}
+	});
 </script>
 
 <div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
 	<aside
-		class="card sticky top-8 mx-4 my-8 w-full min-w-[13em] p-5 sm:h-[85vh] sm:w-auto"
+		class="card sticky top-8 mx-4 my-8 w-full min-w-[15em] p-5 sm:h-[85vh] sm:w-auto"
 		class:hidden={!data.profileMatchesUserSession}
 	>
+		{#if $page.form?.error}
+			<aside class="alert variant-ghost-error my-2 w-full">
+				<div class="alert-message">
+					<p>Error updating profile: {$page.form.error}</p>
+				</div>
+			</aside>
+		{/if}
 		<div class="flex items-center gap-4">
 			<h1 class="mb-2 text-xl font-bold">My Profile {editingState.editing ? '( Editing )' : ''}</h1>
+
+			<div class="flex-grow"></div>
 
 			{#if !editingState.editing}
 				<button class="variant-ghost btn" onclick={() => (editingState.editing = true)}>
@@ -57,20 +76,36 @@
 		{#if editingState.editing}
 			<form
 				method="post"
-				action="?/update"
 				class="flex flex-col gap-4"
 				enctype="multipart/form-data"
 			>
-				<input type="hidden" name="username" bind:value={editingState.profile.username} />
+				<label>
+					Username
+					<input name="username" class="input" bind:value={editingUsernameProxy.value} />
+				</label>
 				<input type="hidden" name="display_name" bind:value={editingState.profile.display_name} />
+				<!-- TODO: Incorporate Justin's avatar editor component instead of using this. -->
 				<label>
 					<div>Update Avatar</div>
 					<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
 				</label>
 				<input type="hidden" name="bio" bind:value={editingState.profile.bio} />
 				<input type="hidden" name="tags" bind:value={editingState.profile.tags} />
+				<input type="hidden" name="links" bind:value={editingState.profile.links} />
 
-				<button class="variant-ghost btn"> Save </button>
+				<div class="flex flex-row-reverse gap-2">
+					<button class="variant-ghost-success btn basis-full"> Save </button>
+					<button
+						class="variant-ghost btn basis-full"
+						onclick={(e) => {
+							e.preventDefault();
+							editingState.editing = false;
+							editingState.profile = data.profile;
+						}}
+					>
+						Cancel</button
+					>
+				</div>
 			</form>
 
 			<h2 class="my-2 text-lg font-bold">Importer</h2>

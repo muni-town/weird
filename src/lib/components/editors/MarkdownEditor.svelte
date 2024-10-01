@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	import { minimalSetup, EditorView } from 'codemirror';
@@ -10,7 +9,6 @@
 	let { content = $bindable(), ...attrs }: { content: string } & HTMLAttributes<HTMLDivElement> =
 		$props();
 
-	let editorElement: HTMLElement = $state() as any;
 	let editor: EditorView = $state() as any;
 
 	let internalContent = $state('');
@@ -24,7 +22,7 @@
 		}
 	});
 
-	onMount(async () => {
+	function editorPlugin(element: HTMLElement) {
 		editor = new EditorView({
 			doc: content,
 			extensions: [
@@ -53,12 +51,12 @@
 				internalContent = view.state.doc.toString();
 				content = internalContent;
 			},
-			parent: editorElement
+			parent: element
 		});
-	});
+	}
 </script>
 
-<div bind:this={editorElement} {...attrs} class="code-editor"></div>
+<div use:editorPlugin {...attrs} class="code-editor"></div>
 
 <style>
 	:global(.code-editor) {

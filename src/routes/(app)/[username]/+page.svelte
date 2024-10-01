@@ -1,88 +1,30 @@
 <script lang="ts">
+	import type { SvelteComponent } from 'svelte';
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
+	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
+	import MarkdownEditor from '$lib/components/editors/MarkdownEditor.svelte';
+	import RichMarkdownEditor from '$lib/components/editors/RichMarkdownEditor.svelte';
+
 	import type { Profile } from '$lib/leaf/profile';
 	import { renderMarkdownSanitized } from '$lib/utils';
 	import type { PageData } from './$types';
 	import { editingState } from './state.svelte';
 
-	import {
-		schema as markdownSchema,
-		defaultMarkdownParser,
-		defaultMarkdownSerializer
-	} from 'prosemirror-markdown';
-	import { buildInputRules, buildKeymap } from 'prosemirror-example-setup';
-	import { EditorState } from 'prosemirror-state';
-	import { EditorView } from 'prosemirror-view';
-	import { undo, redo, history } from 'prosemirror-history';
-	import { keymap } from 'prosemirror-keymap';
-	import { baseKeymap } from 'prosemirror-commands';
-	import MarkdownEditor from '$lib/components/editors/MarkdownEditor.svelte';
-	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
-
 	let { data }: { data: PageData } = $props();
 
+	// Prepare editing state, if this is the logged in user's profile page.
 	if (data.profileMatchesUserSession) {
 		editingState.profile = data.profile;
 	}
 
 	let profile = $derived(data.profile as Profile);
-
-	// We have to keep track of component-internal versions of our WYSIWYG editor contents so that
-	// we can tell the difference between an update coming from outside the component and from
-	// inside the component.
-	let internalBio = $state(editingState.profile.bio || '');
-
 	let markdownMode = $state(false);
 
-	// TODO: create separate components for markdown and plain text inline editing.
-
 	// svelte-ignore non_reactive_update
-	let bioEditorEl: HTMLDivElement;
-	let bioEditor: EditorView | null = $state(null);
-	$effect(() => {
-		// If the state editing state was changed outside of this component, then update our
-		// internal editor state.
-		if (internalBio != (editingState.profile.bio || '')) {
-			internalBio = editingState.profile.bio || '';
-			if (bioEditor) {
-				const len = bioEditor.state.doc.content.size;
-				const newState = bioEditor.state.apply(
-					bioEditor.state.tr
-						.delete(0, len)
-						.insert(0, defaultMarkdownParser.parse(editingState.profile.bio || ''))
-				);
-				bioEditor.updateState(newState);
-			}
-		}
-	});
-	function bioEditorPlugin(el: HTMLDivElement) {
-		if (!editingState.profile.bio) editingState.profile.bio = 'About...';
-
-		let s = EditorState.create({
-			schema: markdownSchema,
-			doc: defaultMarkdownParser.parse(editingState.profile.bio),
-			plugins: [
-				buildInputRules(markdownSchema),
-				history(),
-				keymap({ 'Mod-z': undo, 'Mod-Shift-z': redo, 'Mod-y': redo }),
-				keymap(buildKeymap(markdownSchema)),
-				keymap(baseKeymap)
-			]
-		});
-		bioEditor = new EditorView(el, {
-			state: s,
-			dispatchTransaction(transaction) {
-				const newState = bioEditor!.state.apply(transaction);
-				internalBio = defaultMarkdownSerializer.serialize(newState.doc);
-				editingState.profile.bio = internalBio;
-				bioEditor!.updateState(newState);
-			}
-		});
-	}
-
+	let displayNameEditorEl: SvelteComponent;
 	// svelte-ignore non_reactive_update
-	let displayNameEditorEl: HTMLElement;
+	let bioEditorEl: SvelteComponent;
 </script>
 
 <svelte:head>
@@ -102,10 +44,12 @@
 				{:else}
 					<button
 						class="variant-filled badge absolute right-[-4em] top-[-1em]"
-						onclick={() => (displayNameEditorEl.children[0] as HTMLElement).focus()}
-						>Click to Edit!</button
+						onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
 					>
-					<InlineTextEditor bind:content={editingState.profile.display_name as string} />
+					<InlineTextEditor
+						bind:this={displayNameEditorEl}
+						bind:content={editingState.profile.display_name as string}
+					/>
 				{/if}
 			</h1>
 		</div>
@@ -122,15 +66,16 @@
 							>{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}</button
 						>
 						{#if !markdownMode}
-							<button
-								class="variant-filled badge"
-								onclick={() => (bioEditorEl.children[0] as HTMLElement).focus()}
+							<button class="variant-filled badge" onclick={() => bioEditorEl.focus()}
 								>Click to Edit!</button
 							>
 						{/if}
 					</div>
 					{#if !markdownMode}
-						<div bind:this={bioEditorEl} use:bioEditorPlugin></div>
+						<RichMarkdownEditor
+							bind:this={bioEditorEl}
+							bind:content={editingState.profile.bio as string}
+						/>
 					{:else}
 						<MarkdownEditor bind:content={editingState.profile.bio as string} />
 					{/if}

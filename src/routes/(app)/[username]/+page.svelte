@@ -17,15 +17,8 @@
 	import { undo, redo, history } from 'prosemirror-history';
 	import { keymap } from 'prosemirror-keymap';
 	import { baseKeymap } from 'prosemirror-commands';
-	import { Schema } from 'prosemirror-model';
 	import MarkdownEditor from '$lib/components/editors/MarkdownEditor.svelte';
-
-	const textSchema = new Schema({
-		nodes: {
-			text: {},
-			doc: { content: 'text*' }
-		}
-	});
+	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -39,9 +32,6 @@
 	// we can tell the difference between an update coming from outside the component and from
 	// inside the component.
 	let internalBio = $state(editingState.profile.bio || '');
-	let internalDisplayName = $state(
-		editingState.profile.display_name || editingState.profile.username || ''
-	);
 
 	let markdownMode = $state(false);
 
@@ -92,36 +82,7 @@
 	}
 
 	// svelte-ignore non_reactive_update
-	let displayNameEditorEl: HTMLDivElement;
-	let displayNameEditor: EditorView | null = $state(null);
-	$effect(() => {
-		// If the state editing state was changed outside of this component, then update our
-		// internal editor state.
-		if (displayNameEditor && internalDisplayName != (editingState.profile.display_name || '')) {
-			internalDisplayName =
-				editingState.profile.display_name || editingState.profile.username?.split('@')[0] || '';
-			const len = displayNameEditor.state.doc.content.size;
-			const newState = displayNameEditor.state.apply(
-				displayNameEditor.state.tr.delete(0, len).insert(0, textSchema.text(internalDisplayName))
-			);
-			displayNameEditor.updateState(newState);
-		}
-	});
-	function displayNameEditorPlugin(el: HTMLDivElement) {
-		let s = EditorState.create({
-			schema: textSchema
-		});
-		s = s.apply(s.tr.insertText(internalDisplayName));
-		displayNameEditor = new EditorView(el, {
-			state: s,
-			dispatchTransaction(transaction) {
-				const newState = displayNameEditor!.state.apply(transaction);
-				internalDisplayName = defaultMarkdownSerializer.serialize(newState.doc);
-				editingState.profile.display_name = internalDisplayName;
-				displayNameEditor!.updateState(newState);
-			}
-		});
-	}
+	let displayNameEditorEl: HTMLElement;
 </script>
 
 <svelte:head>
@@ -144,7 +105,7 @@
 						onclick={() => (displayNameEditorEl.children[0] as HTMLElement).focus()}
 						>Click to Edit!</button
 					>
-					<div bind:this={displayNameEditorEl} use:displayNameEditorPlugin></div>
+					<InlineTextEditor bind:content={editingState.profile.display_name as string} />
 				{/if}
 			</h1>
 		</div>

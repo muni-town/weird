@@ -4,7 +4,7 @@
 	import { browser } from '$app/environment';
 	import { marked } from 'marked';
 
-	import CodeJar from '$lib/components/CodeJar.svelte';
+	import MarkdownEditor from '$lib/components/editors/MarkdownEditor.svelte';
 
 	const { data }: { data: PageData } = $props();
 
@@ -27,7 +27,7 @@
 	</label>
 	<div class="mb-4 flex w-full justify-between gap-2">
 		<div class="w-full">
-			<CodeJar bind:content={markdown} />
+			<MarkdownEditor bind:content={markdown} />
 		</div>
 
 		<div class="prose w-full p-5 border-token rounded-container-token dark:prose-invert">

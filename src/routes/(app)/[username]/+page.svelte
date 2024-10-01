@@ -18,7 +18,7 @@
 	import { keymap } from 'prosemirror-keymap';
 	import { baseKeymap } from 'prosemirror-commands';
 	import { Schema } from 'prosemirror-model';
-	import CodeJar from '$lib/components/CodeJar.svelte';
+	import MarkdownEditor from '$lib/components/editors/MarkdownEditor.svelte';
 
 	const textSchema = new Schema({
 		nodes: {
@@ -171,7 +171,7 @@
 					{#if !markdownMode}
 						<div bind:this={bioEditorEl} use:bioEditorPlugin></div>
 					{:else}
-						<CodeJar bind:content={editingState.profile.bio as string} />
+						<MarkdownEditor bind:content={editingState.profile.bio as string} />
 					{/if}
 				{/if}
 			</div>

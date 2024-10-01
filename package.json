@@ -12,7 +12,10 @@
 		"format": "prettier --write . --log-level warn"
 	},
 	"devDependencies": {
+		"@codemirror/lang-markdown": "^6.3.0",
+		"@codemirror/language": "^6.10.3",
 		"@iconify/svelte": "^4.0.2",
+		"@lezer/highlight": "^1.2.1",
 		"@skeletonlabs/skeleton": "^2.10.2",
 		"@skeletonlabs/tw-plugin": "^0.4.0",
 		"@sveltejs/adapter-node": "^5.2.3",
@@ -30,7 +33,7 @@
 		"@typescript-eslint/eslint-plugin": "^7.18.0",
 		"@typescript-eslint/parser": "^7.18.0",
 		"autoprefixer": "^10.4.20",
-		"codejar": "^4.2.0",
+		"codemirror": "^6.0.1",
 		"cookie": "^0.6.0",
 		"date-fns": "^3.6.0",
 		"discord.js": "^14.16.2",

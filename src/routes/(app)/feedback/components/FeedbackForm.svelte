@@ -9,7 +9,7 @@
 	import { env } from '$env/dynamic/public';
 
 	const { processing, error, handleSubmit, powResult }: props = $props();
-	const instaceName = env.PUBLIC_INSTANCE_NAME;
+	const instanceName = env.PUBLIC_INSTANCE_NAME;
 </script>
 
 <form
@@ -26,8 +26,8 @@
 	{/if}
 
 	<p class="text-surface-500-400-token text-center">
-		If you're having trouble or you have feedback for {instaceName} we'd appreciate a message, good or
-		bad, let us know!
+		If you're having trouble or you have feedback for {instanceName} we'd appreciate a message, good
+		or bad, let us know!
 	</p>
 
 	<label class="label">

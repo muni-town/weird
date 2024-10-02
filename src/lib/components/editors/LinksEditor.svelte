@@ -50,7 +50,7 @@
 						<Handle>
 							<IconHandle />
 						</Handle>
-						<a class="variant-ghost btn" target="_blank"href={link.url}>
+						<a class="variant-ghost btn" target="_blank" href={link.url}>
 							{link.label}
 						</a>
 

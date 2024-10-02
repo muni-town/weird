@@ -3,8 +3,6 @@
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
-	import MarkdownEditor from '$lib/components/editors/MarkdownEditor.svelte';
-	import RichMarkdownEditor from '$lib/components/editors/RichMarkdownEditor.svelte';
 
 	import type { Profile } from '$lib/leaf/profile';
 	import { renderMarkdownSanitized } from '$lib/utils';
@@ -31,6 +29,20 @@
 	});
 
 	let profile = $derived(data.profile as Profile);
+
+	let editingTagsState = $state(data.profile.tags.join(', '));
+	let editingTagsProxy = $state({
+		get value() {
+			return editingTagsState;
+		},
+		set value(value: string) {
+			editingTagsState = value;
+			editingState.profile.tags = value
+				.split(',')
+				.map((x) => x.trim())
+				.filter((x) => !!x);
+		}
+	});
 
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
@@ -92,11 +104,17 @@
 					{/if}
 				</div>
 			{/if}
-			{#if profile.tags && profile.tags.length > 0}
-				<div class="flex items-center gap-2">
+			{#if profile.tags.length > 0 || editingState.editing}
+				<div class="mt-4 flex flex-wrap items-baseline gap-2">
 					<strong>Tags: </strong>
+					{#if editingState.editing}
+						<span class="text-sm"> Separate multiple tags with commas.</span>
+						<div class="basis-full">
+							<input class="input" bind:value={editingTagsProxy.value} />
+						</div>
+					{/if}
 					<span class="flex flex-wrap gap-2 text-base">
-						{#each profile.tags as tag}
+						{#each editingState.editing ? editingState.profile.tags : profile.tags as tag}
 							<a
 								class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
 								href={`/people?q=${tag}`}

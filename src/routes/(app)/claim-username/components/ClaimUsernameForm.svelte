@@ -1,14 +1,14 @@
 <script lang="ts">
-	const ACTION = '?/claimUsername';
-
 	const {
-		error
+		error,
+		action
 	}: {
 		error: string | undefined;
+		action: string;
 	} = $props();
 </script>
 
-<form class="card m-8 flex flex-col gap-4 p-6" method="post" action={ACTION}>
+<form class="card m-8 flex flex-col gap-4 p-6" method="post" {action}>
 	<h1 class="text-2xl font-bold">Claim Username</h1>
 
 	{#if error}

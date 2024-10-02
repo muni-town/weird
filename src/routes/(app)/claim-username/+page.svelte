@@ -4,6 +4,7 @@
 	import ClaimUsernamePage from './components/ClaimUsernamePage.svelte';
 
 	export let form: ActionData;
+	const action = '?/claimUsername';
 </script>
 
-<ClaimUsernamePage {form} />
+<ClaimUsernamePage {form} {action} />

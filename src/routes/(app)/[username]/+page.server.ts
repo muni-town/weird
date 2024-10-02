@@ -80,7 +80,6 @@ export const actions = {
 		let links: { label?: string; url: string }[] = JSON.parse(
 			data.get('links')?.toString() || '{}'
 		);
-		console.log(links);
 		let bio = data.get('bio')?.toString() || undefined;
 		if (bio === '') {
 			bio = undefined;

@@ -1,6 +1,6 @@
 import { GH_BASE_URL, GH_ERR_REDIRECT_PATH, GH_USER_API } from '$lib/constants.js';
 import type { GitUser } from '$lib/types/git';
-import { fetchRepos, fetchUniqueGithubLanguage } from '$lib/utils';
+import { fetchRepos, fetchUniqueGithubLanguage } from '$lib/utils/github';
 import { redirect } from '@sveltejs/kit';
 
 export async function load({ cookies }) {

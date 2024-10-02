@@ -3,7 +3,7 @@
 	import { env } from '$env/dynamic/public';
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
-	import { checkResponse } from '$lib/utils';
+	import { checkResponse } from '$lib/utils/http';
 	import { onMount } from 'svelte';
 	import getPkce from 'oauth-pkce';
 

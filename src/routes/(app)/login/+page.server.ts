@@ -1,5 +1,5 @@
 import { getSession } from '$lib/rauthy/server';
-import { checkResponse } from '$lib/utils';
+import { checkResponse } from '$lib/utils/http';
 import type { PageServerLoad } from './$types';
 
 export interface Provider {

@@ -5,7 +5,7 @@
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 
 	import type { Profile } from '$lib/leaf/profile';
-	import { renderMarkdownSanitized } from '$lib/utils';
+	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import type { PageData } from './$types';
 	import { editingState } from './state.svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';

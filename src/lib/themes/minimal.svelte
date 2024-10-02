@@ -3,8 +3,7 @@
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
 	import type { Profile } from '$lib/leaf/profile';
-	import { renderMarkdownSanitized } from '$lib/utils';
-	import { marked } from 'marked';
+	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 
 	let editingTags = false;
 	let linkLabel = '';

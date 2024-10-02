@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/stores';
 	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton';
-	import { checkResponse } from '$lib/utils';
+	import { checkResponse } from '$lib/utils/http';
 	import { editingState } from './state.svelte';
 	import { env } from '$env/dynamic/public';
 

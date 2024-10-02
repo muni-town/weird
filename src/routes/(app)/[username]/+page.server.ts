@@ -9,12 +9,13 @@ import {
 	type Profile
 } from '$lib/leaf/profile';
 import { error, type Actions, redirect, fail } from '@sveltejs/kit';
-import { fullyQualifiedUsername, type CheckResponseError } from '$lib/utils';
+import { type CheckResponseError } from '$lib/utils/http';
 import { getSession } from '$lib/rauthy/server';
 import { leafClient } from '$lib/leaf';
 import { Name, RawImage } from 'leaf-proto/components';
 import sharp from 'sharp';
 import { env } from '$env/dynamic/public';
+import { fullyQualifiedUsername } from '$lib/utils/username';
 
 export const load: PageServerLoad = async ({ fetch, params, request }) => {
 	let fullUsername = fullyQualifiedUsername(params.username!).toString();

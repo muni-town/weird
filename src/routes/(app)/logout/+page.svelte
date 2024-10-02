@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { checkResponse } from '$lib/utils';
+	import { checkResponse } from '$lib/utils/http';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {

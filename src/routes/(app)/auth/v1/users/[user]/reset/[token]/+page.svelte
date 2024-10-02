@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import { checkResponse } from '$lib/utils';
+	import { checkResponse } from '$lib/utils/http';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
 

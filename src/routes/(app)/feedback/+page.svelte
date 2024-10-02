@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import { Pow } from '$lib/pow';
-	import { checkResponse } from '$lib/utils';
+	import { checkResponse } from '$lib/utils/http';
 	import FeedbackPage from './components/FeedbackPage.svelte';
 
 	let processing = $state(false);
@@ -10,7 +10,7 @@
 
 	async function get_pow_challenge() {
 		const resp = await fetch('/feedback/pow');
-		checkResponse(resp);
+		// checkResponse(resp);
 		return await resp.text();
 	}
 

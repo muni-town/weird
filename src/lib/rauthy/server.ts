@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { checkResponse } from '$lib/utils';
+import { checkResponse } from '$lib/utils/http';
 import type { RequestHandler } from '@sveltejs/kit';
 import cookie from 'cookie';
 import type { SessionInfo, UserInfo } from '.';

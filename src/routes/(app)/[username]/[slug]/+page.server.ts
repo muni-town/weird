@@ -1,16 +1,10 @@
 import type { PageServerLoad } from './$types';
-import {
-	WebLink,
-	WebLinks,
-	appendSubpath,
-	getMarkdownPage,
-	profileLinkByUsername
-} from '$lib/leaf/profile';
+import { WebLink, WebLinks, appendSubpath, profileLinkByUsername } from '$lib/leaf/profile';
 import { error, redirect } from '@sveltejs/kit';
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 import { env } from '$env/dynamic/public';
-import { parseUsername } from '$lib/utils';
+import { parseUsername } from '$lib/utils/username';
 import { leafClient } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
 

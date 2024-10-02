@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { get_pow_challenge } from '$lib/rauthy/client';
-	import { checkResponse } from '$lib/utils';
+	import { checkResponse } from '$lib/utils/http';
 	import { env } from '$env/dynamic/public';
 	import { Pow } from '$lib/pow';
 

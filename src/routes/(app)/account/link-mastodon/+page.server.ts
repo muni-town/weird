@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
-import { checkResponse } from '$lib/utils';
+import { checkResponse } from '$lib/utils/http';
 import { getProfileById, type Profile } from '$lib/leaf/profile';
 import { error } from '@sveltejs/kit';
 

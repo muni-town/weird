@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { renderMarkdownSanitized } from '$lib/utils.js';
-	import { marked } from 'marked';
+	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 
 	export let data;
 </script>

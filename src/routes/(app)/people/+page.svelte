@@ -4,7 +4,7 @@
 	import MainContent from '$lib/components/theme/MainContent.svelte';
 	import SearchInput from '$lib/components/theme/SearchInput.svelte';
 	import type { Profile } from '$lib/leaf/profile';
-	import { parseUsername } from '$lib/utils';
+	import { parseUsername } from '$lib/utils/username';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
 
@@ -13,7 +13,6 @@
 	let search = $state(data.search || '');
 
 	let filtered_profiles = $derived.by(() => {
-		console.log(search);
 		const words = search.split(' ');
 		return profiles
 			.filter((x: Profile) => {

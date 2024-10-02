@@ -1,6 +1,6 @@
 import { CODEBERG_ERR_REDIRECT_PATH, CODEBERG_URI, CODEBERG_USER_API } from '$lib/constants.js';
 import type { GitRepo, GitUser } from '$lib/types/git.js';
-import { fetchRepos, fetchUniqueGithubLanguage } from '$lib/utils.js';
+import { fetchRepos, fetchUniqueGithubLanguage } from '$lib/utils/github';
 import { redirect } from '@sveltejs/kit';
 
 export async function load(event) {

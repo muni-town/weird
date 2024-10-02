@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
-import { checkResponse } from '$lib/utils';
+import { checkResponse } from '$lib/utils/http';
 import { env } from '$env/dynamic/public';
 import { createChallenge } from '$lib/dns-challenge';
 import { getProfileById, setCustomDomain, type Profile } from '$lib/leaf/profile';

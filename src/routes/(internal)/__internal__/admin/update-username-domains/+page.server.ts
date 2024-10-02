@@ -1,14 +1,13 @@
-import { instance_link } from '$lib/leaf';
 import { getProfiles, setProfile } from '$lib/leaf/profile';
 import { getSession } from '$lib/rauthy/server';
-import { parseUsername } from '$lib/utils';
+import { parseUsername } from '$lib/utils/username';
 import type { Actions } from './$types';
 import { error } from '@sveltejs/kit';
 
 export const actions = {
 	default: async ({ request, fetch }) => {
 		let { sessionInfo } = await getSession(fetch, request);
-		if (!sessionInfo?.roles.includes('admin')) {
+		if (!sessionInfo?.roles?.includes('admin')) {
 			return error(403, 'Access denied');
 		}
 		const formData = await request.formData();

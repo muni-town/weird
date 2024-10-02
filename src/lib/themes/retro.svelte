@@ -2,7 +2,7 @@
 	import { env } from '$env/dynamic/public';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
-	import { renderMarkdownSanitized } from '$lib/utils';
+	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import type { Profile } from '$lib/leaf/profile';
 
 	let editingTags = false;

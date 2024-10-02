@@ -77,15 +77,10 @@ export const actions = {
 				.map((x) => x.trim())
 				.filter((x) => x.length > 0);
 		}
-		let linkUrlsInput = data.getAll('link-url');
-		let linkLabelsInput = data.getAll('link-label');
-		let links: { label: string; url: string }[] = [];
-		for (let i = 0; i < linkUrlsInput.length; i++) {
-			let url = linkUrlsInput[i].toString();
-			if (url.length == 0) continue;
-			let label = linkLabelsInput[i].toString();
-			links.push({ url, label });
-		}
+		let links: { label?: string; url: string }[] = JSON.parse(
+			data.get('links')?.toString() || '{}'
+		);
+		console.log(links);
 		let bio = data.get('bio')?.toString() || undefined;
 		if (bio === '') {
 			bio = undefined;

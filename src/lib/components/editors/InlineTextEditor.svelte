@@ -52,3 +52,13 @@
 </script>
 
 <span use:editorPlugin {...attrs}></span>
+
+<style>
+	span :global(div[contenteditable='true']) {
+		padding: 0.25em;
+	}
+	span :global(div[contenteditable='true']:focus) {
+		outline: 1px solid white;
+		border-radius: 0.75em;
+	}
+</style>

@@ -48,6 +48,11 @@
 			editingState.profile.username = `${value}@${env.PUBLIC_DOMAIN}`;
 		}
 	});
+	let editingLinksProxy = $state({
+		get value() {
+			return JSON.stringify(editingState.profile.links);
+		}
+	});
 </script>
 
 <div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
@@ -79,15 +84,15 @@
 					Username
 					<input name="username" class="input" bind:value={editingUsernameProxy.value} />
 				</label>
-				<input type="hidden" name="display_name" bind:value={editingState.profile.display_name} />
+				<input type="hidden" name="display_name" value={editingState.profile.display_name} />
 				<!-- TODO: Incorporate Justin's avatar editor component instead of using this. -->
 				<label>
 					<div>Update Avatar</div>
 					<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
 				</label>
-				<input type="hidden" name="bio" bind:value={editingState.profile.bio} />
-				<input type="hidden" name="tags" bind:value={editingState.profile.tags} />
-				<input type="hidden" name="links" bind:value={editingState.profile.links} />
+				<input type="hidden" name="bio" value={editingState.profile.bio} />
+				<input type="hidden" name="tags" value={editingState.profile.tags} />
+				<input type="hidden" name="links" value={editingLinksProxy.value} />
 
 				<div class="flex flex-row-reverse gap-2">
 					<button class="variant-ghost-success btn basis-full"> Save </button>

@@ -15,7 +15,7 @@
 </script>
 
 <div {...attrs}>
-	<div class="absolute right-0 top-0">
+	<div class="absolute right-0 top-0 z-10">
 		<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}
 			>{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}</button
 		>

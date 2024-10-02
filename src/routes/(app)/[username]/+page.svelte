@@ -11,6 +11,7 @@
 	import type { PageData } from './$types';
 	import { editingState } from './state.svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
+	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -19,13 +20,20 @@
 		editingState.profile = data.profile;
 	}
 
+	// Here we have to hack a unique ID in for each of the links so that it can be used by the
+	// LinksEditor component.
+	//
+	// It'd be good to find a better way to do this.
+	$effect(() => {
+		for (const link of editingState.profile.links) {
+			if (!(link as any).id) (link as any).id = Math.random().toString();
+		}
+	});
+
 	let profile = $derived(data.profile as Profile);
-	let markdownMode = $state(false);
 
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
-	// svelte-ignore non_reactive_update
-	let bioEditorEl: SvelteComponent;
 </script>
 
 <svelte:head>
@@ -44,7 +52,7 @@
 					{profile.display_name || profile.username}
 				{:else}
 					<button
-						class="variant-filled badge absolute right-[-4em] top-[-1em]"
+						class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
 						onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
 					>
 					<InlineTextEditor
@@ -57,20 +65,32 @@
 
 		<hr class="mb-4" />
 
-		<div class="flex flex-col gap-4">
-			<div class="prose relative mx-auto w-full max-w-2xl px-4 py-5 dark:prose-invert">
+		<div class="flex flex-col gap-2">
+			<div class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(profile.bio || '')}
 				{:else}
 					<CompositeMarkdownEditor bind:content={editingState.profile.bio as string} />
 				{/if}
 			</div>
-			{#if profile.links}
-				{#each profile.links as link}
-					<a class="variant-ghost btn" href={link.url}>
-						{link.label || link.url}
-					</a>
-				{/each}
+			{#if profile.links.length > 0 || editingState.editing}
+				<div>
+					<h2 class="mb-4 text-center text-2xl font-bold">Links</h2>
+
+					{#if !editingState.editing}
+						<ul class="flex flex-col items-center gap-2">
+							{#each profile.links as link}
+								<li>
+									<a class="variant-ghost btn" href={link.url}>
+										{link.label || link.url}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<LinksEditor bind:links={editingState.profile.links as any} />
+					{/if}
+				</div>
 			{/if}
 			{#if profile.tags && profile.tags.length > 0}
 				<div class="flex items-center gap-2">
@@ -98,9 +118,3 @@
 		</div>
 	</div>
 </main>
-
-<style>
-	:global(div[contenteditable='true']) {
-		padding: 0.5em;
-	}
-</style>

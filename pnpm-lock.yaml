@@ -32,6 +32,9 @@ importers:
       '@lezer/highlight':
         specifier: ^1.2.1
         version: 1.2.1
+      '@rodrigodagostino/svelte-sortable-list':
+        specifier: ^0.10.5
+        version: 0.10.5(svelte@5.0.0-next.239)
       '@skeletonlabs/skeleton':
         specifier: ^2.10.2
         version: 2.10.2(svelte@5.0.0-next.239)
@@ -646,6 +649,11 @@ packages:
 
   '@polka/url@1.0.0-next.28':
     resolution: {integrity: sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==}
+
+  '@rodrigodagostino/svelte-sortable-list@0.10.5':
+    resolution: {integrity: sha512-tz4a2WsyvPnuJ2fJ0s3BYwtOnjDsY3MuUS5+ZCleedmtc3KYFrSbXeETudUIHrEo3pL5k4GGX/4sssrolA/fxA==}
+    peerDependencies:
+      svelte: ^4.0.0
 
   '@rollup/plugin-commonjs@26.0.1':
     resolution: {integrity: sha512-UnsKoZK6/aGIH6AdkptXhNvhaqftcjq3zZdT+LY5Ftms6JR06nADcDsYp5hTU9E2lbJUEOhdlY5J4DNTneM+jQ==}
@@ -3035,6 +3043,10 @@ snapshots:
     optional: true
 
   '@polka/url@1.0.0-next.28': {}
+
+  '@rodrigodagostino/svelte-sortable-list@0.10.5(svelte@5.0.0-next.239)':
+    dependencies:
+      svelte: 5.0.0-next.239
 
   '@rollup/plugin-commonjs@26.0.1(rollup@4.22.0)':
     dependencies:

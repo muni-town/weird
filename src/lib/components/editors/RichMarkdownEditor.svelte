@@ -13,6 +13,8 @@
 	import { keymap } from 'prosemirror-keymap';
 	import { baseKeymap } from 'prosemirror-commands';
 
+	import 'prosemirror-view/style/prosemirror.css';
+
 	let { content = $bindable(), ...attrs }: { content: string } & HTMLAttributes<HTMLSpanElement> =
 		$props();
 
@@ -59,4 +61,14 @@
 	}
 </script>
 
-<span use:editorPlugin {...attrs}></span>
+<div use:editorPlugin {...attrs}></div>
+
+<style>
+	div :global(div[contenteditable='true']) {
+		padding: 0.5em;
+	}
+	div :global(div[contenteditable='true']:focus) {
+		outline: 1px solid white;
+		border-radius: 0.75em;
+	}
+</style>

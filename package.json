@@ -16,6 +16,7 @@
 		"@codemirror/language": "^6.10.3",
 		"@iconify/svelte": "^4.0.2",
 		"@lezer/highlight": "^1.2.1",
+		"@rodrigodagostino/svelte-sortable-list": "^0.10.5",
 		"@skeletonlabs/skeleton": "^2.10.2",
 		"@skeletonlabs/tw-plugin": "^0.4.0",
 		"@sveltejs/adapter-node": "^5.2.3",

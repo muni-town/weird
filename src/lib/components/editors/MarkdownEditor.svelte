@@ -59,19 +59,20 @@
 <div use:editorPlugin {...attrs} class="code-editor"></div>
 
 <style>
-	:global(.code-editor) {
+	div:global(.code-editor) {
 		font-size: 0.8em;
+		padding: 0.75em;
 		border: 2px solid white;
 		border-radius: 1em;
 	}
-	:global(.code-editor .cm-scroller) {
+	div:global(.code-editor .cm-scroller) {
 		scrollbar-width: thin;
 	}
-	:global(.code-editor .cm-editor) {
+	div:global(.code-editor .cm-editor) {
 		border-radius: 1em;
 		overflow: hidden;
 	}
-	:global(.code-editor .cm-editor.cm-focused) {
+	div:global(.code-editor .cm-editor.cm-focused) {
 		outline: none;
 	}
 </style>

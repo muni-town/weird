@@ -29,6 +29,11 @@
 	});
 
 	let profile = $derived(data.profile as Profile);
+	let pubpageHost = $derived(
+		data.profile.custom_domain ||
+			`${data.profile.username?.split('@')[0]}.${env.PUBLIC_USER_DOMAIN_PARENT}`
+	);
+	let pubpageUrl = $derived(`${new URL(env.PUBLIC_URL).protocol}//${pubpageHost}`);
 
 	let editingTagsState = $state(data.profile.tags.join(', '));
 	let editingTagsProxy = $state({
@@ -59,20 +64,26 @@
 	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
 		<div class="flex items-center gap-4">
 			<Avatar username={profile.username} />
-			<h1 class="relative my-3 text-4xl">
-				{#if !editingState.editing}
-					{profile.display_name || profile.username}
-				{:else}
-					<button
-						class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
-						onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
-					>
-					<InlineTextEditor
-						bind:this={displayNameEditorEl}
-						bind:content={editingState.profile.display_name as string}
-					/>
-				{/if}
-			</h1>
+			<div>
+				<h1 class="relative my-3 text-4xl">
+					{#if !editingState.editing}
+						{profile.display_name || profile.username}
+					{:else}
+						<button
+							class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
+							onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
+						>
+						<InlineTextEditor
+							bind:this={displayNameEditorEl}
+							bind:content={editingState.profile.display_name as string}
+						/>
+					{/if}
+				</h1>
+				<a
+					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
+					href={pubpageUrl}>{pubpageHost}</a
+				>
+			</div>
 		</div>
 
 		<hr class="mb-4" />

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { env } from '$env/dynamic/public';
-	import { ProgressRadial } from '@skeletonlabs/skeleton';
 
 	import { checkResponse } from '$lib/utils/http';
 	import { onMount } from 'svelte';
 	import getPkce from 'oauth-pkce';
+
+	import LoginPage from './components/LoginPage.svelte';
 
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
@@ -46,7 +47,6 @@
 			if (!isRefresh) {
 				error = 'Invalid email or password.';
 			}
-			password = '';
 			loading = false;
 		}
 	}
@@ -152,14 +152,16 @@
 		localStorage.setItem('csrfToken', init.csrf_token);
 	});
 
-	let email = $state('');
-	let password = $state('');
-	let error: string | null = $state(null);
+	let error = $state('');
 
-	async function onSubmit(e: SubmitEvent) {
+	async function onsubmit(e: SubmitEvent) {
 		e.preventDefault();
 
 		loading = true;
+
+		const formData = new FormData(e.target as HTMLFormElement);
+		const email = formData.get('email') as string;
+		const password = formData.get('password') as string;
 
 		const req = {
 			email,
@@ -180,91 +182,16 @@
 		});
 		await handleAuthResp(authResp);
 	}
+
+	const pageTitle = `Login | ${env.PUBLIC_INSTANCE_NAME}`;
 </script>
 
-<svelte:head>
-	<title>Login | {env.PUBLIC_INSTANCE_NAME}</title>
-</svelte:head>
-
-<main class="flex flex-col items-center" onsubmit={onSubmit}>
-	<form class="card mt-12 flex w-[600px] max-w-[90%] flex-col gap-4 p-8">
-		<h1 class="my-3 text-2xl">Login</h1>
-
-		{#if loading}
-			<div class="flex justify-center p-5">
-				<ProgressRadial width="w-20" />
-			</div>
-		{:else}
-			{#if justResetPassword}
-				<aside class="alert variant-ghost-success">
-					<div class="alert-message">
-						<p>Your password has been set, you may now login.</p>
-					</div>
-				</aside>
-			{/if}
-
-			{#if error}
-				<aside class="alert variant-ghost-error">
-					<div class="alert-message">
-						<p>{error}</p>
-					</div>
-				</aside>
-			{/if}
-
-			<label class="label">
-				<span>Email</span>
-				<input name="email" class="input" type="text" placeholder="Email" bind:value={email} />
-			</label>
-
-			<label class="label">
-				<span>Password</span>
-				<input
-					name="password"
-					class="input"
-					type="password"
-					placeholder="Password"
-					bind:value={password}
-				/>
-			</label>
-
-			<div class="mt-4 flex flex-col gap-3">
-				<div class="flex justify-center gap-4">
-					<p class="text-center">
-						<a href="/account/forgot-password" class="underline">Forgot your password?</a>
-					</p>
-					<p class="text-center">
-						<a href="/auth/v1/users/register" class="underline">Don't have an account?</a>.
-					</p>
-				</div>
-
-				<button class="variant-filled btn"> Login </button>
-
-				{#if providers && providers.length > 0}
-					<div class="flex w-full flex-col items-center">
-						<div>Or Login With</div>
-						<div class="providers mt-2 flex flex-col gap-2">
-							{#each providers as provider}
-								<button
-									class="variant-outline btn w-full"
-									onclick={(e) => {
-										e.preventDefault();
-										providerLogin(provider.id);
-									}}
-								>
-									<div class="flex flex-row items-center gap-3">
-										<span class="providerName">{provider.name}</span>
-										<img
-											src={`/auth/v1/providers/${provider.id}/img`}
-											alt={provider.name}
-											style="width: 20px; height: 20px;"
-										/>
-									</div>
-								</button>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			</div>
-		{/if}
-	</form>
-</main>
+<LoginPage
+	{pageTitle}
+	{justResetPassword}
+	{loading}
+	{error}
+	{providers}
+	{providerLogin}
+	{onsubmit}
+/>

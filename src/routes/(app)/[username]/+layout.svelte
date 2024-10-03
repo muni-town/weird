@@ -5,12 +5,17 @@
 	import { checkResponse } from '$lib/utils/http';
 	import { editingState } from './state.svelte';
 	import { env } from '$env/dynamic/public';
+	import { onNavigate } from '$app/navigation';
 
 	let { children }: { children: Snippet } = $props();
 	let data = $derived($page.data);
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
+
+	onNavigate(() => {
+		editingState.editing = false;
+	});
 
 	const modal: ModalSettings = {
 		type: 'prompt',

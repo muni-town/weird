@@ -2,16 +2,57 @@
 	import type { SvelteComponent } from 'svelte';
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
+	import { onNavigate } from '$app/navigation';
+	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
-
 	import type { Profile } from '$lib/leaf/profile';
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
-	import type { PageData } from './$types';
-	import { editingState } from './state.svelte';
+	import type { ActionData, PageData } from './$types';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
+	import { checkResponse } from '$lib/utils/http';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	const modalStore = getModalStore();
+	const toastStore = getToastStore();
+
+	const githubImportModal: ModalSettings = {
+		type: 'prompt',
+		// Data
+		title: 'Enter Github Username',
+		body: 'Provide your github username to fetch README.md',
+		// Populates the input value and attributes
+		value: '',
+		valueAttr: { type: 'text', required: true },
+		// Returns the updated response value
+		response: async (r: string) => {
+			if (r && r.trim().length) {
+				const repoResp = await fetch(`https://raw.githubusercontent.com/${r}/${r}/HEAD/README.md`);
+				try {
+					await checkResponse(repoResp);
+					editingState.profile.bio = await repoResp.text();
+				} catch (e) {
+					toastStore.trigger({
+						message: 'Github profile not exists',
+						hideDismiss: true,
+						timeout: 3000,
+						background: 'variant-filled-error'
+					});
+					console.error('Error fetching GitHub README', e);
+				}
+			}
+		}
+	};
+
+	let editingState: { editing: boolean; profile: Profile } = $state({
+		editing: false,
+		profile: { tags: [], links: [] }
+	});
+
+	onNavigate(() => {
+		editingState.editing = false;
+	});
 
 	// Prepare editing state, if this is the logged in user's profile page.
 	if (data.profileMatchesUserSession) {
@@ -49,6 +90,20 @@
 		}
 	});
 
+	let editingUsernameProxy = $state({
+		get value() {
+			return editingState.profile.username?.split('@')[0];
+		},
+		set value(value) {
+			editingState.profile.username = `${value}@${env.PUBLIC_DOMAIN}`;
+		}
+	});
+	let editingLinksProxy = $state({
+		get value() {
+			return JSON.stringify(editingState.profile.links);
+		}
+	});
+
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
 </script>
@@ -60,90 +115,164 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center">
-	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
-		<div class="flex items-center gap-4">
-			<Avatar username={profile.username} />
-			<div>
-				<h1 class="relative my-3 text-4xl">
-					{#if !editingState.editing}
-						{profile.display_name || profile.username}
-					{:else}
-						<button
-							class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
-							onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
-						>
-						<InlineTextEditor
-							bind:this={displayNameEditorEl}
-							bind:content={editingState.profile.display_name as string}
-						/>
-					{/if}
-				</h1>
-				<a
-					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
-					href={pubpageUrl}>{pubpageHost}</a
-				>
+{#snippet pageBody()}
+	<main class="mx-4 flex w-full flex-col items-center">
+		<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
+			<div class="flex items-center gap-4">
+				<Avatar username={profile.username} />
+				<div>
+					<h1 class="relative my-3 text-4xl">
+						{#if !editingState.editing}
+							{profile.display_name || profile.username}
+						{:else}
+							<button
+								class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
+								onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
+							>
+							<InlineTextEditor
+								bind:this={displayNameEditorEl}
+								bind:content={editingState.profile.display_name as string}
+							/>
+						{/if}
+					</h1>
+					<a
+						class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
+						href={pubpageUrl}>{pubpageHost}</a
+					>
+				</div>
 			</div>
-		</div>
 
-		<hr class="mb-4" />
+			<hr class="mb-4" />
 
-		<div class="flex flex-col gap-2">
-			<div class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
-				{#if !editingState.editing}
-					{@html renderMarkdownSanitized(profile.bio || '')}
-				{:else}
-					<CompositeMarkdownEditor bind:content={editingState.profile.bio as string} />
+			<div class="flex flex-col gap-2">
+				<div class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
+					{#if !editingState.editing}
+						{@html renderMarkdownSanitized(profile.bio || '')}
+					{:else}
+						<CompositeMarkdownEditor bind:content={editingState.profile.bio as string} />
+					{/if}
+				</div>
+				{#if profile.links.length > 0 || editingState.editing}
+					<div>
+						<h2 class="mb-4 text-center text-2xl font-bold">Links</h2>
+
+						{#if !editingState.editing}
+							<ul class="flex flex-col items-center gap-2">
+								{#each profile.links as link}
+									<li>
+										<a class="variant-ghost btn" href={link.url}>
+											{link.label || link.url}
+										</a>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<LinksEditor bind:links={editingState.profile.links as any} />
+						{/if}
+					</div>
+				{/if}
+				{#if profile.tags.length > 0 || editingState.editing}
+					<div class="mt-4 flex flex-wrap items-baseline gap-2">
+						<strong>Tags: </strong>
+						{#if editingState.editing}
+							<span class="text-sm"> Separate multiple tags with commas.</span>
+							<div class="basis-full">
+								<input class="input" bind:value={editingTagsProxy.value} />
+							</div>
+						{/if}
+						<span class="flex flex-wrap gap-2 text-base">
+							{#each editingState.editing ? editingState.profile.tags : profile.tags as tag}
+								<a
+									class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
+									href={`/people?q=${tag}`}
+								>
+									{tag}
+								</a>
+							{/each}
+						</span>
+					</div>
+				{/if}
+				{#if data.pages.length > 0}
+					<h3 class="mt-4 text-center text-2xl font-bold">Pages</h3>
+					{#each data.pages as page}
+						<a class="variant-ghost btn" href={`/${data.username}/${page.slug}`}>
+							{page.name || page.slug}
+						</a>
+					{/each}
 				{/if}
 			</div>
-			{#if profile.links.length > 0 || editingState.editing}
-				<div>
-					<h2 class="mb-4 text-center text-2xl font-bold">Links</h2>
-
-					{#if !editingState.editing}
-						<ul class="flex flex-col items-center gap-2">
-							{#each profile.links as link}
-								<li>
-									<a class="variant-ghost btn" href={link.url}>
-										{link.label || link.url}
-									</a>
-								</li>
-							{/each}
-						</ul>
-					{:else}
-						<LinksEditor bind:links={editingState.profile.links as any} />
-					{/if}
-				</div>
-			{/if}
-			{#if profile.tags.length > 0 || editingState.editing}
-				<div class="mt-4 flex flex-wrap items-baseline gap-2">
-					<strong>Tags: </strong>
-					{#if editingState.editing}
-						<span class="text-sm"> Separate multiple tags with commas.</span>
-						<div class="basis-full">
-							<input class="input" bind:value={editingTagsProxy.value} />
-						</div>
-					{/if}
-					<span class="flex flex-wrap gap-2 text-base">
-						{#each editingState.editing ? editingState.profile.tags : profile.tags as tag}
-							<a
-								class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
-								href={`/people?q=${tag}`}
-							>
-								{tag}
-							</a>
-						{/each}
-					</span>
-				</div>
-			{/if}
-			{#if data.pages.length > 0}
-				<h3 class="mt-4 text-center text-2xl font-bold">Pages</h3>
-				{#each data.pages as page}
-					<a class="variant-ghost btn" href={`/${data.username}/${page.slug}`}>
-						{page.name || page.slug}
-					</a>
-				{/each}
-			{/if}
 		</div>
-	</div>
-</main>
+	</main>
+{/snippet}
+
+<div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
+	<aside
+		class="card sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col p-5 sm:h-[85vh] sm:w-auto"
+		class:hidden={!data.profileMatchesUserSession}
+	>
+		{#if form?.error}
+			<aside class="alert variant-ghost-error my-2 w-full">
+				<div class="alert-message">
+					<p>Error updating profile: {form.error}</p>
+				</div>
+			</aside>
+		{/if}
+		<div class="flex items-center gap-4">
+			<h1 class="mb-2 text-xl font-bold">My Profile {editingState.editing ? '( Editing )' : ''}</h1>
+
+			<div class="flex-grow"></div>
+		</div>
+
+		{#if !editingState.editing}
+			<div class="flex flex-col gap-2">
+				<button class="variant-ghost btn" onclick={() => (editingState.editing = true)}>
+					Edit
+				</button>
+				<a class="variant-ghost btn" href={`${data.username}/settings/pages`}>Pages</a>
+				<a class="variant-ghost btn" href={`${data.username}/settings/domain`}>Domain Management</a>
+			</div>
+		{:else}
+			<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
+				<label>
+					Username
+					<input name="username" class="input" bind:value={editingUsernameProxy.value} />
+				</label>
+				<input type="hidden" name="display_name" value={editingState.profile.display_name} />
+				<!-- TODO: Incorporate Justin's avatar editor component instead of using this. -->
+				<label>
+					<div>Update Avatar</div>
+					<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
+				</label>
+				<input type="hidden" name="bio" value={editingState.profile.bio} />
+				<input type="hidden" name="tags" value={editingState.profile.tags} />
+				<input type="hidden" name="links" value={editingLinksProxy.value} />
+
+				<div class="flex flex-row-reverse gap-2">
+					<button class="variant-ghost-success btn basis-full"> Save </button>
+					<button
+						class="variant-ghost btn basis-full"
+						onclick={(e) => {
+							e.preventDefault();
+							editingState.editing = false;
+							editingState.profile = data.profile;
+						}}
+					>
+						Cancel</button
+					>
+				</div>
+			</form>
+
+			<h2 class="my-2 text-lg font-bold">Importer</h2>
+
+			<button class="variant-ghost btn" onclick={() => modalStore.trigger(githubImportModal)}>
+				Import GitHub Profile
+			</button>
+		{/if}
+	</aside>
+
+	<div class="hidden flex-grow sm:block"></div>
+
+	{@render pageBody()}
+
+	<div class="hidden flex-grow sm:block"></div>
+</div>

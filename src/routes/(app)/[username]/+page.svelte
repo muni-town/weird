@@ -11,6 +11,7 @@
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import { checkResponse } from '$lib/utils/http';
+	import Icon from '@iconify/svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -118,7 +119,7 @@
 {#snippet pageBody()}
 	<main class="mx-4 flex w-full flex-col items-center">
 		<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
-			<div class="flex items-center gap-4">
+			<div class="relative flex items-center gap-4">
 				<Avatar username={profile.username} />
 				<div>
 					<h1 class="relative my-3 text-4xl">
@@ -139,6 +140,54 @@
 						class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
 						href={pubpageUrl}>{pubpageHost}</a
 					>
+				</div>
+
+				<div class="absolute right-0 top-0 flex gap-2">
+					{#if !editingState.editing}
+						<button
+							class="variant-ghost btn-icon"
+							title="Edit"
+							onclick={() => (editingState.editing = true)}
+						>
+							<Icon icon="raphael:edit" />
+						</button>
+					{:else}
+						<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
+							<input
+								name="username"
+								type="hidden"
+								class="input"
+								bind:value={editingUsernameProxy.value}
+							/>
+							<input type="hidden" name="display_name" value={editingState.profile.display_name} />
+							<input
+								name="avatar"
+								type="file"
+								class="hidden"
+								accept=".jpg, .jpeg, .png, .webp, .gif"
+							/>
+							<input type="hidden" name="bio" value={editingState.profile.bio} />
+							<input type="hidden" name="tags" value={editingState.profile.tags} />
+							<input type="hidden" name="links" value={editingLinksProxy.value} />
+
+							<div class="flex flex-row gap-2">
+								<button class="variant-ghost-success btn-icon" title="Save">
+									<Icon icon="raphael:check" />
+								</button>
+								<button
+									class="variant-ghost-error btn-icon"
+									title="Cancel"
+									onclick={(e) => {
+										e.preventDefault();
+										editingState.editing = false;
+										editingState.profile = data.profile;
+									}}
+								>
+									<Icon icon="proicons:cancel" />
+								</button>
+							</div>
+						</form>
+					{/if}
 				</div>
 			</div>
 
@@ -218,56 +267,23 @@
 			</aside>
 		{/if}
 		<div class="flex items-center gap-4">
-			<h1 class="mb-2 text-xl font-bold">My Profile {editingState.editing ? '( Editing )' : ''}</h1>
+			<h1 class="mb-2 text-xl font-bold">My Profile</h1>
 
 			<div class="flex-grow"></div>
 		</div>
 
-		{#if !editingState.editing}
-			<div class="flex flex-col gap-2">
-				<button class="variant-ghost btn" onclick={() => (editingState.editing = true)}>
-					Edit
-				</button>
-				<a class="variant-ghost btn" href={`${data.username}/settings/pages`}>Pages</a>
-				<a class="variant-ghost btn" href={`${data.username}/settings/domain`}>Domain Management</a>
-			</div>
-		{:else}
-			<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
-				<label>
-					Username
-					<input name="username" class="input" bind:value={editingUsernameProxy.value} />
-				</label>
-				<input type="hidden" name="display_name" value={editingState.profile.display_name} />
-				<!-- TODO: Incorporate Justin's avatar editor component instead of using this. -->
-				<label>
-					<div>Update Avatar</div>
-					<input name="avatar" type="file" class="input" accept=".jpg, .jpeg, .png, .webp, .gif" />
-				</label>
-				<input type="hidden" name="bio" value={editingState.profile.bio} />
-				<input type="hidden" name="tags" value={editingState.profile.tags} />
-				<input type="hidden" name="links" value={editingLinksProxy.value} />
-
-				<div class="flex flex-row-reverse gap-2">
-					<button class="variant-ghost-success btn basis-full"> Save </button>
-					<button
-						class="variant-ghost btn basis-full"
-						onclick={(e) => {
-							e.preventDefault();
-							editingState.editing = false;
-							editingState.profile = data.profile;
-						}}
-					>
-						Cancel</button
-					>
-				</div>
-			</form>
+		<div class="flex flex-col gap-2">
+			<a class="variant-ghost btn" href={`${data.username}/settings/pages`}>Pages</a>
+			<a class="variant-ghost btn" href={`${data.username}/settings/domain`}>Domain Management</a>
+		</div>
+		<!-- {:else}
 
 			<h2 class="my-2 text-lg font-bold">Importer</h2>
 
 			<button class="variant-ghost btn" onclick={() => modalStore.trigger(githubImportModal)}>
 				Import GitHub Profile
 			</button>
-		{/if}
+		{/if} -->
 	</aside>
 
 	<div class="hidden flex-grow sm:block"></div>

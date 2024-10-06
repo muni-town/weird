@@ -269,7 +269,10 @@
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(profile.bio || '')}
 				{:else}
-					<CompositeMarkdownEditor bind:content={editingState.profile.bio as string} />
+					<CompositeMarkdownEditor
+						maxLength={512}
+						bind:content={editingState.profile.bio as string}
+					/>
 				{/if}
 			</div>
 			{#if profile.links.length > 0 || editingState.editing}

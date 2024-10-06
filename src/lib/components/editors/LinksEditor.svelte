@@ -11,11 +11,21 @@
 	let {
 		links = $bindable(),
 		...attrs
-	}: { links: { label?: string; url: string; id: string }[] } & HTMLAttributes<HTMLDivElement> =
-		$props();
+	}: { links: { label?: string; url: string }[] } & HTMLAttributes<HTMLDivElement> = $props();
 
 	let newLabel = $state('');
 	let newUrl = $state('');
+
+	let ids: Map<object, string> = $state(new Map());
+
+	function getId(link: object): string {
+		let id = ids.get(link);
+		if (!id) {
+			id = Math.random().toString(16);
+			ids.set(link, id);
+		}
+		return id;
+	}
 
 	function handleSort(event: CustomEvent<SortEventDetail>) {
 		const { prevItemIndex: from, nextItemIndex: to } = event.detail;
@@ -30,7 +40,7 @@
 		class="mb-4 flex flex-row gap-2"
 		onsubmit={(e) => {
 			e.preventDefault();
-			links = [...links, { label: newLabel, url: newUrl, id: Math.random().toString() }];
+			links = [...links, { label: newLabel, url: newUrl }];
 			newLabel = '';
 			newUrl = '';
 		}}
@@ -44,8 +54,8 @@
 
 	<ul class="mb-4 flex flex-col items-center gap-2">
 		<SortableList on:sort={handleSort}>
-			{#each links as link, index (link.id)}
-				<SortableItem id={link.id} {index}>
+			{#each links as link, index (getId(link))}
+				<SortableItem id={getId(link)} {index}>
 					<li class="flex w-full items-center justify-center gap-2">
 						<Handle>
 							<IconHandle />

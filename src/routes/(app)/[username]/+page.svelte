@@ -260,7 +260,7 @@
 								{/each}
 							</ul>
 						{:else}
-							<LinksEditor bind:links={editingState.profile.links as any} />
+							<LinksEditor bind:links={editingState.profile.links} />
 						{/if}
 					</div>
 				{/if}

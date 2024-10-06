@@ -73,7 +73,7 @@
 	);
 	let pubpageUrl = $derived(`${new URL(env.PUBLIC_URL).protocol}//${pubpageHost}`);
 
-	let editingTagsState = $state(data.profile.tags.join(', '));
+	let editingTagsState = $state('');
 	let editingTagsProxy = $state({
 		get value() {
 			return editingTagsState;
@@ -121,6 +121,7 @@
 		if (data.profileMatchesUserSession) {
 			editingState.profile = data.profile;
 			editingState.editing = true;
+			editingTagsState = data.profile.tags.join(', ');
 		}
 	}
 

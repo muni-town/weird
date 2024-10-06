@@ -17,41 +17,6 @@ import sharp from 'sharp';
 import { env } from '$env/dynamic/public';
 import { fullyQualifiedUsername } from '$lib/utils/username';
 
-export const load: PageServerLoad = async ({ fetch, params, request }) => {
-	let fullUsername = fullyQualifiedUsername(params.username!).toString();
-	let profileMatchesUserSession = false;
-
-	const profileLink = await profileLinkByUsername(fullUsername);
-	if (!profileLink) return error(404, `User not found: ${fullUsername}`);
-
-	const profile = await getProfile(profileLink);
-	if (!profile) {
-		return error(404, `User profile not found: ${fullUsername}`);
-	}
-
-	const { sessionInfo } = await getSession(fetch, request);
-	if (sessionInfo) {
-		const last = profileLink.path[profileLink.path.length - 1];
-		if ('String' in last && last.String == sessionInfo.user_id) {
-			profileMatchesUserSession = true;
-		}
-	}
-
-	const pageSlugs = await listChildren(profileLink);
-	const pages = (
-		await Promise.all(
-			pageSlugs.map(async (slug) => {
-				const link = appendSubpath(profileLink, slug);
-				const ent = await leafClient.get_components(link, Name);
-				if (!ent) return undefined;
-				return { slug, name: ent.get(Name)?.value };
-			})
-		)
-	).filter((x) => x) as { slug: string; name?: string }[];
-
-	return { profile, profileMatchesUserSession, pages, username: params.username };
-};
-
 export const actions = {
 	default: async ({ fetch, request }) => {
 		let { sessionInfo } = await getSession(fetch, request);

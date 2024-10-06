@@ -67,84 +67,56 @@
 	<title>Profile | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
-	<aside
-		class="card sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col p-5 sm:h-[85vh] sm:w-auto"
-	>
-		{#if form?.error}
-			<aside class="alert variant-ghost-error my-2 w-full">
-				<div class="alert-message">
-					<p>Error updating profile: {form.error}</p>
-				</div>
-			</aside>
-		{/if}
-		<div class="flex items-center gap-4">
-			<h1 class="mb-2 text-xl font-bold">My Profile</h1>
+<main class="mx-4 flex w-full flex-col items-center">
+	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
+		<h1 class="my-3 text-3xl font-bold">Domain Management</h1>
 
-			<div class="flex-grow"></div>
-		</div>
+		{#if data.profile?.username}
+			<div class="ml-4 flex items-center gap-2">
+				<strong>Your Site:</strong> <a href={siteUrl} class="text-base underline">{siteUrl}</a>
+			</div>
 
-		<div class="flex flex-col gap-2">
-			<a class="variant-ghost btn" href={`/${data.profile?.username}`}> Profile </a>
-			<a class="variant-ghost btn" href={`/${data.profile?.username}/settings/pages`}>Pages</a>
-			<a class="variant-ghost btn" href={`/${data.profile?.username}/settings/domain`}
-				>Domain Management</a
-			>
-		</div>
-	</aside>
+			<h2 class="mt-4 text-xl font-bold">Custom Domain</h2>
 
-	<main class="mx-4 flex w-full flex-col items-center">
-		<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
-			<h1 class="my-3 text-3xl font-bold">Domain Management</h1>
+			<div class="prose flex flex-col gap-2 text-base dark:prose-invert">
+				<p>
+					By default your site is hosted as a sub-domain of Weird.one, but you can also use your own
+					custom domain.
+				</p>
+				<p>
+					Before setting your custom domain below, you must configure your DNS provider: add a <code
+						>CNAME</code
+					>
+					record for your desired domain, and set it to
+					<code>{env.PUBLIC_DOMAIN}</code>. It may take some time before the update is active.
+				</p>
+				<p>
+					After you configure your DNS, you can enter your custom domain below. This page will check
+					that the update has been applied properly and will let you save once it is complete.
+				</p>
 
-			{#if data.profile?.username}
-				<div class="ml-4 flex items-center gap-2">
-					<strong>Your Site:</strong> <a href={siteUrl} class="text-base underline">{siteUrl}</a>
-				</div>
+				<form method="post">
+					<label>
+						<span class="text-lg font-bold">Custom Domain</span>
+						<input name="custom_domain" class="input" bind:value={customDomain} />
+					</label>
 
-				<h2 class="mt-4 text-xl font-bold">Custom Domain</h2>
-
-				<div class="prose flex flex-col gap-2 text-base dark:prose-invert">
-					<p>
-						By default your site is hosted as a sub-domain of Weird.one, but you can also use your
-						own custom domain.
-					</p>
-					<p>
-						Before setting your custom domain below, you must configure your DNS provider: add a <code
-							>CNAME</code
-						>
-						record for your desired domain, and set it to
-						<code>{env.PUBLIC_DOMAIN}</code>. It may take some time before the update is active.
-					</p>
-					<p>
-						After you configure your DNS, you can enter your custom domain below. This page will
-						check that the update has been applied properly and will let you save once it is
-						complete.
-					</p>
-
-					<form method="post">
-						<label>
-							<span class="text-lg font-bold">Custom Domain</span>
-							<input name="custom_domain" class="input" bind:value={customDomain} />
-						</label>
-
-						<div class="ml-4 mt-4 flex items-center gap-3">
-							{#if customDomain != '' && !domainValid}
-								<ProgressRadial width="w-8" />
-							{/if}
-							<div class="flex-grow" style="color: {domainStatusColor}">
-								{domainStatus}
-							</div>
-							<button disabled={!domainValid} class="variant-ghost btn"> Save </button>
+					<div class="ml-4 mt-4 flex items-center gap-3">
+						{#if customDomain != '' && !domainValid}
+							<ProgressRadial width="w-8" />
+						{/if}
+						<div class="flex-grow" style="color: {domainStatusColor}">
+							{domainStatus}
 						</div>
-					</form>
-				</div>
-			{:else}
-				<p class="text-lg">You must set a username in the profile page to generate a website.</p>
-			{/if}
-		</div>
-	</main>
-</div>
+						<button disabled={!domainValid} class="variant-ghost btn"> Save </button>
+					</div>
+				</form>
+			</div>
+		{:else}
+			<p class="text-lg">You must set a username in the profile page to generate a website.</p>
+		{/if}
+	</div>
+</main>
 
 <style>
 	code {

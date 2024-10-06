@@ -105,8 +105,26 @@
 		}
 	});
 
+	let avatarSrcOverride = $state(undefined) as string | undefined;
+
+	function handleAvatarChange(
+		e: Event & {
+			currentTarget: EventTarget & HTMLInputElement;
+		}
+	) {
+		var reader = new FileReader();
+		reader.onload = function () {
+			// Preview Image
+			avatarSrcOverride = reader.result as string;
+		};
+		// Read Selected Image as DataURL
+		reader.readAsDataURL(e.currentTarget!.files![0]);
+	}
+
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
+	// svelte-ignore non_reactive_update
+	let avatarInputEl: HTMLInputElement;
 </script>
 
 <svelte:head>
@@ -120,7 +138,24 @@
 	<main class="mx-4 flex w-full flex-col items-center">
 		<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
 			<div class="relative flex items-center gap-4">
-				<Avatar username={profile.username} />
+				{#if !editingState.editing}
+					<Avatar username={profile.username} />
+				{:else}
+					<figure class="relative">
+						<Avatar username={profile.username} src={avatarSrcOverride} />
+						<figcaption
+							class="absolute left-0 top-0 h-full w-full rounded-full bg-black/75 bg-opacity-50 opacity-0 hover:opacity-100"
+						>
+							<button
+								title="Change avatar"
+								class="h-full w-full"
+								onclick={() => avatarInputEl.click()}
+							>
+								<Icon icon="ph:camera-light" font-size="3.5em" class="m-auto" />
+							</button>
+						</figcaption>
+					</figure>
+				{/if}
 				<div>
 					<h1 class="relative my-3 text-4xl">
 						{#if !editingState.editing}
@@ -165,6 +200,8 @@
 								type="file"
 								class="hidden"
 								accept=".jpg, .jpeg, .png, .webp, .gif"
+								bind:this={avatarInputEl}
+								onchange={handleAvatarChange}
 							/>
 							<input type="hidden" name="bio" value={editingState.profile.bio} />
 							<input type="hidden" name="tags" value={editingState.profile.tags} />
@@ -181,6 +218,7 @@
 										e.preventDefault();
 										editingState.editing = false;
 										editingState.profile = data.profile;
+										avatarSrcOverride = undefined;
 									}}
 								>
 									<Icon icon="proicons:cancel" />

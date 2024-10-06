@@ -12,6 +12,8 @@
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import { checkResponse } from '$lib/utils/http';
 	import Icon from '@iconify/svelte';
+	import { quintOut } from 'svelte/easing';
+	import { crossfade, type CrossfadeParams } from 'svelte/transition';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -134,6 +136,11 @@
 
 	onNavigate(() => cancelEdit());
 
+	const [fadeOut, fadeIn] = crossfade({
+		duration: 750,
+		easing: quintOut
+	});
+
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
 	// svelte-ignore non_reactive_update
@@ -169,19 +176,23 @@
 						</figcaption>
 					</figure>
 				{/if}
-				<div>
-					<h1 class="relative my-3 text-4xl">
+				<div class="flex flex-col">
+					<h1 class="relative my-3 grid text-4xl">
 						{#if !editingState.editing}
-							{profile.display_name || profile.username}
+							<div style="grid-area: 1 / 1;">
+								{profile.display_name || profile.username}
+							</div>
 						{:else}
-							<button
-								class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
-								onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
-							>
-							<InlineTextEditor
-								bind:this={displayNameEditorEl}
-								bind:content={editingState.profile.display_name as string}
-							/>
+							<div style="grid-area: 1 / 1;">
+								<button
+									class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
+									onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
+								>
+								<InlineTextEditor
+									bind:this={displayNameEditorEl}
+									bind:content={editingState.profile.display_name as string}
+								/>
+							</div>
 						{/if}
 					</h1>
 					<a
@@ -193,11 +204,23 @@
 				<div class="absolute right-0 top-0 flex gap-2">
 					{#if data.profileMatchesUserSession}
 						{#if !editingState.editing}
-							<button class="variant-ghost btn-icon" title="Edit" onclick={startEdit}>
+							<button
+								class="variant-ghost btn-icon absolute right-0 top-0"
+								in:fadeIn={{ key: 'edit-buttons' }}
+								out:fadeOut={{ key: 'edit-buttons' }}
+								title="Edit"
+								onclick={startEdit}
+							>
 								<Icon icon="raphael:edit" />
 							</button>
 						{:else}
-							<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
+							<form
+								method="post"
+								class="absolute right-0 top-0 flex flex-col gap-4"
+								in:fadeIn={{ key: 'edit-buttons' }}
+								out:fadeOut={{ key: 'edit-buttons' }}
+								enctype="multipart/form-data"
+							>
 								<input
 									name="username"
 									type="hidden"

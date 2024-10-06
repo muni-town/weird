@@ -51,10 +51,6 @@
 		profile: { tags: [], links: [] }
 	});
 
-	onNavigate(() => {
-		editingState.editing = false;
-	});
-
 	// Prepare editing state, if this is the logged in user's profile page.
 	if (data.profileMatchesUserSession) {
 		editingState.profile = data.profile;
@@ -121,6 +117,22 @@
 		reader.readAsDataURL(e.currentTarget!.files![0]);
 	}
 
+	function startEdit() {
+		if (data.profileMatchesUserSession) {
+			editingState.profile = data.profile;
+			editingState.editing = true;
+		}
+	}
+
+	function cancelEdit(e?: Event) {
+		if (e) e.preventDefault();
+		editingState.editing = false;
+		editingState.profile = data.profile;
+		avatarSrcOverride = undefined;
+	}
+
+	onNavigate(() => cancelEdit());
+
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
 	// svelte-ignore non_reactive_update
@@ -178,53 +190,46 @@
 				</div>
 
 				<div class="absolute right-0 top-0 flex gap-2">
-					{#if !editingState.editing}
-						<button
-							class="variant-ghost btn-icon"
-							title="Edit"
-							onclick={() => (editingState.editing = true)}
-						>
-							<Icon icon="raphael:edit" />
-						</button>
-					{:else}
-						<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
-							<input
-								name="username"
-								type="hidden"
-								class="input"
-								bind:value={editingUsernameProxy.value}
-							/>
-							<input type="hidden" name="display_name" value={editingState.profile.display_name} />
-							<input
-								name="avatar"
-								type="file"
-								class="hidden"
-								accept=".jpg, .jpeg, .png, .webp, .gif"
-								bind:this={avatarInputEl}
-								onchange={handleAvatarChange}
-							/>
-							<input type="hidden" name="bio" value={editingState.profile.bio} />
-							<input type="hidden" name="tags" value={editingState.profile.tags} />
-							<input type="hidden" name="links" value={editingLinksProxy.value} />
+					{#if data.profileMatchesUserSession}
+						{#if !editingState.editing}
+							<button class="variant-ghost btn-icon" title="Edit" onclick={startEdit}>
+								<Icon icon="raphael:edit" />
+							</button>
+						{:else}
+							<form method="post" class="flex flex-col gap-4" enctype="multipart/form-data">
+								<input
+									name="username"
+									type="hidden"
+									class="input"
+									bind:value={editingUsernameProxy.value}
+								/>
+								<input
+									type="hidden"
+									name="display_name"
+									value={editingState.profile.display_name}
+								/>
+								<input
+									name="avatar"
+									type="file"
+									class="hidden"
+									accept=".jpg, .jpeg, .png, .webp, .gif"
+									bind:this={avatarInputEl}
+									onchange={handleAvatarChange}
+								/>
+								<input type="hidden" name="bio" value={editingState.profile.bio} />
+								<input type="hidden" name="tags" value={editingState.profile.tags} />
+								<input type="hidden" name="links" value={editingLinksProxy.value} />
 
-							<div class="flex flex-row gap-2">
-								<button class="variant-ghost-success btn-icon" title="Save">
-									<Icon icon="raphael:check" />
-								</button>
-								<button
-									class="variant-ghost-error btn-icon"
-									title="Cancel"
-									onclick={(e) => {
-										e.preventDefault();
-										editingState.editing = false;
-										editingState.profile = data.profile;
-										avatarSrcOverride = undefined;
-									}}
-								>
-									<Icon icon="proicons:cancel" />
-								</button>
-							</div>
-						</form>
+								<div class="flex flex-row gap-2">
+									<button class="variant-ghost-success btn-icon" title="Save">
+										<Icon icon="raphael:check" />
+									</button>
+									<button class="variant-ghost-error btn-icon" title="Cancel" onclick={cancelEdit}>
+										<Icon icon="proicons:cancel" />
+									</button>
+								</div>
+							</form>
+						{/if}
 					{/if}
 				</div>
 			</div>

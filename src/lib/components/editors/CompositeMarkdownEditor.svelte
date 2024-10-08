@@ -5,7 +5,7 @@
 	import type { SvelteComponent } from 'svelte';
 
 	let {
-		content = $bindable(),
+		content = $bindable(''),
 		markdownMode = $bindable(false),
 		maxLength,
 		...attrs
@@ -23,7 +23,7 @@
 		},
 		set value(value) {
 			if (maxLength != undefined) {
-				if (value.length > maxLength) {
+				if (value && value.length > maxLength) {
 					shouldWiggle = true;
 					content = value.slice(0, maxLength);
 				} else {

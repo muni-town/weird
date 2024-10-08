@@ -52,7 +52,7 @@
 
 	let editingState: { editing: boolean; profile: Profile } = $state({
 		editing: false,
-		profile: { tags: [], links: [] }
+		profile: { tags: [], links: [], bio: '', display_name: '' }
 	});
 
 	// Prepare editing state, if this is the logged in user's profile page.
@@ -124,6 +124,10 @@
 	function startEdit() {
 		if (data.profileMatchesUserSession) {
 			editingState.profile = data.profile;
+			if (!editingState.profile.bio) editingState.profile.bio = '';
+			if (!editingState.profile.bio)
+				editingState.profile.display_name = data.profile.username?.split('@')[0];
+
 			editingState.editing = true;
 			editingTagsState = data.profile.tags.join(', ');
 		}
@@ -181,7 +185,7 @@
 				<h1 class="relative my-3 grid text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
-							{profile.display_name || profile.username}
+							{profile.display_name || profile.username?.split('@')[0]}
 						</div>
 					{:else}
 						<div style="grid-area: 1 / 1;">

@@ -1,8 +1,4 @@
-import {
-	setProfileById,
-	setAvatarById,
-	type Profile
-} from '$lib/leaf/profile';
+import { setProfileById, setAvatarById, type Profile } from '$lib/leaf/profile';
 import { type Actions, redirect, fail } from '@sveltejs/kit';
 import { type CheckResponseError } from '$lib/utils/http';
 import { getSession } from '$lib/rauthy/server';

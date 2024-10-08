@@ -13,6 +13,7 @@
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
+	import { page } from '$app/stores';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -62,7 +63,7 @@
 	<div
 		class="card relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 p-8 text-xl"
 	>
-		<h1 class="relative my-3 max-w-72 self-center text-center text-4xl">
+		<h1 class="relative mt-2 max-w-72 self-center text-center text-4xl">
 			{#if !editingState.editing}
 				{data.page.display_name}
 			{:else}
@@ -76,6 +77,12 @@
 				/>
 			{/if}
 		</h1>
+
+		<div class="text-center">
+			By <a href={`/${$page.params.username}`} class="text-blue-300 underline underline-offset-4">
+				{data.profile.display_name}
+			</a>
+		</div>
 
 		{#if editingState.editing}
 			<label class="flex flex-row items-center gap-2">

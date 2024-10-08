@@ -200,6 +200,9 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.18.0
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
 
   leaf/ts:
     dependencies:
@@ -2630,6 +2633,9 @@ packages:
 
   zlib-sync@0.1.9:
     resolution: {integrity: sha512-DinB43xCjVwIBDpaIvQqHbmDsnYnSt6HJ/yiB2MZQGTqgPcwBSZqLkimXwK8BvdjQ/MaZysb5uEenImncqvCqQ==}
+
+  zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -5083,5 +5089,7 @@ snapshots:
   zlib-sync@0.1.9:
     dependencies:
       nan: 2.20.0
+
+  zod@3.23.8: {}
 
   zwitch@2.0.4: {}

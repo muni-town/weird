@@ -114,6 +114,7 @@
 					class="input"
 					type="password"
 					placeholder="Password"
+					autocomplete="new-password"
 					bind:value={password}
 				/>
 				<div class="pl-4 text-sm">

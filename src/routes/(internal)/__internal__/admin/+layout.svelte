@@ -5,6 +5,7 @@
 
 <svelte:head>
 	<link rel="stylesheet" href="/pico.min.css" />
+	<link rel="stylesheet" href="/pico.colors.min.css" />
 </svelte:head>
 
 <header class="container" style="margin-top: 4em">

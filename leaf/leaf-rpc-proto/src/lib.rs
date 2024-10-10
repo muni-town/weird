@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use leaf_protocol::types::{
-    ComponentData, Digest, Entity, ExactLink, NamespaceId, NamespaceSecretKey, SubspaceId,
-    SubspaceSecretKey,
+    ComponentData, Digest, Entity, EntityPath, ExactLink, NamespaceId, NamespaceSecretKey,
+    SubspaceId, SubspaceSecretKey,
 };
 
 #[derive(borsh::BorshDeserialize, borsh::BorshSerialize, Debug)]
@@ -52,6 +52,8 @@ pub enum ReqKind {
     GetLocalSecret(String),
     SetLocalSecret(String, Option<String>),
     ListLocalSecrets,
+    CreateDatabaseDump,
+    RestoreDatabaseDump(DatabaseDump),
 }
 
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug)]
@@ -78,4 +80,28 @@ pub enum RespKind {
     GetLocalSecret(Option<String>),
     SetLocalSecret,
     ListLocalSecrets(HashMap<String, String>),
+    CreateDatabaseDump(DatabaseDump),
+    RestoreDatabaseDump,
+}
+
+#[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug, Default)]
+pub struct DatabaseDump {
+    pub documents: HashMap<NamespaceId, DatabaseDumpDocument>,
+    pub subspace_secrets: HashMap<SubspaceId, SubspaceSecretKey>,
+}
+
+#[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug, Default)]
+pub struct DatabaseDumpDocument {
+    pub secret: NamespaceSecretKey,
+    pub subspaces: HashMap<SubspaceId, DatabaseDumpSubspace>,
+}
+
+pub type DatabaseDumpSubspace = HashMap<EntityPath, DatabaseDumpEntity>;
+
+pub type SchemaId = Digest;
+
+#[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug, Default)]
+pub struct DatabaseDumpEntity {
+    pub digest: Digest,
+    pub components: HashMap<SchemaId, Vec<Vec<u8>>>,
 }

@@ -55,8 +55,6 @@ pub trait Component: types::HasBorshSchema + BorshDeserialize + BorshSerialize {
 pub struct Leaf<Store: LeafStore> {
     /// The backend store.
     pub store: Store,
-    pub subspace: Option<Digest>,
-    pub namespace: Option<Digest>,
 }
 
 pub enum EntityEntry<S: LeafStore> {
@@ -175,7 +173,12 @@ impl<S: LeafStore> LoadedEntity<S> {
         for entry in &self.entity.components {
             if entry.schema_id == Some(schema) {
                 let data = self.store.get_blob(entry.component_id).await?;
-                res.push(data);
+                let component_kind = ComponentKind::deserialize(&mut &data[..])?;
+                if let ComponentKind::Unencrypted(data) = component_kind {
+                    if schema == data.schema {
+                        res.push(data.data);
+                    }
+                }
             }
         }
         Ok(res)
@@ -309,11 +312,7 @@ impl<S: LeafStore> LoadedEntity<S> {
 impl<S: store::LeafStore + Clone> Leaf<S> {
     /// Create a new leaf store around the given backend store.
     pub fn new(store: S) -> Self {
-        Self {
-            store,
-            subspace: None,
-            namespace: None,
-        }
+        Self { store }
     }
 
     pub async fn create_subspace(&self) -> Result<SubspaceId> {
@@ -380,5 +379,18 @@ impl<S: store::LeafStore + Clone> Leaf<S> {
         let link = link.into();
         let s = self.store.list(link, None, None).await?;
         Ok(s)
+    }
+
+    pub async fn list_namespaces(
+        &self,
+    ) -> anyhow::Result<impl Stream<Item = std::result::Result<NamespaceId, anyhow::Error>> + '_>
+    {
+        self.store.list_namespaces().await
+    }
+    pub async fn list_subspaces(
+        &self,
+    ) -> anyhow::Result<impl Stream<Item = std::result::Result<SubspaceId, anyhow::Error>> + '_>
+    {
+        self.store.list_subspaces().await
     }
 }

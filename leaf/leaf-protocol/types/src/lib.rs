@@ -24,6 +24,7 @@ pub type NamespaceSecretKey = [u8; 32];
     PartialOrd,
     Ord,
     Hash,
+    Default,
 )]
 pub struct EntityPath(pub Vec<PathSegment>);
 impl AsRef<[PathSegment]> for EntityPath {
@@ -240,7 +241,9 @@ impl HasBorshSchema for Link {
 }
 
 /// Similar to a [`types::Link`], but with a resolved namespace and subspace.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, BorshDeserialize, BorshSerialize)]
+#[derive(
+    Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, BorshDeserialize, BorshSerialize, Default,
+)]
 pub struct ExactLink {
     pub namespace: NamespaceId,
     pub subspace: SubspaceId,

@@ -331,4 +331,27 @@ impl LeafStore for LeafIrohStore {
             });
         Ok(capability)
     }
+
+    async fn list_subspaces(
+        &self,
+    ) -> anyhow::Result<impl futures::Stream<Item = anyhow::Result<SubspaceId>>> {
+        Ok(self
+            .client
+            .authors()
+            .list()
+            .await?
+            .map_ok(move |id| *id.as_bytes()))
+    }
+
+    async fn list_namespaces(
+        &self,
+    ) -> anyhow::Result<impl futures::Stream<Item = anyhow::Result<leaf_protocol_types::NamespaceId>>>
+    {
+        Ok(self
+            .client
+            .docs()
+            .list()
+            .await?
+            .map_ok(move |(id, _)| *id.as_bytes()))
+    }
 }

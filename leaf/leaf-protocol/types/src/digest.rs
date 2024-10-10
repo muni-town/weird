@@ -7,6 +7,11 @@ use iroh_base::hash::Hash;
 /// Wrapper around an Iroh [`Hash`] that implements [`BorshSerialize`] and [`BorshDeserialize`].
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Digest(pub Hash);
+impl Default for Digest {
+    fn default() -> Self {
+        Self(Hash::from_bytes([0; 32]))
+    }
+}
 impl From<Digest> for Hash {
     fn from(val: Digest) -> Self {
         val.0

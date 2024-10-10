@@ -57,12 +57,18 @@ pub trait LeafStore: Debug {
         &self,
         subspace: SubspaceId,
     ) -> impl Future<Output = Result<Option<SubspaceSecretKey>>>;
+    fn list_subspaces(
+        &self,
+    ) -> impl Future<Output = Result<impl Stream<Item = anyhow::Result<SubspaceId>>>>;
     fn import_subspace_secret(
         &self,
         subspace_secret: SubspaceSecretKey,
     ) -> impl Future<Output = Result<SubspaceId>>;
 
     fn create_namespace(&self) -> impl Future<Output = Result<NamespaceId>>;
+    fn list_namespaces(
+        &self,
+    ) -> impl Future<Output = Result<impl Stream<Item = anyhow::Result<NamespaceId>>>>;
     fn get_namespace_secret(
         &self,
         namespace: NamespaceId,

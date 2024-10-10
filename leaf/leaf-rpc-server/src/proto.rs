@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use axum::{extract::State, response::IntoResponse};
 use fastwebsockets::{Frame, OpCode, Payload, WebSocketError};
-use futures::StreamExt;
+use futures::{pin_mut, StreamExt};
 use leaf_protocol::prelude::*;
 use leaf_rpc_proto::*;
 
@@ -134,6 +134,8 @@ async fn handle_req(leaf: &LeafIroh, secretdb: Arc<Option<redb::Database>>, req:
         ReqKind::GetLocalSecret(key) => get_local_secret(secretdb, key).await,
         ReqKind::SetLocalSecret(key, value) => set_local_secret(secretdb, key, value).await,
         ReqKind::ListLocalSecrets => list_local_secrets(secretdb).await,
+        ReqKind::CreateDatabaseDump => create_database_dump(leaf).await,
+        ReqKind::RestoreDatabaseDump(dump) => restore_database_dump(leaf, dump).await,
     };
     Resp {
         id: req.id,
@@ -332,4 +334,131 @@ async fn list_local_secrets(
     })
     .await
     .map_err(|_| anyhow::format_err!("Error executing database operation"))?
+}
+
+async fn create_database_dump(leaf: &Leaf<LeafIrohStore>) -> anyhow::Result<RespKind> {
+    let mut dump = DatabaseDump::default();
+
+    let mut stream = leaf.list_subspaces().await?;
+    while let Some(subspace) = stream.next().await {
+        let subspace = subspace?;
+        let Some(subspace_secret) = leaf.get_subspace_secret(subspace).await? else {
+            continue;
+        };
+        dump.subspace_secrets.insert(subspace, subspace_secret);
+    }
+
+    let mut stream = leaf.list_namespaces().await?;
+    while let Some(namespace) = stream.next().await {
+        let namespace = namespace?;
+        let Some(namespace_secret) = leaf.get_namespace_secret(namespace).await? else {
+            tracing::warn!(
+                "Skipping namespace {namespace:?} in database dump \
+                because we do not have it's secret."
+            );
+            continue;
+        };
+
+        let mut doc = DatabaseDumpDocument {
+            secret: namespace_secret,
+            subspaces: HashMap::default(),
+        };
+
+        for &subspace in dump.subspace_secrets.keys() {
+            let mut db_dump_subspace = HashMap::default();
+            let link = ExactLink {
+                namespace,
+                subspace,
+                path: EntityPath::default(),
+            };
+            let stream = leaf.list(link).await?;
+            pin_mut!(stream);
+            while let Some(link) = stream.next().await {
+                let link = link?;
+                let ent = leaf.entity(link.clone()).await?.entity()?;
+                let mut db_dump_entity = DatabaseDumpEntity {
+                    digest: ent.digest,
+                    components: HashMap::default(),
+                };
+                for comp in &ent.entity.components {
+                    let Some(schema_id) = comp.schema_id else {
+                        continue;
+                    };
+                    let comps_data = ent.get_components_by_schema(schema_id).await?;
+                    db_dump_entity.components.insert(schema_id, comps_data);
+                }
+
+                db_dump_subspace.insert(link.path, db_dump_entity);
+            }
+
+            doc.subspaces.insert(subspace, db_dump_subspace);
+        }
+
+        dump.documents.insert(namespace, doc);
+    }
+
+    Ok(RespKind::CreateDatabaseDump(dump))
+}
+
+async fn restore_database_dump(
+    leaf: &Leaf<LeafIrohStore>,
+    dump: DatabaseDump,
+) -> anyhow::Result<RespKind> {
+    for (subspace, secret) in dump.subspace_secrets {
+        let s = leaf.import_subspace_secret(secret).await?;
+        if s != subspace {
+            tracing::warn!(
+                "Error while restoring database dump: Subspace ID ( {:?} ) does not \
+                match the subspace ID that was found by importing the corresponding \
+                secret ( {:?} ). Continuing with restore process.",
+                subspace,
+                s
+            );
+        }
+    }
+
+    for (namespace, doc) in dump.documents {
+        let n = leaf.import_subspace_secret(doc.secret).await?;
+        if n != namespace {
+            tracing::warn!(
+                "Error while restoring database dump: Namespace ID ( {:?} ) does not \
+                match the namespace ID that was found by importing the corresponding \
+                secret ( {:?} ). Continuing with restore process.",
+                namespace,
+                n
+            );
+        }
+
+        for (subspace, dump_subspace) in doc.subspaces {
+            for (path, dump_entity) in dump_subspace {
+                let link = ExactLink {
+                    namespace,
+                    subspace,
+                    path,
+                };
+                let mut ent = leaf.entity(link.clone()).await?.get_or_init();
+                for (schema, component_datas) in dump_entity.components {
+                    for data in component_datas {
+                        ent.del_components_by_schema(schema);
+                        ent.add_component_data(ComponentKind::Unencrypted(ComponentData {
+                            schema,
+                            data,
+                        }));
+                    }
+                }
+                ent.save().await?;
+                if ent.digest != dump_entity.digest {
+                    tracing::warn!(
+                        "While importing entity at link ( {link:?} ) the resulting \
+                        digest ( {} ) does not match the dump digest ( {} ). Continuing \
+                        with dump restore.",
+                        ent.digest,
+                        dump_entity.digest
+                    )
+                }
+            }
+        }
+    }
+
+    Ok(RespKind::RestoreDatabaseDump)
 }

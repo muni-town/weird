@@ -78,6 +78,39 @@ export const ComponentEntrySchema = BorshSchema.Struct({
 export type Entity = ComponentEntry[];
 export const EntitySchema = BorshSchema.Vec(ComponentEntrySchema);
 
+export type DatabaseDumpEntity = {
+	digest: Digest;
+	components: Map<Digest, number[][]>;
+};
+export const DatabaseDumpEntitySchema = BorshSchema.Struct({
+	digest: DigestSchema,
+	components: BorshSchema.HashMap(DigestSchema, BorshSchema.Vec(BorshSchema.Vec(BorshSchema.u8)))
+});
+
+export type DatabaseDumpSubspace = Map<EntityPath, DatabaseDumpEntity>;
+export const DatabaseDumpSubspaceSchema = BorshSchema.HashMap(
+	EntityPathSchema,
+	DatabaseDumpEntitySchema
+);
+
+export type DatabaseDumpDocument = {
+	secret: NamespaceSecretKey;
+	subspaces: Map<SubspaceId, DatabaseDumpSubspace>;
+};
+export const DatabaseDumpDocumentSchema = BorshSchema.Struct({
+	secret: NamespaceSecretKeySchema,
+	subspaces: BorshSchema.HashMap(SubspaceIdSchema, DatabaseDumpSubspaceSchema)
+});
+
+export type DatabaseDump = {
+	documents: Map<NamespaceId, DatabaseDumpDocument>;
+	subspace_secrets: Map<SubspaceId, SubspaceSecretKey>;
+};
+export const DatabaseDumpSchema = BorshSchema.Struct({
+	documents: BorshSchema.HashMap(NamespaceIdSchema, DatabaseDumpDocumentSchema),
+	subspace_secrets: BorshSchema.HashMap(SubspaceIdSchema, SubspaceSecretKeySchema)
+});
+
 export type ReqKind =
 	| { Authenticate: string }
 	| { ReadEntity: ExactLink }
@@ -94,7 +127,9 @@ export type ReqKind =
 	| { GetSubspaceSecret: SubspaceId }
 	| { GetLocalSecret: string }
 	| { SetLocalSecret: { key: string; value?: string } }
-	| { ListLocalSecrets: Unit };
+	| { ListLocalSecrets: Unit }
+	| { CreateDatabaseDump: Unit }
+	| { RestoreDatabaseDump: DatabaseDump };
 export const ReqKindSchema = BorshSchema.Enum({
 	Authenticate: BorshSchema.String,
 	ReadEntity: ExactLinkSchema,
@@ -124,7 +159,9 @@ export const ReqKindSchema = BorshSchema.Enum({
 		key: BorshSchema.String,
 		value: BorshSchema.Option(BorshSchema.String)
 	}),
-	ListLocalSecrets: BorshSchema.Unit
+	ListLocalSecrets: BorshSchema.Unit,
+	CreateDatabaseDump: BorshSchema.Unit,
+	RestoreDatabaseDump: DatabaseDumpSchema
 });
 
 export type Req = {
@@ -187,7 +224,9 @@ export type RespKind =
 	| { GetSubspaceSecret: SubspaceSecretKey | null }
 	| { GetLocalSecret: string | null }
 	| { SetLocalSecret: Unit }
-	| { ListLocalSecrets: { key: string; value: string }[] };
+	| { ListLocalSecrets: { key: string; value: string }[] }
+	| { CreateDatabaseDump: DatabaseDump }
+	| { RestoreDatabaseDump: Unit };
 export const RespKindSchema = BorshSchema.Enum({
 	Authenticated: BorshSchema.Unit,
 	ReadEntity: BorshSchema.Option(
@@ -208,7 +247,9 @@ export const RespKindSchema = BorshSchema.Enum({
 	SetLocalSecret: BorshSchema.Unit,
 	ListLocalSecrets: BorshSchema.Vec(
 		BorshSchema.Struct({ key: BorshSchema.String, value: BorshSchema.String })
-	)
+	),
+	CreateDatabaseDump: DatabaseDumpSchema,
+	RestoreDatabaseDump: BorshSchema.Unit
 });
 
 export type RespResult = { Err: string } | { Ok: RespKind };
@@ -636,12 +677,9 @@ export class RpcClient {
 					if (!ctor) throw 'Unreachable';
 					const list = [];
 					for (const comp_bytes of comps_bytes) {
-						const componentKind: ComponentKind = borshDeserialize(ComponentKindSchema, comp_bytes);
-						if ('Unencrypted' in componentKind) {
-							const c = new ctor();
-							c.value = (ctor as any).deserialize(componentKind.Unencrypted.component.data);
-							list.push(c);
-						}
+						const c = new ctor();
+						c.value = (ctor as any).deserialize(comp_bytes);
+						list.push(c);
 					}
 					map.set(ctor, list);
 				}
@@ -762,6 +800,26 @@ export class RpcClient {
 		const respKind = this.#unwrap_resp(resp);
 		if ('ListLocalSecrets' in respKind) {
 			return respKind.ListLocalSecrets;
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	async create_database_dump(): Promise<DatabaseDump> {
+		const resp = await this.#send_req({ CreateDatabaseDump: {} });
+		const respKind = this.#unwrap_resp(resp);
+		if ('CreateDatabaseDump' in respKind) {
+			return respKind.CreateDatabaseDump;
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	async restore_database_dump(dump: DatabaseDump): Promise<void> {
+		const resp = await this.#send_req({ RestoreDatabaseDump: dump });
+		const respKind = this.#unwrap_resp(resp);
+		if ('RestoreDatabaseDump' in respKind) {
+			return;
 		} else {
 			throw 'Invalid RPC response';
 		}

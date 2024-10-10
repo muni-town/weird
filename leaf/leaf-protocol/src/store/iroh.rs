@@ -109,10 +109,16 @@ impl IrohDocumentKeyFormat {
             buf.write_all(&segment_bytes).unwrap();
             segment_bytes.clear();
         }
+        buf.push(0); // Add the null trailing byte to make sure it doesn't trigger a prefix deletion.
         buf
     }
 
     pub fn from_bytes(bytes: &[u8]) -> anyhow::Result<Self> {
+        let last_byte_idx = bytes.len() - 1;
+        if bytes[last_byte_idx] != 0 {
+            anyhow::bail!("Expected null terminating byte.")
+        }
+        let bytes = &bytes[0..last_byte_idx];
         let len = bytes.len();
         if len == 0 {
             return Ok(Self { path: Vec::new() });
@@ -250,6 +256,8 @@ impl LeafStore for LeafIrohStore {
         let mut path = vec![PathSegment::Bytes(link.subspace.to_vec())];
         path.extend(link.path.0.iter().cloned());
         let path_bytes = IrohDocumentKeyFormat::new(path).to_bytes();
+        // Remove the null terminator so that we find all of the children of this path
+        let path_bytes = &path_bytes[0..(path_bytes.len() - 1)];
 
         let mut query = Query::key_prefix(path_bytes).author(link.subspace.into());
         if let Some(limit) = limit {

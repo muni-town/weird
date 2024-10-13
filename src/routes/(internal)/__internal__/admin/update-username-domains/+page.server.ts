@@ -6,10 +6,6 @@ import { error } from '@sveltejs/kit';
 
 export const actions = {
 	default: async ({ request, fetch }) => {
-		let { sessionInfo } = await getSession(fetch, request);
-		if (!sessionInfo?.roles?.includes('admin')) {
-			return error(403, 'Access denied');
-		}
 		const formData = await request.formData();
 		const domain = formData.get('domain')?.toString();
 		if (!domain) error(400, 'You must provide a domain');

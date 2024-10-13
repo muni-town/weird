@@ -9,6 +9,8 @@ import {
 	type PathSegment,
 	type ExactLink
 } from 'leaf-proto';
+import { CommonMark, Description, Name } from 'leaf-proto/components';
+import { Username, Tags, WebLinks, WeirdCustomDomain, WeirdPubpageTheme } from './profile';
 
 /** The Leaf RPC client used to connect to our backend data server. */
 export let leafClient: RpcClient = null as any;
@@ -58,4 +60,44 @@ this secret when running the server next, to keep using the same data:',
 	console.log(`Leaf client initialized:
     Weird Namespace ID        : ${base32Encode(WEIRD_NAMESPACE)}
     Weird Instance Subspace ID: ${base32Encode(INSTANCE_SUBSPACE)}`);
+}
+
+export type KnownComponents = {
+	name?: Name['value'];
+	description?: Description['value'];
+	username?: Username['value'];
+	tags?: Tags['value'];
+	webLinks?: WebLinks['value'];
+	weirdPubpageTheme?: WeirdPubpageTheme['value'];
+	weirdCustomDomain?: WeirdCustomDomain['value'];
+	commonmark?: CommonMark['value'];
+};
+
+export async function loadKnownComponents(link: ExactLink): Promise<KnownComponents | undefined> {
+	const ent = await leafClient.get_components(
+		link,
+		Name,
+		Description,
+		Username,
+		Tags,
+		WebLinks,
+		WeirdPubpageTheme,
+		WeirdCustomDomain,
+		CommonMark
+	);
+
+	if (ent) {
+		return {
+			name: ent.get(Name)?.value,
+			description: ent.get(Description)?.value,
+			username: ent.get(Username)?.value,
+			tags: ent.get(Tags)?.value,
+			webLinks: ent.get(WebLinks)?.value,
+			weirdPubpageTheme: ent.get(WeirdPubpageTheme)?.value,
+			weirdCustomDomain: ent.get(WeirdCustomDomain)?.value,
+			commonmark: ent.get(CommonMark)?.value
+		};
+	} else {
+		return;
+	}
 }

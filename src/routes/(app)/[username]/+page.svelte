@@ -126,7 +126,8 @@
 			editingState.profile = data.profile;
 			if (!editingState.profile.bio) editingState.profile.bio = '';
 			if (!editingState.profile.bio)
-				editingState.profile.display_name = data.profile.username?.split('@')[0];
+				editingState.profile.display_name =
+					data.profile.display_name || data.profile.username?.split('@')[0];
 
 			editingState.editing = true;
 			editingTagsState = data.profile.tags.join(', ');

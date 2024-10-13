@@ -1,4 +1,10 @@
-import { base32Encode, Component, type DatabaseDump, type EntityPath } from 'leaf-proto';
+import {
+	base32Encode,
+	Component,
+	formatEntityPath,
+	type DatabaseDump,
+	type EntityPath
+} from 'leaf-proto';
 import _ from 'underscore';
 
 export function prettyPrintDump(
@@ -6,7 +12,6 @@ export function prettyPrintDump(
 	knownComponents: (new (...any: any) => Component)[]
 ): string {
 	let result = '';
-	const s = (n: number) => ' '.repeat(n * 2);
 	const p = (n: number, ...args: any) => {
 		result += `${' '.repeat(n * 2)} ${args.join(' ')}\n`;
 	};
@@ -28,7 +33,7 @@ export function prettyPrintDump(
 			for (const [path, ent] of entities) {
 				p(5, `${formatEntityPath(path)}: ${e(ent.digest)}`);
 
-				for (let [schema, datas] of ent.components) {
+				for (let [schema, data] of ent.components) {
 					schema = new Uint8Array(schema);
 
 					let known = false;
@@ -36,7 +41,7 @@ export function prettyPrintDump(
 						if (_.isEqual(knownComponent.schemaId(), schema)) {
 							known = true;
 
-							for (const data of datas) {
+							for (const data of data) {
 								try {
 									const comp = knownComponent.deserialize(new Uint8Array(data));
 									if (data.length < 1024) {
@@ -62,18 +67,4 @@ export function prettyPrintDump(
 	}
 
 	return result;
-}
-
-function formatEntityPath(p: EntityPath): string {
-	let s = '';
-	for (const segment of p) {
-		if ('String' in segment) {
-			s += `/${segment.String}`;
-		} else if ('Bytes' in segment) {
-			s += `/${base32Encode(new Uint8Array(segment.Bytes))}`;
-		} else {
-			s += `/${JSON.stringify(segment)}`;
-		}
-	}
-	return s;
 }

@@ -73,7 +73,7 @@ export const actions = {
 			await leafClient.del_entity(oldPageLink);
 		}
 
-		await leafClient.updateComponents(pageLink, [
+		await leafClient.update_components(pageLink, [
 			new Name(data.display_name),
 			data.markdown.length > 0 ? new CommonMark(data.markdown) : CommonMark,
 			data.links.length > 0 ? new WebLinks(data.links) : WebLinks

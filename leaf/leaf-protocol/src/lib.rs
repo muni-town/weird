@@ -57,6 +57,7 @@ pub struct Leaf<Store: LeafStore> {
     pub store: Store,
 }
 
+#[derive(Debug)]
 pub enum EntityEntry<S: LeafStore> {
     Entity(LoadedEntity<S>),
     Empty { link: ExactLink, store: S },

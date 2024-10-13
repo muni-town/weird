@@ -136,6 +136,8 @@ async fn handle_req(leaf: &LeafIroh, secretdb: Arc<Option<redb::Database>>, req:
         ReqKind::ListLocalSecrets => list_local_secrets(secretdb).await,
         ReqKind::CreateDatabaseDump => create_database_dump(leaf).await,
         ReqKind::RestoreDatabaseDump(dump) => restore_database_dump(leaf, dump).await,
+        ReqKind::ListNamespaces => list_namespaces(leaf).await,
+        ReqKind::ListSubspaces => list_subspaces(leaf).await,
     };
     Resp {
         id: req.id,
@@ -437,8 +439,8 @@ async fn restore_database_dump(
                     path,
                 };
                 let mut ent = leaf.entity(link.clone()).await?.get_or_init();
-                for (schema, component_datas) in dump_entity.components {
-                    for data in component_datas {
+                for (schema, component_data) in dump_entity.components {
+                    for data in component_data {
                         ent.del_components_by_schema(schema);
                         ent.add_component_data(ComponentKind::Unencrypted(ComponentData {
                             schema,
@@ -461,4 +463,30 @@ async fn restore_database_dump(
     }
 
     Ok(RespKind::RestoreDatabaseDump)
+}
+
+async fn list_namespaces(
+    leaf: &Leaf<LeafIrohStore>,
+) -> std::result::Result<RespKind, anyhow::Error> {
+    let namespaces = leaf
+        .list_namespaces()
+        .await?
+        .collect::<Vec<_>>()
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(RespKind::ListNamespaces(namespaces))
+}
+
+async fn list_subspaces(
+    leaf: &Leaf<LeafIrohStore>,
+) -> std::result::Result<RespKind, anyhow::Error> {
+    let subspaces = leaf
+        .list_subspaces()
+        .await?
+        .collect::<Vec<_>>()
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(RespKind::ListSubspaces(subspaces))
 }

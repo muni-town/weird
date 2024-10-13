@@ -46,6 +46,20 @@ export const PathSegmentSchema = BorshSchema.Enum({
 export type EntityPath = PathSegment[];
 export const EntityPathSchema = BorshSchema.Vec(PathSegmentSchema);
 
+export function formatEntityPath(p: EntityPath): string {
+	let s = '';
+	for (const segment of p) {
+		if ('String' in segment) {
+			s += `/"${segment.String}"`;
+		} else if ('Bytes' in segment) {
+			s += `/base32:${base32Encode(new Uint8Array(segment.Bytes))}`;
+		} else {
+			throw 'TODO: implement formatting for other path segment types.';
+		}
+	}
+	return s;
+}
+
 export type ExactLink = {
 	namespace: NamespaceId;
 	subspace: SubspaceId;
@@ -129,7 +143,9 @@ export type ReqKind =
 	| { SetLocalSecret: { key: string; value?: string } }
 	| { ListLocalSecrets: Unit }
 	| { CreateDatabaseDump: Unit }
-	| { RestoreDatabaseDump: DatabaseDump };
+	| { RestoreDatabaseDump: DatabaseDump }
+	| { ListNamespaces: Unit }
+	| { ListSubspaces: Unit };
 export const ReqKindSchema = BorshSchema.Enum({
 	Authenticate: BorshSchema.String,
 	ReadEntity: ExactLinkSchema,
@@ -161,7 +177,9 @@ export const ReqKindSchema = BorshSchema.Enum({
 	}),
 	ListLocalSecrets: BorshSchema.Unit,
 	CreateDatabaseDump: BorshSchema.Unit,
-	RestoreDatabaseDump: DatabaseDumpSchema
+	RestoreDatabaseDump: DatabaseDumpSchema,
+	ListNamespaces: BorshSchema.Unit,
+	ListSubspaces: BorshSchema.Unit
 });
 
 export type Req = {
@@ -226,7 +244,9 @@ export type RespKind =
 	| { SetLocalSecret: Unit }
 	| { ListLocalSecrets: { key: string; value: string }[] }
 	| { CreateDatabaseDump: DatabaseDump }
-	| { RestoreDatabaseDump: Unit };
+	| { RestoreDatabaseDump: Unit }
+	| { ListNamespaces: NamespaceId[] }
+	| { ListSubspaces: SubspaceId[] };
 export const RespKindSchema = BorshSchema.Enum({
 	Authenticated: BorshSchema.Unit,
 	ReadEntity: BorshSchema.Option(
@@ -249,7 +269,9 @@ export const RespKindSchema = BorshSchema.Enum({
 		BorshSchema.Struct({ key: BorshSchema.String, value: BorshSchema.String })
 	),
 	CreateDatabaseDump: DatabaseDumpSchema,
-	RestoreDatabaseDump: BorshSchema.Unit
+	RestoreDatabaseDump: BorshSchema.Unit,
+	ListNamespaces: BorshSchema.Vec(NamespaceIdSchema),
+	ListSubspaces: BorshSchema.Vec(SubspaceIdSchema)
 });
 
 export type RespResult = { Err: string } | { Ok: RespKind };
@@ -601,7 +623,7 @@ export class RpcClient {
 	 * @param components the list of components
 	 * @param replaceExisting whether or not added components replace existing ones.
 	 */
-	async updateComponents<C extends Component>(
+	async update_components<C extends Component>(
 		link: ExactLink,
 		components: (C | (new (...any: any) => Component))[],
 		replaceExisting = true
@@ -617,8 +639,11 @@ export class RpcClient {
 				toAdd.push(i);
 			}
 		}
+
 		// TODO: add RPC method for adding and deleting at the same time.
-		await this.del_components(link, toDelete as any);
+		if (toDelete.length > 0) {
+			await this.del_components(link, toDelete as any);
+		}
 		await this.add_components(link, toAdd as any, replaceExisting);
 	}
 
@@ -820,6 +845,26 @@ export class RpcClient {
 		const respKind = this.#unwrap_resp(resp);
 		if ('RestoreDatabaseDump' in respKind) {
 			return;
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	async list_namespaces(): Promise<NamespaceId[]> {
+		const resp = await this.#send_req({ ListNamespaces: {} });
+		const respKind = this.#unwrap_resp(resp);
+		if ('ListNamespaces' in respKind) {
+			return respKind.ListNamespaces.map((x) => new Uint8Array(x));
+		} else {
+			throw 'Invalid RPC response';
+		}
+	}
+
+	async list_subspaces(): Promise<NamespaceId[]> {
+		const resp = await this.#send_req({ ListSubspaces: {} });
+		const respKind = this.#unwrap_resp(resp);
+		if ('ListSubspaces' in respKind) {
+			return respKind.ListSubspaces.map((x) => new Uint8Array(x));
 		} else {
 			throw 'Invalid RPC response';
 		}

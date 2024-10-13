@@ -54,6 +54,8 @@ pub enum ReqKind {
     ListLocalSecrets,
     CreateDatabaseDump,
     RestoreDatabaseDump(DatabaseDump),
+    ListNamespaces,
+    ListSubspaces,
 }
 
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug)]
@@ -82,6 +84,8 @@ pub enum RespKind {
     ListLocalSecrets(HashMap<String, String>),
     CreateDatabaseDump(DatabaseDump),
     RestoreDatabaseDump,
+    ListNamespaces(Vec<NamespaceId>),
+    ListSubspaces(Vec<SubspaceId>),
 }
 
 #[derive(borsh::BorshSerialize, borsh::BorshDeserialize, Debug, Default)]

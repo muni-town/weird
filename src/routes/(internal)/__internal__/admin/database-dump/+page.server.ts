@@ -1,16 +1,10 @@
 import { leafClient } from '$lib/leaf';
-import { getSession } from '$lib/rauthy/server';
 import { DatabaseDumpSchema, borshDeserialize, type DatabaseDump } from 'leaf-proto';
 import type { Actions } from './$types';
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 
 export const actions = {
-	restore: async ({ request, fetch }) => {
-		let { sessionInfo } = await getSession(fetch, request);
-		if (!sessionInfo?.roles?.includes('admin')) {
-			return error(403, 'Access denied');
-		}
-
+	restore: async ({ request }) => {
 		try {
 			const formData = await request.formData();
 			const dumpFormData = formData.get('dump');

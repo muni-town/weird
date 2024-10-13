@@ -8,7 +8,7 @@
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 
-	const { data, form }: { data: PageData; form: ActionData } = $props();
+	const { form }: { form: ActionData } = $props();
 
 	let page = $state(
 		form?.data || {
@@ -19,7 +19,6 @@
 		}
 	) as Page;
 
-	console.log(form);
 	if (form && form.formData) {
 		form.formData().then((formData) => {
 			const result = Page.safeParse(formData);

@@ -7,17 +7,21 @@
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
+	import slugify from 'slugify';
 
 	const { form }: { form: ActionData } = $props();
 
 	let page = $state(
 		form?.data || {
-			slug: 'untitled',
+			slug: '',
 			display_name: 'Untitled',
 			markdown: 'Your new page.',
 			links: []
 		}
 	) as Page;
+	const slugifiedSlug = $derived(
+		slugify(page.slug || page.display_name || 'untitled', { strict: true, lower: true })
+	);
 
 	if (form && form.formData) {
 		form.formData().then((formData) => {
@@ -38,6 +42,10 @@
 			page = JSON.parse(v);
 		}
 	};
+
+	function handleSubmit(e: SubmitEvent) {
+		page.slug = slugifiedSlug;
+	}
 </script>
 
 <svelte:head>
@@ -58,7 +66,12 @@
 
 		<label class="flex flex-row items-center gap-2">
 			<span class="basis-40">Page Slug</span>
-			<input class="input basis-auto" placeholder="slug" bind:value={page.slug} />
+			<div class="flex flex-grow flex-col">
+				<input class="input" placeholder="slug" bind:value={page.slug} />
+				<div class="ml-2 mt-1 text-sm">
+					<pre class="inline">&nbsp;{slugifiedSlug}</pre>
+				</div>
+			</div>
 		</label>
 
 		{#if form?.error}
@@ -79,7 +92,7 @@
 
 		<LinksEditor bind:links={page.links} />
 
-		<form class="flex justify-end" method="post">
+		<form class="flex justify-end" method="post" onsubmit={handleSubmit}>
 			<input type="hidden" name="data" bind:value={pageFormData.value} />
 			<button class="variant-ghost-success btn">Create Page</button>
 		</form>

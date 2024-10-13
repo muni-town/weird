@@ -14,6 +14,7 @@
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
+	import slugify from 'slugify';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -27,6 +28,12 @@
 			return JSON.stringify(editingState.page);
 		}
 	};
+	const slugifiedSlug = $derived(
+		slugify(editingState.page.slug || editingState.page.display_name || 'untitled', {
+			strict: true,
+			lower: true
+		})
+	);
 
 	function startEdit() {
 		if (data.profileMatchesUserSession) {
@@ -47,6 +54,10 @@
 		duration: 500,
 		easing: quintOut
 	});
+
+	function handleSubmit() {
+		editingState.page.slug = slugifiedSlug;
+	}
 
 	// svelte-ignore non_reactive_update
 	let displayNameEditorEl: SvelteComponent;
@@ -87,7 +98,12 @@
 		{#if editingState.editing}
 			<label class="flex flex-row items-center gap-2">
 				<span class="basis-40">Page Slug</span>
-				<input class="input basis-auto" placeholder="slug" bind:value={editingState.page.slug} />
+				<div class="flex flex-grow flex-col">
+					<input class="input basis-auto" placeholder="slug" bind:value={editingState.page.slug} />
+					<div class="ml-2 mt-1 text-sm">
+						<pre class="inline">&nbsp;{slugifiedSlug}</pre>
+					</div>
+				</div>
 			</label>
 		{/if}
 
@@ -127,6 +143,7 @@
 						class="absolute right-0 top-0 flex flex-col gap-4"
 						in:fadeIn={{ key: 'edit-buttons' }}
 						out:fadeOut={{ key: 'edit-buttons' }}
+						onsubmit={handleSubmit}
 					>
 						<input type="hidden" name="data" value={formData.value} />
 

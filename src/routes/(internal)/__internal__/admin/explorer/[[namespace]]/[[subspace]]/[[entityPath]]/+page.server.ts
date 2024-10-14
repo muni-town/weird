@@ -105,9 +105,9 @@ export const actions = {
 			if (pubpageTheme == '') pubpageTheme = undefined;
 			components.push(pubpageTheme ? new WeirdPubpageTheme(pubpageTheme) : WeirdPubpageTheme);
 
-			// let customDomain: string | undefined = formData.get('customDomain')?.toString() || '';
-			// if (customDomain == '') customDomain = undefined;
-			// components.push(customDomain ? new WeirdCustomDomain(customDomain) : WeirdCustomDomain);
+			let customDomain: string | undefined = formData.get('customDomain')?.toString() || '';
+			if (customDomain == '') customDomain = undefined;
+			components.push(customDomain ? new WeirdCustomDomain(customDomain) : WeirdCustomDomain);
 
 			let commonMark: string | undefined = formData.get('commonMark')?.toString() || '';
 			if (commonMark == '') commonMark = undefined;

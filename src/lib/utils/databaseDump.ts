@@ -33,7 +33,7 @@ export function prettyPrintDump(
 			for (const [path, ent] of entities) {
 				p(5, `${formatEntityPath(path)}: ${e(ent.digest)}`);
 
-				for (let [schema, data] of ent.components) {
+				for (let [schema, dataList] of ent.components) {
 					schema = new Uint8Array(schema);
 
 					let known = false;
@@ -41,7 +41,7 @@ export function prettyPrintDump(
 						if (_.isEqual(knownComponent.schemaId(), schema)) {
 							known = true;
 
-							for (const data of data) {
+							for (const data of dataList) {
 								try {
 									const comp = knownComponent.deserialize(new Uint8Array(data));
 									if (data.length < 1024) {

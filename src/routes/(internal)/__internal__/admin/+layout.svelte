@@ -15,8 +15,8 @@
 	</hgroup>
 	<nav>
 		<ul>
-			<li><a href="/" data-theme-switcher="auto">Weird Home</a></li>
 			<li><a href="/__internal__/admin" data-theme-switcher="auto">Admin Home</a></li>
+			<li><a href="/" data-theme-switcher="auto">Weird Home</a></li>
 		</ul>
 	</nav>
 </header>

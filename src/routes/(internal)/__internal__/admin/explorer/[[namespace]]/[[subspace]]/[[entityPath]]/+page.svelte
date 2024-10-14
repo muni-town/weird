@@ -61,6 +61,11 @@
 		users.
 	</p>
 
+	<p>
+		If you need to get an overview of all the server data at the same time you can view the database
+		<a href="/__internal__/admin/database-dump/view">debug dump page</a>.
+	</p>
+
 	Namespaces:
 	<ul>
 		{#each data.Namespaces as ns}

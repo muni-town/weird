@@ -80,16 +80,38 @@
 
 			<div class="prose flex flex-col gap-2 text-base dark:prose-invert">
 				<p>
-					By default your site is hosted as a sub-domain of Weird.one, but you can also use your own
-					custom domain.
+					By default your generated website is hosted as a sub-domain of Weird.one,
+					<code>{userName}.weird.one</code> but you can also use your own custom domain.
 				</p>
 				<p>
-					Before setting your custom domain below, you must configure your DNS provider: add a <code
-						>CNAME</code
-					>
-					record for your desired domain, and set it to
-					<code>{env.PUBLIC_DOMAIN}</code>. It may take some time before the update is active.
+					Before setting your custom domain below, you must configure your DNS provider. This is
+					different between different providers and domains.
 				</p>
+				<ul class="text-sm">
+					<li>
+						<strong>If your domain has more than one dot in it:</strong> you need to add
+						a `CNAME` record for your domain that points to `{env.PUBLIC_DOMAIN}`.
+					</li>
+					<li>
+						<strong
+							>If your domain only has one dot in it and your provider supports `ALIAS`
+							or `ANAME` records:</strong
+						> you need to add an `ALIAS` or `ANAME` record for that domain that points to `{env.PUBLIC_DOMAIN}`.
+					</li>
+					<li>
+						<strong
+							>If your domain only has one dot in it and your provider supports "CNAME
+							flattening":</strong
+						> you need to add an `CNAME` record for that domain that points to `{env.PUBLIC_DOMAIN}`.
+					</li>
+					<li>
+						<strong
+							>If your domain only has one dot in it, and your provider does not support
+							CNAME flattening, and does not have the option for `ALIAS` or `ANAME` records":</strong
+						> we do not currently support your DNS provider, but we will in the future.
+					</li>
+				</ul>
+
 				<p>
 					After you configure your DNS, you can enter your custom domain below. This page will check
 					that the update has been applied properly and will let you save once it is complete.

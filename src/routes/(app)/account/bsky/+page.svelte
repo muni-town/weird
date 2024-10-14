@@ -13,13 +13,7 @@
 	{/if}
 	<form method="post" class="mt-6">
 		<div class=" flex flex-col items-center gap-4 md:flex-row">
-			<input
-				required
-				type="text"
-				class="input"
-				name="username"
-				placeholder="Enter bsky username"
-			/>
+			<input required type="text" class="input" name="username" placeholder="Enter bsky username" />
 			<button type="submit" class="variant-filled btn">Continue</button>
 		</div>
 	</form>

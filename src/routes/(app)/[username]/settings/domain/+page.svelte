@@ -3,6 +3,9 @@
 	import { ProgressRadial } from '@skeletonlabs/skeleton';
 	import type { ActionData, PageData } from './$types';
 	import _ from 'underscore';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 	const profile = data.profile;
@@ -15,10 +18,20 @@
 	let domainStatus = $state('Domain not set');
 	let domainStatusColor = $state('hsla(0, 100%, 0%, 0.5)');
 	let domainReCheck = $state(0);
+	let newDomain: string | undefined = $state();
 
-	setInterval(() => {
-		domainReCheck = domainReCheck + 1;
-	}, 2000);
+	if (browser) {
+		setInterval(() => {
+			domainReCheck = domainReCheck + 1;
+		}, 2000);
+	}
+
+	onMount(() => {
+		newDomain = new URL(window.location.href).searchParams.get('newDomain') || undefined;
+		if (newDomain) {
+			customDomain = newDomain;
+		}
+	});
 
 	const checkDomain = _.throttle(async () => {
 		if (customDomain != '') {
@@ -58,9 +71,17 @@
 		})();
 	});
 
+	$effect(() => {
+		if (newDomain && domainValid) {
+			domainForm.submit();
+		}
+	});
+
 	const siteUrl = profile?.custom_domain
 		? `${publicUrl.protocol}//${profile.custom_domain}`
 		: `${publicUrl.protocol}//${userName}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+
+	let domainForm: HTMLFormElement;
 </script>
 
 <svelte:head>
@@ -69,14 +90,27 @@
 
 <main class="mx-4 flex w-full flex-col items-center">
 	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
-		<h1 class="my-3 text-3xl font-bold">Domain Management</h1>
+		{#if !newDomain}
+			<h1 class="my-3 text-3xl font-bold">Domain Management</h1>
 
-		{#if data.profile?.username}
 			<div class="ml-4 flex items-center gap-2">
 				<strong>Your Site:</strong> <a href={siteUrl} class="text-base underline">{siteUrl}</a>
 			</div>
 
-			<h2 class="mt-4 text-xl font-bold">Custom Domain</h2>
+			<h2 class="mt-4 text-xl font-bold">Automatic Setup</h2>
+
+			<div class="prose prose-invert">
+				<p>
+					Through our partnership with <a href="https://takingnames.io">TakingNames.io</a>, you can
+					purchase your very own domain, and we'll connect it automatically to your Weird site!
+				</p>
+			</div>
+
+			<a class="variant-ghost btn" href={`/${$page.params.username}/settings/domain/takingnames`}
+				>Connect TakingNames.io Domain</a
+			>
+
+			<h2 class="mt-4 text-xl font-bold">Manual Setup</h2>
 
 			<div class="prose flex flex-col gap-2 text-base dark:prose-invert">
 				<p>
@@ -89,25 +123,26 @@
 				</p>
 				<ul class="text-sm">
 					<li>
-						<strong>If your domain has more than one dot in it:</strong> you need to add
-						a `CNAME` record for your domain that points to `{env.PUBLIC_DOMAIN}`.
+						<strong>If your domain has more than one dot in it:</strong> you need to add a `CNAME`
+						record for your domain that points to `{env.PUBLIC_DOMAIN}`.
 					</li>
 					<li>
 						<strong
-							>If your domain only has one dot in it and your provider supports `ALIAS`
-							or `ANAME` records:</strong
-						> you need to add an `ALIAS` or `ANAME` record for that domain that points to `{env.PUBLIC_DOMAIN}`.
+							>If your domain only has one dot in it and your provider supports `ALIAS` or `ANAME`
+							records:</strong
+						>
+						you need to add an `ALIAS` or `ANAME` record for that domain that points to `{env.PUBLIC_DOMAIN}`.
 					</li>
 					<li>
 						<strong
-							>If your domain only has one dot in it and your provider supports "CNAME
-							flattening":</strong
-						> you need to add an `CNAME` record for that domain that points to `{env.PUBLIC_DOMAIN}`.
+							>If your domain only has one dot in it and your provider supports "CNAME flattening":</strong
+						>
+						you need to add an `CNAME` record for that domain that points to `{env.PUBLIC_DOMAIN}`.
 					</li>
 					<li>
 						<strong
-							>If your domain only has one dot in it, and your provider does not support
-							CNAME flattening, and does not have the option for `ALIAS` or `ANAME` records":</strong
+							>If your domain only has one dot in it, and your provider does not support CNAME
+							flattening, and does not have the option for `ALIAS` or `ANAME` records":</strong
 						> we do not currently support your DNS provider, but we will in the future.
 					</li>
 				</ul>
@@ -116,27 +151,41 @@
 					After you configure your DNS, you can enter your custom domain below. This page will check
 					that the update has been applied properly and will let you save once it is complete.
 				</p>
-
-				<form method="post">
-					<label>
-						<span class="text-lg font-bold">Custom Domain</span>
-						<input name="custom_domain" class="input" bind:value={customDomain} />
-					</label>
-
-					<div class="ml-4 mt-4 flex items-center gap-3">
-						{#if customDomain != '' && !domainValid}
-							<ProgressRadial width="w-8" />
-						{/if}
-						<div class="flex-grow" style="color: {domainStatusColor}">
-							{domainStatus}
-						</div>
-						<button disabled={!domainValid} class="variant-ghost btn"> Save </button>
-					</div>
-				</form>
 			</div>
 		{:else}
-			<p class="text-lg">You must set a username in the profile page to generate a website.</p>
+			<h1 class="my-3 text-3xl font-bold">Finish Automatic Domain Setup</h1>
+			<p class="prose prose-invert">
+				Your domain has been configured! Leave this tab open and as soon as the changes have been
+				propagated your site will be updated.
+			</p>
 		{/if}
+
+		<form bind:this={domainForm} method="post">
+			<label>
+				<span class="text-lg font-bold">Custom Domain</span>
+				<input
+					name="custom_domain"
+					class="input"
+					disabled={!!newDomain}
+					bind:value={customDomain}
+				/>
+			</label>
+
+			<div class="ml-4 mt-4 flex items-center gap-3">
+				{#if customDomain != '' && !domainValid}
+					<ProgressRadial width="w-8" />
+					<div class="flex-grow">
+						{#if newDomain}Checking domain...{/if}
+					</div>
+				{/if}
+				{#if !newDomain}
+					<div class="flex-grow" style="color: {domainStatusColor}">
+						{domainStatus}
+					</div>
+					<button disabled={!domainValid} class="variant-ghost btn"> Save </button>
+				{/if}
+			</div>
+		</form>
 	</div>
 </main>
 

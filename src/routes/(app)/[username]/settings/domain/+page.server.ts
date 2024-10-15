@@ -25,7 +25,8 @@ export const actions = {
 				throw 'User not logged in';
 			}
 			const formData = await request.formData();
-			const customDomain = formData.get('custom_domain') || url.searchParams.get('newDomain') || undefined;
+			const customDomain =
+				formData.get('custom_domain') || url.searchParams.get('newDomain') || undefined;
 			let resp;
 
 			if (customDomain && customDomain != '') {

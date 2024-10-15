@@ -33,7 +33,7 @@
 				])
 		)
 	);
-	let passwordValid = $derived(Object.values(passwordValidity).every((x) => x.valid));
+	let passwordValid = $derived(Object.values(passwordValidity).every((x) => x.valid !== false));
 
 	$effect(() => {
 		if (passwordValidity.length_min) {

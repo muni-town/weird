@@ -25,7 +25,7 @@ export const actions = {
 				throw 'User not logged in';
 			}
 			const formData = await request.formData();
-			const customDomain = formData.get('custom_domain');
+			const customDomain = formData.get('custom_domain') || url.searchParams.get('newDomain') || undefined;
 			let resp;
 
 			if (customDomain && customDomain != '') {
@@ -43,12 +43,12 @@ export const actions = {
 			} else {
 				await setCustomDomain(sessionInfo.user_id, undefined);
 			}
-
-			const newUrl = new URL(url);
-			newUrl.search = '';
-			return redirect(302, newUrl);
 		} catch (e) {
-			return fail(400, { error: `Error updating domain: ${e}` });
+			return fail(400, { error: `Error updating domain: ${JSON.stringify(e)}` });
 		}
+
+		const newUrl = new URL(url);
+		newUrl.search = '';
+		return redirect(302, newUrl);
 	}
 } satisfies Actions;

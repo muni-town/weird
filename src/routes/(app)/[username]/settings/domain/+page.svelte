@@ -72,7 +72,7 @@
 	});
 
 	$effect(() => {
-		if (newDomain && domainValid) {
+		if (newDomain && customDomain && domainValid && !form?.error) {
 			domainForm.submit();
 		}
 	});
@@ -161,6 +161,13 @@
 		{/if}
 
 		<form bind:this={domainForm} method="post">
+			{#if form?.error}
+				<aside class="alert variant-ghost-error my-2 w-full">
+					<div class="alert-message">
+						<p>{form.error}</p>
+					</div>
+				</aside>
+			{/if}
 			<label>
 				<span class="text-lg font-bold">Custom Domain</span>
 				<input

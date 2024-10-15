@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ fetch, params, request, url }) => {
 };
 
 export const actions = {
-	default: async ({ request, fetch }) => {
+	default: async ({ request, fetch, url }) => {
 		try {
 			let { sessionInfo } = await getSession(fetch, request);
 			if (!sessionInfo) {
@@ -43,6 +43,10 @@ export const actions = {
 			} else {
 				await setCustomDomain(sessionInfo.user_id, undefined);
 			}
+
+			const newUrl = new URL(url);
+			newUrl.search = '';
+			return redirect(302, newUrl);
 		} catch (e) {
 			return fail(400, { error: `Error updating domain: ${e}` });
 		}

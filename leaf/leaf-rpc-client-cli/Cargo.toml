@@ -14,5 +14,5 @@ description = "CLI client for the Leaf RPC server."
 anyhow = "1.0.86"
 clap = { version = "4.5.13", features = ["derive"] }
 iroh-base = "0.22.0"
-leaf-rpc-client = { path = "../leaf-rpc-client", version = "0.0.1" }
+leaf-rpc-client = { path = "../leaf-rpc-client", version = "0.1.0" }
 tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread"] }

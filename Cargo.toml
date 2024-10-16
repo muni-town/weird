@@ -12,7 +12,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.0.1"
+version = "0.1.0"
 authors = ["Weird / Leaf Contributors"]
 categories = ["network-programming"]
 documentation = "https://github.com/muni-town/agentic-fediverse/blob/main/leaf-protocol-draft.md"

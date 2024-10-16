@@ -1,6 +1,6 @@
 {
 	"name": "leaf-proto",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Leaf protocol RPC client.",
 	"keywords": [],
 	"author": "Muni Town Developers ( https://github.com/muni-town )",

@@ -79,6 +79,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize the leaf store and Iroh node
     let node = Node::persistent(&ARGS.data_dir).await?.spawn().await?;
+    tracing::info!(id = %node.node_id(), "Started Iroh Node");
     let leaf_store = LeafIrohStore::new(node.client().clone());
     let leaf = Leaf::new(leaf_store);
 

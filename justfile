@@ -14,7 +14,7 @@ _default:
 
 [doc('Setup the repository.')]
 setup:
-    docker compose up -d
+    docker compose build
     pnpm i
 
 [doc('Tasks to make the code-base comply with the rules. Mostly used in git hooks.')]
@@ -26,6 +26,14 @@ check: fmt-check lint
 [doc('Develop the app.')]
 dev:
     pnpm run dev
+
+[doc('Runs services in the background.')]
+services:
+    docker compose up -d
+
+[doc('Stops services running in the background.')]
+stop:
+    docker compose down
 
 [doc('Format the codebase.')]
 fmt:

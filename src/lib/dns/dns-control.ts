@@ -14,9 +14,7 @@ export interface DnsManagementAPI {
 	deleteRecords(ops: { host: string; type: DnsRecordType }): Promise<void>;
 }
 
-function createDnsManager() {
-	if (!dev) throw 'TODO: production dns manager';
-
+function createDevDnsManager() {
 	const store = startDevDnsServer();
 
 	const dnsKey = (host: string, type: DnsRecordType): string => `${type}--${host}`;
@@ -40,6 +38,25 @@ function createDnsManager() {
 			await store.delete(key);
 		}
 	};
+}
+
+function createProdDnsManager() {
+	return {
+		async createRecord({ host, type, value }: DnsRecord) {
+			throw 'TODO: implement prod dns manager';
+		},
+		async deleteRecords({ host, type }: { host: string; type: DnsRecordType }) {
+			throw 'TODO: implement prod dns manager';
+		}
+	};
+}
+
+function createDnsManager() {
+	if (dev) {
+		return createDevDnsManager();
+	} else {
+		return createProdDnsManager();
+	}
 }
 
 export const dnsManager: DnsManagementAPI = createDnsManager();

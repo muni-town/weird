@@ -36,7 +36,7 @@
 		links = clone;
 	}
 
-	async function fetchURL(url: string) {
+	async function fetchURL() {
 		error = '';
 		try {
 			const url = new URL(newUrl);
@@ -58,14 +58,14 @@
 
 	$effect(() => {
 		if (newUrl) {
-			fetchURL(newUrl);
+			fetchURL();
 		}
 	});
 </script>
 
 <div class="flex flex-col" {...attrs}>
 	<form
-		class="mb-4 flex flex-col gap-2"
+		class="mb-4 flex items-center gap-2"
 		onsubmit={(e) => {
 			e.preventDefault();
 			links = [...links, { label: newLabel, url: newUrl }];
@@ -73,14 +73,16 @@
 			newUrl = '';
 		}}
 	>
-		{#if newLabel}
-			<input class="input" placeholder="Label" bind:value={newLabel} />
-		{/if}
-		<input required class="input" placeholder="Url" bind:value={newUrl} />
-		<div class="text-sm text-error-400">{error}</div>
+		<div class="flex flex-grow flex-col items-center justify-center">
+			{#if newLabel}
+				<input class="input mb-2" placeholder="Label" bind:value={newLabel} />
+			{/if}
+			<input required class="input" placeholder="Url" bind:value={newUrl} />
+			<div class="text-sm text-error-400">{error}</div>
+		</div>
 
-		<div>
-			<button title="Add Link" class="variant-ghost-surface btn flex-shrink-0">Add link</button>
+		<div class="flex items-center">
+			<button title="Add Link" class="variant-ghost-surface btn">Add link</button>
 		</div>
 	</form>
 

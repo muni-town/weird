@@ -4,7 +4,7 @@ Steps to get Weird running locally.
 
 ## Getting Started
 
-The following is a detailed guide on setting up the development enviroment for weird.
+The following is a detailed guide on setting up the development environment for weird.
 
 ### Pre-Requisites
 
@@ -61,7 +61,7 @@ cargo b
 
 ### Development
 
-Once you have run the setup process successfully all requirements are now set to begin the develpment process.
+Once you have run the setup process successfully all requirements are now set to begin the development process.
 
 1. Run the containerized environment in Docker using:
 

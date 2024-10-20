@@ -5,6 +5,14 @@ services:
       - '8091:80'
       - '2525:25'
 
+  dev-dns-record-store:
+    image: redis:alpine
+    ports:
+      - 7634:6379
+    command: redis-server --appendonly yes
+    volumes:
+      - dev-dns-record-store:/data
+
   set-rauthy-volume-owner:
     image: alpine
     command: chown -R 10001:10001 /app/data
@@ -42,3 +50,4 @@ services:
 
 volumes:
   rauthy:
+  dev-dns-record-store:

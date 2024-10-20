@@ -45,14 +45,24 @@ Steps to get Weird running locally.
 
 - Clone the repo
 - Change directory to the cloned repo
-- `just setup`, Or`docker compose up -d && pnpm i`
-- `just dev`, Or `pnpm run dev`
-- In a separate terminal run `cargo r`
+- `just setup`, Or`docker compose up -d && pnpm i` to start the Rauthy auth server and the SMTP4Dev mail server
+- `just dev`, Or `pnpm run dev` to start the Weird app
+- In a separate terminal run `cargo r` to start the Leaf RPC server
 
 ### Result
 
 - You will be able to hit the app at <http://localhost:9523>
 - To see emails sent by the system you can go to the development SMTP viewer at <http://localhost:8091>
+
+### Troubleshooting
+
+If you are getting HTTP 500 errors you may need to:
+
+- stop the `cargo r` command
+- remove the `data` dir, and
+- start it again with `cargo r`
+
+This will clear all of the Weird app data ( but not the registered user accounts themselves ), which might not be compatible with the current version of the app, if you had the `data` dir left over from working on a previous version.
 
 ### Fully Containerized Setup
 

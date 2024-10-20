@@ -30,51 +30,6 @@ Blue Oak is a simpler and [more modern alternative][blue-oak] to older permissiv
 
 </details>
 
-## Development Setup
-
-Steps to get Weird running locally.
-
-### Dependencies
-
-- Docker
-- Docker Compose
-- pnpm
-- Rust
-
-### Steps
-
-- Clone the repo
-- Change directory to the cloned repo
-- `just setup`, Or`docker compose up -d && pnpm i` to start the Rauthy auth server and the SMTP4Dev mail server
-- `just dev`, Or `pnpm run dev` to start the Weird app
-- In a separate terminal run `cargo r` to start the Leaf RPC server
-
-### Result
-
-- You will be able to hit the app at <http://localhost:9523>
-- To see emails sent by the system you can go to the development SMTP viewer at <http://localhost:8091>
-
-### Troubleshooting
-
-If you are getting HTTP 500 errors you may need to:
-
-- stop the `cargo r` command
-- remove the `data` dir, and
-- start it again with `cargo r`
-
-This will clear all of the Weird app data ( but not the registered user accounts themselves ), which might not be compatible with the current version of the app, if you had the `data` dir left over from working on a previous version.
-
-### Fully Containerized Setup
-
-The steps above partially containerize the environment, leaving the backend (`leaf-rpc-server`) and frontend (`weird's svletekit`) running locally.
-To fully containerize all services, follow the steps below:
-
-```bash
-$ docker compose -f compose.local.yaml up -d
-```
-
-The ports remain the same, so you can continue accessing services on the previous ports, such as <http://localhost:9523>, as usual.
-
 ## Pull Requests
 
 Even tiny pull requests (e.g., one character pull request fixing a typo in documentation) are greatly appreciated. Before making a large change, it is usually a good idea to first open an issue describing the change to solicit feedback and guidance. This will increase the likelihood of the PR getting merged.

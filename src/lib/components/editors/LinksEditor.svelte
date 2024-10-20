@@ -27,17 +27,45 @@
 		return id;
 	}
 
+	let error = $state('');
+
 	function handleSort(event: CustomEvent<SortEventDetail>) {
 		const { prevItemIndex: from, nextItemIndex: to } = event.detail;
 		let clone = [...links];
 		clone.splice(to < 0 ? clone.length + to : to, 0, clone.splice(from, 1)[0]);
 		links = clone;
 	}
+
+	async function fetchURL(url: string) {
+		error = '';
+		try {
+			const url = new URL(newUrl);
+			if (url) {
+				const resp = await fetch(`/api/links?url=${newUrl}`);
+				const htmlData = await resp.text();
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(htmlData, 'text/html');
+				const title = doc.querySelector('title')?.innerText;
+				if (!title) {
+					error = 'Title not found';
+				}
+				newLabel = title ?? '';
+			}
+		} catch (err: any) {
+			error = 'Invalid link';
+		}
+	}
+
+	$effect(() => {
+		if (newUrl) {
+			fetchURL(newUrl);
+		}
+	});
 </script>
 
 <div class="flex flex-col" {...attrs}>
 	<form
-		class="mb-4 flex flex-row gap-2"
+		class="mb-4 flex flex-col gap-2"
 		onsubmit={(e) => {
 			e.preventDefault();
 			links = [...links, { label: newLabel, url: newUrl }];
@@ -45,11 +73,15 @@
 			newUrl = '';
 		}}
 	>
-		<input class="input" placeholder="Label" bind:value={newLabel} />
-		<input class="input" placeholder="Url" bind:value={newUrl} />
-		<button title="Add Link" class="variant-ghost-surface btn btn-icon flex-shrink-0 text-2xl"
-			>+</button
-		>
+		{#if newLabel}
+			<input class="input" placeholder="Label" bind:value={newLabel} />
+		{/if}
+		<input required class="input" placeholder="Url" bind:value={newUrl} />
+		<div class="text-sm text-error-400">{error}</div>
+
+		<div>
+			<button title="Add Link" class="variant-ghost-surface btn flex-shrink-0">Add link</button>
+		</div>
 	</form>
 
 	<ul class="mb-4 flex flex-col items-center gap-2">

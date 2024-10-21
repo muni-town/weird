@@ -69,7 +69,7 @@
 
 					<div class="flex max-w-full flex-col gap-4">
 						{#if profile.tags && profile.tags.length > 0}
-							<div class="flex max-w-full flex-wrap items-center justify-center gap-3">
+							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
 								{#each profile.tags as tag}<button
 										type="button"
 										class="border-surface-500-400-token btn relative rounded-full border-[1px] bg-surface-900 p-1 px-3 text-surface-100 hover:bg-surface-700"

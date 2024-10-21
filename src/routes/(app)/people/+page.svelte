@@ -55,11 +55,11 @@
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
 		{#each filtered_profiles as profile (profile.username)}
 			<div
-				class="w-120 card relative flex flex-col items-center p-5 transition-transform duration-200 hover:scale-105"
+				class="w-120 card relative flex flex-col items-center p-5 transition-transform duration-200 hover:scale-105 rounded-lg !bg-surface-700"
 			>
 				<div class="flex w-[15em] flex-col items-center text-center">
-					<div class="mb-3 flex flex-col flex-wrap items-center gap-4">
-						<Avatar width="w-[5em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
+					<div class="mb-3 flex flex-col flex-wrap items-center gap-7">
+						<Avatar width="w-[8em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
 						<h2 class="text-2xl font-semibold">
 							<a href={`/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}
@@ -69,10 +69,10 @@
 
 					<div class="flex max-w-full flex-col gap-4">
 						{#if profile.tags && profile.tags.length > 0}
-							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
+							<div class="flex max-w-full flex-wrap items-center justify-center gap-3">
 								{#each profile.tags as tag}<button
 										type="button"
-										class="text-surface-900-50-token btn relative rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
+										class="border-surface-500-400-token btn relative rounded-full border-[1px] bg-surface-900 p-1 px-3 text-surface-100 hover:bg-surface-700"
 										onclick={(e) => {
 											e.preventDefault();
 											search = tag;

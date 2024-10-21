@@ -5,6 +5,8 @@ import typography from '@tailwindcss/typography';
 // 1. Import the Skeleton plugin
 import { skeleton } from '@skeletonlabs/tw-plugin';
 
+import { weirdTheme } from './skeleton-themes';
+
 const config = {
 	// 2. Opt for dark mode to be handled via the class method
 	darkMode: 'class',
@@ -21,7 +23,7 @@ const config = {
 		forms,
 		// 4. Append the Skeleton plugin (after other plugins)
 		skeleton({
-			themes: { preset: ['modern'] }
+			themes: { custom: [weirdTheme] }
 		})
 	]
 } satisfies Config;

@@ -15,6 +15,7 @@
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
 	import slugify from 'slugify';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -36,7 +37,7 @@
 	);
 
 	function startEdit() {
-		if (data.profileMatchesUserSession) {
+		if (data.profileMatchesUserSession || data.page.wiki) {
 			editingState.page = data.page;
 			editingState.editing = true;
 		}
@@ -96,24 +97,38 @@
 		</div>
 
 		{#if editingState.editing}
-			<label class="flex flex-row items-center gap-2">
+			<label class="mt-2 flex flex-row items-center gap-2">
 				<span class="basis-40">Page Slug</span>
 				<div class="flex flex-grow flex-col">
-					<input class="input basis-auto" placeholder="slug" bind:value={editingState.page.slug} />
+					<input
+						class="input basis-auto"
+						placeholder="slug"
+						disabled={!data.profileMatchesUserSession}
+						bind:value={editingState.page.slug}
+					/>
 					<div class="ml-2 mt-1 text-sm">
 						<pre class="inline">&nbsp;{slugifiedSlug}</pre>
 					</div>
 				</div>
 			</label>
+			<div class="flex justify-end text-sm">
+				<SlideToggle
+					name="wikiMode"
+					size="sm"
+					bind:checked={editingState.page.wiki}
+					disabled={!data.profileMatchesUserSession}
+					active="bg-tertiary-600">Wiki Page: Everyone Can Edit</SlideToggle
+				>
+			</div>
 		{/if}
 
-		<!-- {#if form?.error}
+		{#if form?.error}
 			<aside class="alert variant-ghost-error my-2 w-full">
 				<div class="alert-message">
-					<p>Error updating profile: {form.error}</p>
+					<p>Error saving page: {form.error}</p>
 				</div>
 			</aside>
-		{/if} -->
+		{/if}
 
 		<hr />
 
@@ -126,7 +141,7 @@
 		{/if}
 
 		<div class="absolute right-8 top-8 z-10 flex gap-2">
-			{#if data.profileMatchesUserSession}
+			{#if data.profileMatchesUserSession || data.page.wiki}
 				{#if !editingState.editing}
 					<button
 						class="variant-ghost btn-icon absolute right-0 top-0"

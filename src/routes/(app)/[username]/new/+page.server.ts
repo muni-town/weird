@@ -2,7 +2,13 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
 import { ensureUsernameMatchesSessionUserId } from '../utils';
-import { WebLinks, appendSubpath, getProfileById, profileLinkById } from '$lib/leaf/profile';
+import {
+	WebLinks,
+	WeirdWikiPage,
+	appendSubpath,
+	getProfileById,
+	profileLinkById
+} from '$lib/leaf/profile';
 import { Page } from '../types';
 import { leafClient } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
@@ -43,7 +49,8 @@ export const actions = {
 		await leafClient.update_components(pageLink, [
 			new Name(data.display_name),
 			data.markdown.length > 0 ? new CommonMark(data.markdown) : CommonMark,
-			data.links.length > 0 ? new WebLinks(data.links) : WebLinks
+			data.links.length > 0 ? new WebLinks(data.links) : WebLinks,
+			data.wiki ? new WeirdWikiPage() : WeirdWikiPage
 		]);
 
 		return redirect(302, `/${params.username}/${data.slug}`);

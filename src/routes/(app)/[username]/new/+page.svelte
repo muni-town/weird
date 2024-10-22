@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import type { SvelteComponent } from 'svelte';
-	import type { ActionData, PageData } from './$types';
+	import type { ActionData } from './$types';
 	import _ from 'underscore';
 	import { Page } from '../types';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import slugify from 'slugify';
+	import { SlideToggle } from '@skeletonlabs/skeleton';
 
 	const { form }: { form: ActionData } = $props();
 
@@ -73,6 +74,11 @@
 				</div>
 			</div>
 		</label>
+		<div class="flex justify-end text-sm">
+			<SlideToggle name="wikiMode" size="sm" bind:checked={page.wiki} active="bg-tertiary-600"
+				>Wiki Page: Everyone Can Edit</SlideToggle
+			>
+		</div>
 
 		{#if form?.error}
 			<aside class="alert variant-ghost-error w-full text-lg">

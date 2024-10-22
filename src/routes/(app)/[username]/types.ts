@@ -8,7 +8,8 @@ export const Page = z.object({
 		.transform((x) => slugify(x, { strict: true, lower: true })),
 	display_name: z.string().min(1),
 	markdown: z.string(),
-	links: z.array(z.object({ label: z.optional(z.string()), url: z.string() }))
+	links: z.array(z.object({ label: z.optional(z.string()), url: z.string() })),
+	wiki: z.boolean()
 });
 
 export type Page = z.infer<typeof Page>;

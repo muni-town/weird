@@ -1,4 +1,4 @@
-import { BorshSchema, Component, type ExactLink, type PathSegment } from 'leaf-proto';
+import { BorshSchema, Component, type ExactLink, type PathSegment, type Unit } from 'leaf-proto';
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import { instance_link, leafClient } from '.';
 import { env } from '$env/dynamic/public';
@@ -57,6 +57,54 @@ export class Tags extends Component {
 There is no restriction on the format of the tag. Any valid UTF-8 is accepted.
 
 An example use would be hashtags or some equivalent.`)
+		];
+	}
+}
+
+export class WeirdWikiPage extends Component {
+	value: Unit;
+	constructor() {
+		super();
+		this.value = {};
+	}
+	static componentName(): string {
+		return 'WeirdWikiPage';
+	}
+	static borshSchema(): BorshSchema {
+		return BorshSchema.Unit;
+	}
+	static specification(): Component[] {
+		return [
+			new CommonMark(`Marker component that indicates that a page is a Weird wiki page and \
+should be editable by everybody.`)
+		];
+	}
+}
+
+export class CommonMarkRevisions extends Component {
+	value: { authorId: number[]; date: bigint; markup: string }[];
+	constructor(value: CommonMarkRevisions['value']) {
+		super();
+		this.value = value;
+	}
+	static componentName(): string {
+		return 'CommonMarkRevisions';
+	}
+	static borshSchema(): BorshSchema {
+		return BorshSchema.Vec(
+			BorshSchema.Struct({
+				authorId: BorshSchema.Vec(BorshSchema.u8),
+				date: BorshSchema.u64,
+				markup: BorshSchema.String
+			})
+		);
+	}
+	static specification(): Component[] {
+		return [
+			new CommonMark(`The list of revisions of the \`CommonMark\` component, and the ID 
+of the author that created each revision, and the date that the revision was made.
+
+The revisions should be listed from oldest to newest.`)
 		];
 	}
 }

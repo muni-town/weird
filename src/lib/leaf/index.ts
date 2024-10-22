@@ -10,7 +10,14 @@ import {
 	type ExactLink
 } from 'leaf-proto';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
-import { Username, Tags, WebLinks, WeirdCustomDomain, WeirdPubpageTheme } from './profile';
+import {
+	Username,
+	Tags,
+	WebLinks,
+	WeirdCustomDomain,
+	WeirdPubpageTheme,
+	WeirdWikiPage
+} from './profile';
 
 /** The Leaf RPC client used to connect to our backend data server. */
 export let leafClient: RpcClient = null as any;
@@ -71,6 +78,7 @@ export type KnownComponents = {
 	weirdPubpageTheme?: WeirdPubpageTheme['value'];
 	weirdCustomDomain?: WeirdCustomDomain['value'];
 	commonmark?: CommonMark['value'];
+	weirdWikiPage?: WeirdWikiPage['value'];
 };
 
 export async function loadKnownComponents(link: ExactLink): Promise<KnownComponents | undefined> {
@@ -83,7 +91,8 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 		WebLinks,
 		WeirdPubpageTheme,
 		WeirdCustomDomain,
-		CommonMark
+		CommonMark,
+		WeirdWikiPage
 	);
 
 	if (ent) {
@@ -95,7 +104,8 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 			webLinks: ent.get(WebLinks)?.value,
 			weirdPubpageTheme: ent.get(WeirdPubpageTheme)?.value,
 			weirdCustomDomain: ent.get(WeirdCustomDomain)?.value,
-			commonmark: ent.get(CommonMark)?.value
+			commonmark: ent.get(CommonMark)?.value,
+			weirdWikiPage: ent.get(WeirdWikiPage)?.value
 		};
 	} else {
 		return;

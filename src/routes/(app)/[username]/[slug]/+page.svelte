@@ -132,7 +132,7 @@
 
 		<hr />
 
-		{#if editingState.editing}
+		{#if editingState.editing && data.profileMatchesUserSession}
 			<form method="post" class=" absolute left-8 top-8">
 				<button class="variant-ghost-error btn-icon" title="Delete" name="delete">
 					<Icon icon="proicons:delete" />

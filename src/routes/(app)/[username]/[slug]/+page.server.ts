@@ -75,8 +75,12 @@ export const actions = {
 		let newSlug: string;
 		const formData = await request.formData();
 		if (formData.get('delete') != undefined) {
-			leafClient.del_entity(oldPageLink);
-			return redirect(302, `/${params.username}`);
+			if (editorIsOwner) {
+				leafClient.del_entity(oldPageLink);
+				return redirect(302, `/${params.username}`);
+			} else {
+				return error(403, 'Unauthorized');
+			}
 		}
 
 		try {

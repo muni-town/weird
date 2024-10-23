@@ -53,9 +53,10 @@
 				{@html renderMarkdownSanitized(data.page.markdown)}
 			</div>
 			{#if data.page.links.length > 0}
+				<hr />
 				<div>
 					<h2 class="mb-3 text-center text-2xl font-bold">Links</h2>
-					<ul class="flex flex-col items-center gap-2">
+					<ul class="flex flex-col gap-2">
 						{#each data.page.links as link}
 							<li>
 								<a class="variant-ghost btn" href={link.url}>

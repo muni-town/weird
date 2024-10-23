@@ -81,30 +81,22 @@ should be editable by everybody.`)
 	}
 }
 
-export class CommonMarkRevisions extends Component {
-	value: { authorId: number[]; date: bigint; markup: string }[];
-	constructor(value: CommonMarkRevisions['value']) {
+export class WeirdWikiRevisionAuthor extends Component {
+	value: string;
+	constructor(userId: string) {
 		super();
-		this.value = value;
+		this.value = userId;
 	}
 	static componentName(): string {
-		return 'CommonMarkRevisions';
+		return 'WeirdWikiRevisionAuthor';
 	}
 	static borshSchema(): BorshSchema {
-		return BorshSchema.Vec(
-			BorshSchema.Struct({
-				authorId: BorshSchema.Vec(BorshSchema.u8),
-				date: BorshSchema.u64,
-				markup: BorshSchema.String
-			})
-		);
+		return BorshSchema.String;
 	}
 	static specification(): Component[] {
 		return [
-			new CommonMark(`The list of revisions of the \`CommonMark\` component, and the ID 
-of the author that created each revision, and the date that the revision was made.
-
-The revisions should be listed from oldest to newest.`)
+			new CommonMark(`Component containing the Weird user ID of the author that created
+a revision on a wiki page.`)
 		];
 	}
 }
@@ -209,11 +201,14 @@ export class WeirdCustomDomain extends Component {
 /**
  * Append a string subpath to the provided link
  */
-export function appendSubpath(link: ExactLink, ...pathSegments: string[]): ExactLink {
+export function appendSubpath(
+	link: ExactLink,
+	...pathSegments: (string | PathSegment)[]
+): ExactLink {
 	return {
 		namespace: link.namespace,
 		subspace: link.subspace,
-		path: [...link.path, ...pathSegments.map((x) => ({ String: x }))]
+		path: [...link.path, ...pathSegments.map((x) => (typeof x == 'string' ? { String: x } : x))]
 	};
 }
 

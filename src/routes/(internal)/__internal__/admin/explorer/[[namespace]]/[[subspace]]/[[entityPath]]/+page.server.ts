@@ -2,7 +2,15 @@ import { leafClient, type KnownComponents, loadKnownComponents } from '$lib/leaf
 import { base32Decode, base32Encode, type EntityPath, type ExactLink } from 'leaf-proto';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { Tags, Username, WebLinks, WeirdCustomDomain, WeirdPubpageTheme } from '$lib/leaf/profile';
+import {
+	Tags,
+	Username,
+	WebLinks,
+	WeirdCustomDomain,
+	WeirdPubpageTheme,
+	WeirdWikiPage,
+	WeirdWikiRevisionAuthor
+} from '$lib/leaf/profile';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
 import { getSession } from '$lib/rauthy/server';
 
@@ -112,6 +120,18 @@ export const actions = {
 			let commonMark: string | undefined = formData.get('commonMark')?.toString() || '';
 			if (commonMark == '') commonMark = undefined;
 			components.push(commonMark ? new CommonMark(commonMark) : CommonMark);
+
+			let weirdWikiPage: boolean = !!formData.get('weirdWikiPage') || false;
+			components.push(weirdWikiPage ? new WeirdWikiPage() : WeirdWikiPage);
+
+			let weirdWikiRevisionAuthor: string | undefined =
+				formData.get('weirdWikiRevisionAuthor')?.toString() || '';
+			if (weirdWikiRevisionAuthor == '') weirdWikiRevisionAuthor = undefined;
+			components.push(
+				weirdWikiRevisionAuthor
+					? new WeirdWikiRevisionAuthor(weirdWikiRevisionAuthor)
+					: WeirdWikiRevisionAuthor
+			);
 
 			await leafClient.update_components(link, components);
 		} catch (e: any) {

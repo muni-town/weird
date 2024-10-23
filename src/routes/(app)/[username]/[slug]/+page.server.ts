@@ -2,8 +2,8 @@ import type { Actions, PageServerLoad } from './$types';
 import {
 	WebLinks,
 	WeirdWikiPage,
+	WeirdWikiRevisionAuthor,
 	appendSubpath,
-	profileLinkById,
 	profileLinkByUsername
 } from '$lib/leaf/profile';
 import { error, fail, redirect } from '@sveltejs/kit';
@@ -13,6 +13,7 @@ import { leafClient } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../types';
 import { getSession } from '$lib/rauthy/server';
+import { dateToUnixTimestamp } from '$lib/utils/time';
 
 export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> => {
 	const username = parseUsername(params.username);
@@ -92,17 +93,23 @@ export const actions = {
 			newSlug = editorIsOwner ? data.slug : params.slug;
 
 			const pageLink = appendSubpath(profileLink, newSlug);
+			const revisionLink = appendSubpath(pageLink, { Uint: dateToUnixTimestamp(new Date()) });
 
 			if (data.slug != params.slug) {
 				await leafClient.del_entity(oldPageLink);
 			}
 
-			await leafClient.update_components(pageLink, [
+			const components = [
 				new Name(data.display_name),
 				data.markdown.length > 0 ? new CommonMark(data.markdown) : CommonMark,
 				data.links.length > 0 ? new WebLinks(data.links) : WebLinks,
 				// non-owners are not allowed to change the wiki page status
 				(editorIsOwner ? data.wiki : isWikiPage) ? new WeirdWikiPage() : WeirdWikiPage
+			];
+			await leafClient.update_components(pageLink, components);
+			await leafClient.update_components(revisionLink, [
+				...components,
+				new WeirdWikiRevisionAuthor(sessionInfo.user_id)
 			]);
 		} catch (e: any) {
 			return fail(500, { error: JSON.stringify(e) });

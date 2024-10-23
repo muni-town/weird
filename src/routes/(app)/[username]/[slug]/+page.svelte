@@ -92,8 +92,16 @@
 
 		<div class="text-center">
 			By <a href={`/${$page.params.username}`} class="text-blue-300 underline underline-offset-4">
-				{data.profile.display_name}
+				{data.profile.display_name}.
 			</a>
+			{#if data.page.wiki}
+				Wiki Page.
+			{/if}
+			See
+			<a
+				class="text-blue-300 underline underline-offset-4"
+				href={`/${$page.params.username}/${$page.params.slug}/revisions`}>Revisions</a
+			>.
 		</div>
 
 		{#if editingState.editing}

@@ -30,8 +30,8 @@ export const SubspaceSecretKeySchema = SubspaceIdSchema;
 export type PathSegment =
 	| { Null: Unit }
 	| { Bool: boolean }
-	| { Uint: number }
-	| { Int: number }
+	| { Uint: bigint | number }
+	| { Int: bigint | number }
 	| { String: string }
 	| { Bytes: number[] };
 export const PathSegmentSchema = BorshSchema.Enum({
@@ -53,6 +53,8 @@ export function formatEntityPath(p: EntityPath): string {
 			s += `/"${segment.String}"`;
 		} else if ('Bytes' in segment) {
 			s += `/base32:${base32Encode(new Uint8Array(segment.Bytes))}`;
+		} else if ('Uint' in segment) {
+			s += `/Uint:${segment.Uint.toString()}`;
 		} else {
 			throw 'TODO: implement formatting for other path segment types.';
 		}

@@ -16,7 +16,8 @@ import {
 	WebLinks,
 	WeirdCustomDomain,
 	WeirdPubpageTheme,
-	WeirdWikiPage
+	WeirdWikiPage,
+	WeirdWikiRevisionAuthor
 } from './profile';
 
 /** The Leaf RPC client used to connect to our backend data server. */
@@ -79,6 +80,7 @@ export type KnownComponents = {
 	weirdCustomDomain?: WeirdCustomDomain['value'];
 	commonmark?: CommonMark['value'];
 	weirdWikiPage?: WeirdWikiPage['value'];
+	weirdWikiRevisionAuthor?: WeirdWikiRevisionAuthor['value'];
 };
 
 export async function loadKnownComponents(link: ExactLink): Promise<KnownComponents | undefined> {
@@ -92,7 +94,8 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 		WeirdPubpageTheme,
 		WeirdCustomDomain,
 		CommonMark,
-		WeirdWikiPage
+		WeirdWikiPage,
+		WeirdWikiRevisionAuthor
 	);
 
 	if (ent) {
@@ -105,7 +108,8 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 			weirdPubpageTheme: ent.get(WeirdPubpageTheme)?.value,
 			weirdCustomDomain: ent.get(WeirdCustomDomain)?.value,
 			commonmark: ent.get(CommonMark)?.value,
-			weirdWikiPage: ent.get(WeirdWikiPage)?.value
+			weirdWikiPage: ent.get(WeirdWikiPage)?.value,
+			weirdWikiRevisionAuthor: ent.get(WeirdWikiRevisionAuthor)?.value
 		};
 	} else {
 		return;

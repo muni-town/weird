@@ -84,8 +84,13 @@
 	<ul>
 		{#each data.Entities as link}
 			<li>
-				<a href={`${$page.url}/${encodeURIComponent(JSON.stringify(link))}`} class="font-mono"
-					>{formatEntityPath(link)}</a
+				<a
+					href={`${$page.url}/${encodeURIComponent(
+						JSON.stringify(link, (_key, value) =>
+							typeof value === 'bigint' ? Number(value) : value
+						)
+					)}`}
+					class="font-mono">{formatEntityPath(link)}</a
 				>
 			</li>
 		{/each}
@@ -97,39 +102,55 @@
 			{form.error}
 		</article>
 	{/if}
-	<form method="post" style="margin-bottom: 8em;">
+	<form method="post" style="margin-bottom: 8em;" class="flex flex-col gap-3">
 		<label>
 			Username
-			<input class="input" name="username" bind:value={knownComponents.username} />
+			<input class="input" name="username" value={knownComponents.username} />
 		</label>
 		<label>
 			Name
-			<input class="input" name="name" bind:value={knownComponents.name} />
+			<input class="input" name="name" value={knownComponents.name} />
 		</label>
 		<label>
 			Description
-			<textarea class="input" name="description" bind:value={knownComponents.description}
-			></textarea>
+			<textarea class="input" name="description" value={knownComponents.description}></textarea>
 		</label>
 		<label>
 			Tags ( Comma Separated )
-			<textarea class="input" name="tags" bind:value={editingTagsState}></textarea>
+			<textarea class="input" name="tags" value={editingTagsState}></textarea>
 		</label>
 		<label>
 			Web Links ( JSON )
-			<textarea class="input" name="webLinks" bind:value={editingWebLinksState}></textarea>
+			<textarea class="input" name="webLinks" value={editingWebLinksState}></textarea>
 		</label>
 		<label>
 			Pubpage Theme
-			<input class="input" name="pubpageTheme" bind:value={knownComponents.weirdPubpageTheme} />
+			<input class="input" name="pubpageTheme" value={knownComponents.weirdPubpageTheme} />
 		</label>
 		<label>
 			Custom Domain
-			<input class="input" name="customDomain" bind:value={knownComponents.weirdCustomDomain} />
+			<input class="input" name="customDomain" value={knownComponents.weirdCustomDomain} />
 		</label>
 		<label>
 			CommonMark
-			<textarea class="input" name="commonMark" bind:value={knownComponents.commonmark}></textarea>
+			<textarea class="input" name="commonMark" value={knownComponents.commonmark}></textarea>
+		</label>
+		<label>
+			Weird Wiki Page
+			<input
+				class="input"
+				type="checkbox"
+				name="weirdWikiPage"
+				checked={knownComponents.weirdWikiPage != undefined}
+			/>
+		</label>
+		<label>
+			Weird Wiki Revision Author
+			<input
+				class="input"
+				name="weirdWikiRevisionAuthor"
+				value={knownComponents.weirdWikiRevisionAuthor}
+			/>
 		</label>
 
 		<button formaction="?/save">Update</button>

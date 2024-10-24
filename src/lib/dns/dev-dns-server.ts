@@ -21,8 +21,26 @@ export function startDevDnsServer(): Keyv<dns2.DnsAnswer[]> {
 		handle: async (request, send, _rinfo) => {
 			const response = Packet.createResponseFromRequest(request);
 			const [question] = request.questions;
-			const { name } = question;
-			const answers = (await dnsRecordStore.get(name)) || (await dns2client(name))?.answers || [];
+			const { name, type } = question as {
+				name: string;
+				type: (typeof Packet)['TYPE'][keyof (typeof Packet)['TYPE']];
+			};
+
+			let typeStr: string;
+			switch (type) {
+				case Packet.TYPE.A:
+					typeStr = 'A';
+					break;
+				case Packet.TYPE.TXT:
+					typeStr = 'TXT';
+					break;
+				default:
+					typeStr = 'A';
+					break;
+			}
+
+			const answers =
+				(await dnsRecordStore.get(name)) || (await dns2client(name, typeStr))?.answers || [];
 			for (const item of answers) {
 				response.answers.push(item);
 			}

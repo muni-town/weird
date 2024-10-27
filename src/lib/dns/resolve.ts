@@ -5,6 +5,7 @@ import dns, {
 	type SoaRecord,
 	type SrvRecord
 } from 'node:dns';
+import { isIP } from 'node:net';
 
 export type ResolveResponse =
 	| string[]
@@ -23,7 +24,18 @@ export async function resolveAuthoritative(hostname: string, type = 'A'): Promis
 			err ? rej(err) : res(addrs);
 		})
 	);
-	resolver.setServers(ns);
+	const nsIps: string[][] = await Promise.all(
+		ns.map(async (host) => {
+			if (isIP(host) || isIP(host.split(':')[0])) {
+				return [host];
+			} else {
+				return await new Promise((res, rej) => {
+					resolver.resolve(host.split(':')[0], (err, addrs) => (err ? rej(err) : res(addrs)));
+				});
+			}
+		})
+	);
+	resolver.setServers(nsIps.flat());
 	const result: ResolveResponse = await new Promise((res, rej) =>
 		resolver.resolve(hostname, type, (err, addrs) => {
 			err ? rej(err) : res(addrs);

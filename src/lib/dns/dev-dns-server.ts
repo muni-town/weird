@@ -2,6 +2,7 @@ import Keyv from 'keyv';
 import KeyvRedis from '@keyv/redis';
 import dns2 from 'dns2';
 import dns from 'dns';
+import { devDnsStoreKey } from './dns-control';
 
 export const { Packet } = dns2;
 
@@ -19,6 +20,11 @@ export function startDevDnsServer(): Keyv<dns2.DnsAnswer[]> {
 	const server = dns2.createServer({
 		udp: true,
 		handle: async (request, send, _rinfo) => {
+			const list = [];
+			for await (const item of dnsRecordStore.iterator()) {
+				list.push(JSON.stringify(item, null, '  '));
+			}
+
 			const response = Packet.createResponseFromRequest(request);
 			const [question] = request.questions;
 			const { name, type } = question as {
@@ -28,6 +34,19 @@ export function startDevDnsServer(): Keyv<dns2.DnsAnswer[]> {
 
 			let typeStr: string;
 			switch (type) {
+				case Packet.TYPE.NS:
+					// We're the "authoritative" nameserver for everything during development.
+					response.answers.push(
+						...dns.getServers().map((x) => ({
+							name,
+							type: Packet.TYPE.NS,
+							class: Packet.CLASS.IN,
+							ttl: 300,
+							ns: x
+						}))
+					);
+					send(response);
+					return;
 				case Packet.TYPE.A:
 					typeStr = 'A';
 					break;
@@ -40,7 +59,9 @@ export function startDevDnsServer(): Keyv<dns2.DnsAnswer[]> {
 			}
 
 			const answers =
-				(await dnsRecordStore.get(name)) || (await dns2client(name, typeStr))?.answers || [];
+				(await dnsRecordStore.get(devDnsStoreKey(name, type))) ||
+				(await dns2client(name, typeStr))?.answers ||
+				[];
 			for (const item of answers) {
 				response.answers.push(item);
 			}

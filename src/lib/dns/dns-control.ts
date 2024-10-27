@@ -2,6 +2,7 @@ import { dev } from '$app/environment';
 import { startDevDnsServer, Packet } from './dev-dns-server';
 
 export type DnsRecordType = (typeof Packet.TYPE)[keyof typeof Packet.TYPE];
+export { Packet };
 
 export type DnsRecord = {
 	host: string;
@@ -10,31 +11,32 @@ export type DnsRecord = {
 };
 
 export interface DnsManagementAPI {
-	createRecord(record: DnsRecord): Promise<void>;
+	setRecords(host: string, type: DnsRecordType, values: string[]): Promise<void>;
 	deleteRecords(ops: { host: string; type: DnsRecordType }): Promise<void>;
 }
+
+export const devDnsStoreKey = (host: string, type: DnsRecordType): string => `${type}--${host}`;
 
 function createDevDnsManager() {
 	const store = startDevDnsServer();
 
-	const dnsKey = (host: string, type: DnsRecordType): string => `${type}--${host}`;
-
 	return {
-		async createRecord({ host, type, value }: DnsRecord) {
-			const key = dnsKey(host, type);
-			await store.set(key, [
-				{
+		async setRecords(host: string, type: DnsRecordType, values: string[]) {
+			const key = devDnsStoreKey(host, type);
+			const records = [];
+			for (const value of values) {
+				records.push({
 					class: Packet.CLASS.IN,
 					name: host,
 					type,
 					address: value,
 					ttl: 300
-				},
-				...((await store.get(key)) || [])
-			]);
+				});
+			}
+			await store.set(key, records);
 		},
 		async deleteRecords({ host, type }: { host: string; type: DnsRecordType }) {
-			const key = dnsKey(host, type);
+			const key = devDnsStoreKey(host, type);
 			await store.delete(key);
 		}
 	};
@@ -42,10 +44,10 @@ function createDevDnsManager() {
 
 function createProdDnsManager() {
 	return {
-		async createRecord({ host, type, value }: DnsRecord) {
+		async setRecords(_host: string, _type: DnsRecordType, _values: string[]) {
 			throw 'TODO: implement prod dns manager';
 		},
-		async deleteRecords({ host, type }: { host: string; type: DnsRecordType }) {
+		async deleteRecords(_: { host: string; type: DnsRecordType }) {
 			throw 'TODO: implement prod dns manager';
 		}
 	};

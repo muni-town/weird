@@ -55,8 +55,9 @@ export async function startDnsServer() {
 	// Because Weird is both the DNS server and the app server, we look up
 	// the NS ( nameserver ) records associated to our public domain.
 	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
+	const appParentDomain = appDomain.split('.').slice(-2).join('.')
 	const selfIps = (await new Promise((finish) => {
-		dns.resolveNs(appDomain, (err, addrs) => {
+		dns.resolveNs(appParentDomain, (err, addrs) => {
 			if (err) {
 				// If we can't resolve it, assume we are in local development
 				finish(['127.0.0.1']);

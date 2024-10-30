@@ -8,8 +8,17 @@ import * as network from 'dinodns/common/network';
 import type { SupportedAnswer } from 'dinodns/types/dns';
 import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
+import { z } from 'zod';
 
 const REDIS_USER_PREFIX = 'weird:users:';
+const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
+
+const redisDnsRecordSchema = z.array(
+	z.object({
+		ttl: z.optional(z.number().int().min(0)),
+		data: z.string()
+	})
+);
 
 /** Helper function to escape a string so we can put it literally into a regex without some
  * of it's characters being interpreted as regex special characters. */
@@ -59,8 +68,46 @@ export async function startDnsServer() {
 
 	// Now we can add an A record that will direct web traffic to the app
 	staticRecords.set(appDomain, 'A', selfIps);
-
 	s.use(staticRecords.handler);
+
+	// Resolve records stored in Redis
+	s.use(async (req, res, next) => {
+		const results = (await Promise.all(
+			req.packet.questions.map(
+				(question) =>
+					new Promise(async (returnAnswers) => {
+						const { type, name } = question;
+						const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name;
+						let record;
+						try {
+							record = await redis.get(redisKey);
+							if (!record) return returnAnswers(null);
+							const parsed = redisDnsRecordSchema.parse(JSON.parse(record));
+							returnAnswers(
+								parsed.map((record) => ({
+									name,
+									type,
+									data: record.data,
+									ttl: record.ttl
+								}))
+							);
+						} catch (e) {
+							console.warn('Error parsing DNS record from redis:', redisKey, record, e);
+							returnAnswers(null);
+						}
+					})
+			)
+		)) as (SupportedAnswer[] | null)[];
+
+		// Return answers
+		const filtered = results
+			.filter((x) => !!x)
+			.map((x) => x as unknown as SupportedAnswer)
+			.flat();
+		if (filtered.length > 0) res.answer(filtered);
+
+		next();
+	});
 
 	// Resolve records for registered users
 	s.use(async (req, res, next) => {
@@ -89,8 +136,11 @@ export async function startDnsServer() {
 							case 'A':
 								const aUsername = name.match(WEIRD_HOST_A_RECORD_REGEX)?.[1];
 								if (!aUsername) return returnAnswers(null);
-								const exists = await redis.exists(REDIS_USER_PREFIX + aUsername);
-								if (!exists) return returnAnswers(null);
+
+								// TODO: eventually we only want to return records for users that exist
+								// const exists = await redis.exists(REDIS_USER_PREFIX + aUsername);
+								// if (!exists) return returnAnswers(null);
+
 								returnAnswers(
 									selfIps.map((ip) => ({
 										name,

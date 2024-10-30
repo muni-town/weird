@@ -1,7 +1,6 @@
 import { getSession } from '$lib/rauthy/server';
 import { error, type Actions } from '@sveltejs/kit';
 
-import '$lib/dns/dns-control';
 import { resolveAuthoritative } from '$lib/dns/resolve';
 
 export const actions = {

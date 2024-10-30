@@ -1,9 +1,6 @@
 import { getSession } from '$lib/rauthy/server';
 import { error, type Actions } from '@sveltejs/kit';
 
-import '$lib/dns/dns-control';
-import { dnsManager, Packet } from '$lib/dns/dns-control';
-
 export const actions = {
 	default: async ({ fetch, request }) => {
 		let { sessionInfo } = await getSession(fetch, request);
@@ -24,19 +21,7 @@ export const actions = {
 		}
 
 		try {
-			const values = valuesStr.split(',');
-			let recordKind;
-			switch (kind) {
-				case 'TXT':
-					recordKind = Packet.TYPE.TXT;
-					break;
-				case 'A':
-					recordKind = Packet.TYPE.A;
-					break;
-				default:
-					throw 'Invalid DNS type';
-			}
-			await dnsManager.setRecords(domain, recordKind, values);
+			throw 'TODO: work in progress';
 		} catch (e) {
 			return { error: JSON.stringify(e) };
 		}

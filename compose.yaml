@@ -1,17 +1,30 @@
 services:
+  # This allows you to access the emails sent by weird at localhost:8091
   smtp4dev:
     image: rnwood/smtp4dev
     ports:
       - '8091:80'
       - '2525:25'
 
-  dev-dns-record-store:
+  redis:
     image: redis:alpine
     ports:
       - 7634:6379
     command: redis-server --appendonly yes
+    environment:
+      http_proxy:
+      https_proxy:
     volumes:
-      - dev-dns-record-store:/data
+      - redis:/data
+
+  # This allows you to access the redis database UI at localhost:9881
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "9881:8081"
+    user: redis
 
   set-rauthy-volume-owner:
     image: alpine
@@ -50,4 +63,4 @@ services:
 
 volumes:
   rauthy:
-  dev-dns-record-store:
+  redis:

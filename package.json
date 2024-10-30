@@ -26,7 +26,6 @@
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/typography": "^0.5.15",
 		"@types/cookie": "^0.6.0",
-		"@types/dns2": "^2.0.9",
 		"@types/eslint": "^8.56.12",
 		"@types/node": "^20.16.11",
 		"@types/nodemailer": "^6.4.16",
@@ -40,7 +39,6 @@
 		"cookie": "^0.6.0",
 		"date-fns": "^3.6.0",
 		"discord.js": "^14.16.3",
-		"dns2": "^2.1.0",
 		"eslint": "^8.57.1",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.44.1",
@@ -77,7 +75,11 @@
 		"vite-plugin-top-level-await": "^1.4.4",
 		"vite-plugin-wasm": "^3.3.0",
 		"ws": "^8.18.0",
-		"zod": "^3.23.8"
+		"zod": "^3.23.8",
+		"@types/dns-packet": "^5.6.5",
+		"dinodns": "^0.0.9",
+		"dns-packet": "^5.6.1",
+		"redis": "^4.7.0"
 	},
 	"dependencies": {
 		"@atproto/api": "^0.13.12",

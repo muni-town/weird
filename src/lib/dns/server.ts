@@ -239,7 +239,10 @@ export async function startDnsServer() {
 
 	// Start the DNS server
 	s.start(() => {
-		console.log('started weird dns server');
+		console.log('Started weird dns server');
+		console.log(
+			`    Resolved nameservers for ${pubenv.PUBLIC_DOMAIN} to ${selfIps}, assuming that resolves to this Weird server.`
+		);
 	});
 
 	return redis;

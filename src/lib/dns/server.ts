@@ -43,8 +43,8 @@ export async function startDnsServer() {
 
 	const s = new server.DefaultServer({
 		networks: [
-			new network.DNSOverTCP('localhost', DNS_PORT),
-			new network.DNSOverUDP('localhost', DNS_PORT)
+			new network.DNSOverTCP('0.0.0.0', DNS_PORT),
+			new network.DNSOverUDP('0.0.0.0', DNS_PORT)
 		]
 	});
 

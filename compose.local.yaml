@@ -37,16 +37,16 @@ services:
       - rauthy:/app/data
 
   backend:
-    image: ghcr.io/muni-town/leaf-rpc-server:main
+    image: leaf-rpc-server:main
     environment:
       DATA_DIR: /data
     volumes:
       - data:/data
-    # build:
-    #   dockerfile: leaf-rpc-server.Dockerfile
+    build:
+      dockerfile: leaf-rpc-server.Dockerfile
 
   weird:
-    image: ghcr.io/muni-town/weird:main
+    image: weird:main
     env_file: .env.local
     environment:
       BODY_SIZE_LIMIT: 15M
@@ -54,10 +54,8 @@ services:
       BACKEND_URL: http://backend:7431
     ports:
       - 9523:3000
-      - 7753:7753/udp
-      - 7753:7753/tcp
-    # build:
-    #   dockerfile: weird.Dockerfile
+    build:
+      dockerfile: weird.Dockerfile
 
 volumes:
   rauthy:

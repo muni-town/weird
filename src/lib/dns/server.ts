@@ -8,7 +8,7 @@ import * as network from 'dinodns/common/network';
 import type { SupportedAnswer } from 'dinodns/types/dns';
 import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
-import { AUTHENTIC_DATA, AUTHORITATIVE_ANSWER, type SoaAnswer } from 'dns-packet';
+import { AUTHORITATIVE_ANSWER, type SoaAnswer } from 'dns-packet';
 import { z } from 'zod';
 
 const REDIS_USER_PREFIX = 'weird:users:';
@@ -115,7 +115,7 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		if (question.type == 'SOA') {
-			res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
+			res.packet.flags = res.packet.flags;
 			return res.answer(makeSoaAnswer(question.name));
 		}
 
@@ -128,7 +128,7 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		if (question.type == 'NS') {
-			res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
+			res.packet.flags = res.packet.flags;
 			return res.answer(
 				DNS_NAMESERVERS.map((ns) => ({
 					type: 'NS',

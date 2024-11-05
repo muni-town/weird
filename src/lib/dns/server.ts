@@ -98,7 +98,8 @@ export async function startDnsServer() {
 					name: pubenv.PUBLIC_USER_DOMAIN_PARENT,
 					data: {
 						mname: DNS_MASTER,
-						rname: DNS_EMAIL
+						rname: DNS_EMAIL,
+						serial: 1,
 					}
 				});
 			} else {

@@ -8,7 +8,7 @@ import * as network from 'dinodns/common/network';
 import type { SupportedAnswer } from 'dinodns/types/dns';
 import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
-import { AUTHENTIC_DATA, AUTHORITATIVE_ANSWER } from 'dns-packet';
+import { AUTHENTIC_DATA, AUTHORITATIVE_ANSWER, type SoaAnswer } from 'dns-packet';
 import { z } from 'zod';
 
 const REDIS_USER_PREFIX = 'weird:users:';
@@ -45,6 +45,17 @@ const matchesAllowedDomains = (name: string): boolean => {
 	}
 
 	return false;
+};
+const makeSoaAnswer = (name: string): SoaAnswer => {
+	return {
+		name: name.split('.').slice(-2).join('.'),
+		type: 'SOA',
+		data: {
+			mname: DNS_MASTER,
+			rname: DNS_EMAIL,
+			serial: 1
+		}
+	};
 };
 
 /**
@@ -105,15 +116,7 @@ export async function startDnsServer() {
 		const question = req.packet.questions[0];
 		if (question.type == 'SOA') {
 			res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
-			return res.answer({
-				type: 'SOA',
-				name: pubenv.PUBLIC_USER_DOMAIN_PARENT,
-				data: {
-					mname: DNS_MASTER,
-					rname: DNS_EMAIL,
-					serial: 1
-				}
-			});
+			return res.answer(makeSoaAnswer(question.name));
 		}
 
 		next();
@@ -354,7 +357,13 @@ export async function startDnsServer() {
 	// Return noerror if nothing else has responded yet.
 	//
 	// An earlier middleware will reject the record with an NXDOMAIN error if the domain doesn't match.
-	s.use(async (_req, res, next) => {
+	s.use(async (req, res, next) => {
+		if (res.packet.answers.length == 0) {
+			// Comply with RFC 2308 Section 2.2 by returning an SOA record when there are no other
+			// answers.
+			res.packet.raw.authorities = [makeSoaAnswer(req.packet.questions[0].name)];
+		}
+
 		if (!res.finished) {
 			res.resolve();
 		}

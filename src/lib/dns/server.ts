@@ -62,6 +62,14 @@ export async function startDnsServer() {
 	// the NS ( nameserver ) records associated to our public domain.
 	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
 
+	// Set all answers to authoritative by default
+	s.use(async (_req, res, next) => {
+		if (res.finished) return next();
+
+		res.packet.flags = res.packet.flags | AUTHORITATIVE_ANSWER;
+		next();
+	});
+
 	// Now we can add an A record that will direct web traffic to the app
 	staticRecords.set(appDomain, 'A', APP_IPS);
 	s.use(staticRecords.handler);
@@ -75,14 +83,6 @@ export async function startDnsServer() {
 		} else {
 			next();
 		}
-	});
-
-	// Set all answers to authoritative by default
-	s.use(async (_req, res, next) => {
-		if (res.finished) return next();
-
-		res.packet.flags = res.packet.flags | AUTHORITATIVE_ANSWER;
-		next();
 	});
 
 	// Return SOA responses

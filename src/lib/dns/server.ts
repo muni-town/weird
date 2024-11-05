@@ -8,8 +8,8 @@ import * as network from 'dinodns/common/network';
 import type { SupportedAnswer } from 'dinodns/types/dns';
 import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
+import { AUTHORITATIVE_ANSWER } from 'dns-packet';
 import { z } from 'zod';
-import { parse } from 'node:path';
 
 const REDIS_USER_PREFIX = 'weird:users:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -77,7 +77,13 @@ export async function startDnsServer() {
 		const results = (await Promise.all(
 			req.packet.questions.map(
 				(question) =>
-					new Promise(async (returnAnswers) => {
+					new Promise(async (ret) => {
+						const returnAnswers = (v: any) => {
+							if (v) {
+								res.packet.flags = res.packet.flags | AUTHORITATIVE_ANSWER;
+							}
+							ret(v);
+						};
 						const { type, name } = question;
 						const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name;
 						let record;
@@ -165,7 +171,11 @@ export async function startDnsServer() {
 		const results = (await Promise.all(
 			req.packet.questions.map(
 				(question) =>
-					new Promise(async (returnAnswers) => {
+					new Promise(async (ret) => {
+						const returnAnswers = (v: any) => {
+							res.packet.flags = res.packet.flags | AUTHORITATIVE_ANSWER;
+							ret(v);
+						};
 						const { type, name } = question;
 						switch (type) {
 							case 'TXT':

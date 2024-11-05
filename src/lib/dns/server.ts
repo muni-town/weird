@@ -9,6 +9,7 @@ import type { SupportedAnswer } from 'dinodns/types/dns';
 import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
 import { z } from 'zod';
+import { parse } from 'node:path';
 
 const REDIS_USER_PREFIX = 'weird:users:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -55,7 +56,7 @@ export async function startDnsServer() {
 	// Because Weird is both the DNS server and the app server, we look up
 	// the NS ( nameserver ) records associated to our public domain.
 	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
-	const appParentDomain = appDomain.split('.').slice(-2).join('.')
+	const appParentDomain = appDomain.split('.').slice(-2).join('.');
 	const selfIps = (await new Promise((finish) => {
 		dns.resolveNs(appParentDomain, (err, addrs) => {
 			if (err) {
@@ -81,17 +82,64 @@ export async function startDnsServer() {
 						const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name;
 						let record;
 						try {
+							const extraRecords: { name: string; type: string; data: string; ttl?: number }[] = [];
+
+							// If this is an A record query, we also need to check for CNAME
+							// records.
+							if (type == 'A') {
+								const redisCnameKey = REDIS_DNS_RECORD_PREFIX + 'CNAME:' + name;
+								record = await redis.get(redisCnameKey);
+								if (record) {
+									try {
+										const parsed = redisDnsRecordSchema.parse(JSON.parse(record));
+										extraRecords.push(
+											...parsed.map((r) => ({
+												name,
+												type: 'CNAME',
+												data: r.data,
+												ttl: r.ttl
+											}))
+										);
+										const aRecordIps = (
+											await Promise.all(
+												parsed.map(
+													(record) =>
+														new Promise((ret) => {
+															dns.resolve(record.data, (err, addrs) => {
+																console.log(err);
+																if (!err) {
+																	ret(addrs);
+																}
+															});
+														})
+												)
+											)
+										).flat() as string[];
+										extraRecords.push(
+											...aRecordIps.map((ip) => ({
+												name,
+												type: 'A',
+												data: ip
+											}))
+										);
+									} catch (e) {
+										console.warn('Error parsing DNS record from redis:', redisKey, record, e);
+									}
+								}
+							}
+
 							record = await redis.get(redisKey);
-							if (!record) return returnAnswers(null);
+							if (!record) return returnAnswers(extraRecords);
 							const parsed = redisDnsRecordSchema.parse(JSON.parse(record));
-							returnAnswers(
-								parsed.map((record) => ({
+							returnAnswers([
+								...extraRecords,
+								...parsed.map((record) => ({
 									name,
 									type,
 									data: record.data,
 									ttl: record.ttl
 								}))
-							);
+							]);
 						} catch (e) {
 							console.warn('Error parsing DNS record from redis:', redisKey, record, e);
 							returnAnswers(null);

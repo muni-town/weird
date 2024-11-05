@@ -108,20 +108,20 @@ export async function startDnsServer() {
 															dns.resolve(record.data, (err, addrs) => {
 																console.log(err);
 																if (!err) {
-																	ret(addrs);
+																	ret(
+																		addrs.map((ip) => ({
+																			name: record.data,
+																			type: 'A',
+																			data: ip
+																		}))
+																	);
 																}
 															});
 														})
 												)
 											)
-										).flat() as string[];
-										extraRecords.push(
-											...aRecordIps.map((ip) => ({
-												name,
-												type: 'A',
-												data: ip
-											}))
-										);
+										).flat() as { name: string; type: 'A'; data: string }[];
+										extraRecords.push(...aRecordIps);
 									} catch (e) {
 										console.warn('Error parsing DNS record from redis:', redisKey, record, e);
 									}

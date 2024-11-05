@@ -91,11 +91,11 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		if (question.type == 'SOA') {
-			if (question.name.endsWith(pubenv.PUBLIC_DOMAIN)) {
+			if (question.name.endsWith(pubenv.PUBLIC_USER_DOMAIN_PARENT)) {
 				res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
 				return res.answer({
 					type: 'SOA',
-					name: pubenv.PUBLIC_DOMAIN,
+					name: pubenv.PUBLIC_USER_DOMAIN_PARENT,
 					data: {
 						mname: DNS_MASTER,
 						rname: DNS_EMAIL
@@ -115,7 +115,7 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		if (question.type == 'NS') {
-			if (question.name == pubenv.PUBLIC_DOMAIN) {
+			if (question.name == pubenv.PUBLIC_USER_DOMAIN_PARENT) {
 				res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
 				return res.answer(
 					DNS_NAMESERVERS.map((ns) => ({

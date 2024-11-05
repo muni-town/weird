@@ -2,7 +2,6 @@ import { env } from '$env/dynamic/private';
 import { env as pubenv } from '$env/dynamic/public';
 import { createClient } from 'redis';
 import dns, { type AnyRecord } from 'node:dns';
-import packet from 'dns-packet';
 
 import * as server from 'dinodns/common/server';
 import * as network from 'dinodns/common/network';
@@ -43,6 +42,7 @@ const soaSplit = env.DNS_SOA_EMAIL.split('@');
 const DNS_EMAIL = soaSplit[0].replace('.', '\\.') + '.' + soaSplit[1];
 const DNS_NAMESERVERS = env.DNS_NAMESERVERS.split(',');
 const ALLOWED_DOMAINS = env.DNS_ALLOWED_DOMAINS.toLowerCase().split(',');
+const DNS_TTL = parseInt(env.DNS_TTL || '300');
 const DNS_LOG_VERBOSE =
 	!!env.DNS_LOG_VERBOSE && env.DNS_LOG_VERBOSE != '0' && env.DNS_LOG_VERBOSE != 'false';
 const matchesAllowedDomains = (name: string): boolean => {
@@ -61,7 +61,8 @@ const makeSoaAnswer = (name: string): SoaAnswer => {
 			mname: DNS_MASTER,
 			rname: DNS_EMAIL,
 			serial: 1
-		}
+		},
+		ttl: DNS_TTL
 	};
 };
 const makeNsAnswers = (name: string): SupportedAnswer[] => {
@@ -70,7 +71,8 @@ const makeNsAnswers = (name: string): SupportedAnswer[] => {
 			({
 				name: name.split('.').slice(-2).join('.'),
 				type: 'NS',
-				data: ns
+				data: ns,
+				ttl: DNS_TTL
 			}) as SupportedAnswer
 	);
 };
@@ -203,7 +205,8 @@ export async function startDnsServer() {
 														({
 															name: record.data,
 															type: 'A',
-															data: ip
+															data: ip,
+															ttl: DNS_TTL
 														}) as SupportedAnswer
 												)
 											];
@@ -285,7 +288,7 @@ export async function startDnsServer() {
 										name,
 										type,
 										data: pubkey,
-										ttl: 0
+										ttl: DNS_TTL
 									}
 								]);
 								break;
@@ -354,7 +357,7 @@ export async function startDnsServer() {
 													name,
 													type,
 													data: answer,
-													ttl: 300
+													ttl: DNS_TTL
 												}))
 											);
 										} else {
@@ -370,7 +373,7 @@ export async function startDnsServer() {
 											name,
 											type,
 											data: localServer,
-											ttl: 300
+											ttl: DNS_TTL
 										}
 									]);
 								default:

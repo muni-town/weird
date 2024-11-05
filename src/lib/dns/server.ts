@@ -10,6 +10,7 @@ import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
 import { AUTHORITATIVE_ANSWER, type SoaAnswer } from 'dns-packet';
 import { z } from 'zod';
+import { RCode } from 'dinodns/common/core/utils';
 
 const REDIS_USER_PREFIX = 'weird:users:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -31,6 +32,8 @@ const WEIRD_HOST_TXT_RECORD_REGEX = new RegExp(
 const WEIRD_HOST_A_RECORD_REGEX = new RegExp(
 	`^([^\\.]*)\\.${escapeStringForEmbeddingInRegex(pubenv.PUBLIC_USER_DOMAIN_PARENT.split(':')[0])}$`
 );
+const VALID_DOMAIN_REGEX =
+	/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/;
 
 const DNS_PORT = parseInt(env.DNS_PORT || '53');
 const APP_IPS = env.APP_IPS.split(',');
@@ -109,6 +112,16 @@ export async function startDnsServer() {
 	staticRecords.set(appDomain, 'A', APP_IPS);
 	s.use(staticRecords.handler);
 
+	// Reject queries that are not valid domain names
+	s.use(async (req, res, next) => {
+		if (res.finished) return next();
+		const name = req.packet.questions[0].name;
+		if (!name.match(VALID_DOMAIN_REGEX)) {
+			res.errors.refused();
+		};
+		next();
+	});
+
 	// Reject queries for non-allowed domains ( when not in development )
 	s.use(async (req, res, next) => {
 		if (res.finished) return next();
@@ -177,8 +190,10 @@ export async function startDnsServer() {
 							(record) =>
 								new Promise((done) => {
 									dns.resolve(record.data, (err, addrs) => {
-										console.error('Error looking up A record for cname', record.data, err);
-										if (err) return done(null);
+										if (err) {
+											console.error('Error looking up A record for cname', record.data, err);
+											return done(null);
+										}
 										res.packet.answers = [
 											...req.packet.answers,
 											...addrs.map(
@@ -347,12 +362,15 @@ export async function startDnsServer() {
 			)) as (SupportedAnswer[] | null)[];
 
 			// Return answers
-			res.answer(
-				results
-					.filter((x) => !!x)
-					.map((x) => x as unknown as SupportedAnswer)
-					.flat()
-			);
+			const filtered = results
+				.filter((x) => !!x)
+				.map((x) => x as unknown as SupportedAnswer)
+				.flat();
+			if (filtered.length > 0) {
+				res.answer(filtered);
+			} else {
+				res.errors.nxDomain();
+			}
 
 			next();
 		});
@@ -362,18 +380,25 @@ export async function startDnsServer() {
 	//
 	// An earlier middleware will reject the record with an NXDOMAIN error if the domain doesn't match.
 	s.use(async (req, res, next) => {
+		if (res.finished) return next();
+
 		const question = req.packet.questions[0];
-		if (res.packet.answers.length == 0) {
-			// Comply with RFC 2308 Section 2.2 by returning an SOA record when there are no other
-			// answers.
-			res.packet.raw.authorities = [makeSoaAnswer(question.name)];
-		} else if (question.type != 'NS' && question.type != 'SOA') {
-			res.packet.raw.authorities = makeNsAnswers(question.name);
+
+		// If the response is not an error
+		if (((res.packet.raw.flags || 0) & RCode.NO_ERROR) == RCode.NO_ERROR) {
+			// If there are no answers
+			if (res.packet.answers.length == 0) {
+				// Comply with RFC 2308 Section 2.2 by returning an SOA record when there are no other
+				// answers.
+				res.packet.raw.authorities = [makeSoaAnswer(question.name)];
+				// If the answer should be supplemented with the NS authority records
+			} else if (question.type != 'NS' && question.type != 'SOA') {
+				res.packet.raw.authorities = makeNsAnswers(question.name);
+			}
 		}
 
-		if (!res.finished) {
-			res.resolve();
-		}
+		res.resolve();
+
 		next();
 	});
 

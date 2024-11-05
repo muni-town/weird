@@ -57,6 +57,16 @@ const makeSoaAnswer = (name: string): SoaAnswer => {
 		}
 	};
 };
+const makeNsAnswers = (name: string): SupportedAnswer[] => {
+	return DNS_NAMESERVERS.map(
+		(ns) =>
+			({
+				name: name.split('.').slice(-2).join('.'),
+				type: 'NS',
+				data: ns
+			}) as SupportedAnswer
+	);
+};
 
 /**
  * Start the Weird DNS server and return the `Redis` store with the mapping from username
@@ -129,13 +139,7 @@ export async function startDnsServer() {
 		const question = req.packet.questions[0];
 		if (question.type == 'NS') {
 			res.packet.flags = res.packet.flags;
-			return res.answer(
-				DNS_NAMESERVERS.map((ns) => ({
-					type: 'NS',
-					name: question.name,
-					data: ns
-				}))
-			);
+			return res.answer(makeNsAnswers(question.name));
 		}
 
 		next();
@@ -358,10 +362,13 @@ export async function startDnsServer() {
 	//
 	// An earlier middleware will reject the record with an NXDOMAIN error if the domain doesn't match.
 	s.use(async (req, res, next) => {
+		const question = req.packet.questions[0];
 		if (res.packet.answers.length == 0) {
 			// Comply with RFC 2308 Section 2.2 by returning an SOA record when there are no other
 			// answers.
-			res.packet.raw.authorities = [makeSoaAnswer(req.packet.questions[0].name)];
+			res.packet.raw.authorities = [makeSoaAnswer(question.name)];
+		} else if (question.type != 'NS' && question.type != 'SOA') {
+			res.packet.raw.authorities = makeNsAnswers(question.name);
 		}
 
 		if (!res.finished) {

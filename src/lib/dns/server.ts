@@ -38,6 +38,7 @@ const DNS_MASTER = env.DNS_SOA_MASTER;
 const soaSplit = env.DNS_SOA_EMAIL.split('@');
 const DNS_EMAIL = soaSplit[0].replace('.', '\\.') + '.' + soaSplit[1];
 const DNS_NAMESERVERS = env.DNS_NAMESERVERS.split(',');
+const ALLOWED_DOMAINS = env.DNS_ALLOWED_DOMAINS.split(',');
 
 /**
  * Start the Weird DNS server and return the `Redis` store with the mapping from username
@@ -70,10 +71,7 @@ export async function startDnsServer() {
 		next();
 	});
 
-	// Now we can add an A record that will direct web traffic to the app
-	staticRecords.set(appDomain, 'A', APP_IPS);
-	s.use(staticRecords.handler);
-
+	// Return a not-implemented error if there are more than one question in the request.
 	s.use(async (req, res, next) => {
 		if (res.finished) return next();
 
@@ -84,6 +82,25 @@ export async function startDnsServer() {
 			next();
 		}
 	});
+
+	// Return an error if the query is not for an allowed domain
+	s.use(async (req, res, next) => {
+		const reqName = req.packet.questions[0].name;
+		let matches = false;
+		for (const domain of ALLOWED_DOMAINS) {
+			if (domain == reqName && reqName.endsWith(`.${domain}`)) {
+				matches = true;
+				break;
+			}
+		}
+		if (!matches) res.errors.nxDomain();
+
+		next();
+	});
+
+	// Now we can add an A record that will direct web traffic to the app
+	staticRecords.set(appDomain, 'A', APP_IPS);
+	s.use(staticRecords.handler);
 
 	// Return SOA responses
 	s.use(async (req, res, next) => {
@@ -99,7 +116,7 @@ export async function startDnsServer() {
 					data: {
 						mname: DNS_MASTER,
 						rname: DNS_EMAIL,
-						serial: 1,
+						serial: 1
 					}
 				});
 			} else {
@@ -345,6 +362,16 @@ export async function startDnsServer() {
 			next();
 		});
 	}
+
+	// Return noerror if nothing else has responded yet.
+	//
+	// An earlier middleware will reject the record with an NXDOMAIN error if the domain doesn't match.
+	s.use(async (_req, res, next) => {
+		if (!res.finished) {
+			res.resolve();
+		}
+		next();
+	});
 
 	// Start the DNS server
 	s.start(() => {

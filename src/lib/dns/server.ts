@@ -120,10 +120,23 @@ export async function startDnsServer() {
 	});
 
 	// Add an A record that will direct web traffic to the app
-	const staticRecords = new DefaultStore();
-	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
-	staticRecords.set(appDomain, 'A', APP_IPS);
-	s.use(staticRecords.handler);
+	s.use(async (req, res, next) => {
+		if (res.finished) return next();
+		const question = req.packet.questions[0];
+
+		if (question.name == pubenv.PUBLIC_DOMAIN.split(':')[0] && question.type == 'A') {
+			res.answer(
+				APP_IPS.map((ip) => ({
+					name: question.name,
+					type: 'A',
+					data: ip,
+					ttl: DNS_TTL
+				}))
+			);
+		}
+
+		next();
+	});
 
 	// Reject queries that are not valid domain names
 	s.use(async (req, res, next) => {

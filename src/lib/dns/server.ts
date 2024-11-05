@@ -2,6 +2,7 @@ import { env } from '$env/dynamic/private';
 import { env as pubenv } from '$env/dynamic/public';
 import { createClient } from 'redis';
 import dns, { type AnyRecord } from 'node:dns';
+import packet from 'dns-packet';
 
 import * as server from 'dinodns/common/server';
 import * as network from 'dinodns/common/network';
@@ -42,6 +43,8 @@ const soaSplit = env.DNS_SOA_EMAIL.split('@');
 const DNS_EMAIL = soaSplit[0].replace('.', '\\.') + '.' + soaSplit[1];
 const DNS_NAMESERVERS = env.DNS_NAMESERVERS.split(',');
 const ALLOWED_DOMAINS = env.DNS_ALLOWED_DOMAINS.split(',');
+const DNS_LOG_VERBOSE =
+	!!env.DNS_LOG_VERBOSE && env.DNS_LOG_VERBOSE != '0' && env.DNS_LOG_VERBOSE != 'false';
 const matchesAllowedDomains = (name: string): boolean => {
 	for (const domain of ALLOWED_DOMAINS) {
 		if (name == domain || name.endsWith(`.${domain}`)) return true;
@@ -94,6 +97,13 @@ export async function startDnsServer() {
 		next();
 	});
 
+	if (DNS_LOG_VERBOSE) {
+		s.use(async (req, _res, next) => {
+			console.log('DNS Request:', req.packet.questions);
+			next();
+		});
+	}
+
 	// Return a not-implemented error if there are more than one question in the request.
 	s.use(async (req, res, next) => {
 		if (res.finished) return next();
@@ -118,7 +128,7 @@ export async function startDnsServer() {
 		const name = req.packet.questions[0].name;
 		if (!name.match(VALID_DOMAIN_REGEX)) {
 			res.errors.refused();
-		};
+		}
 		next();
 	});
 
@@ -401,6 +411,42 @@ export async function startDnsServer() {
 
 		next();
 	});
+
+	if (DNS_LOG_VERBOSE) {
+		s.use(async (req, res, next) => {
+			const rcode = res.packet.flags & 0xf;
+			let rcodeStr = 'UNKNOWN';
+			switch (rcode) {
+				case RCode.FORMAT_ERROR:
+					rcodeStr = 'FORMAT_ERROR';
+					break;
+				case RCode.NO_ERROR:
+					rcodeStr = 'NO_ERROR';
+					break;
+				case RCode.REFUSED:
+					rcodeStr = 'REFUSED';
+					break;
+				case RCode.NX_DOMAIN:
+					rcodeStr = 'NX_DOMAIN';
+					break;
+				case RCode.SERVER_FAILURE:
+					rcodeStr = 'SERVER_FAILURE';
+					break;
+				case RCode.NOT_IMPLEMENTED:
+					rcodeStr = 'NOT_IMPLEMENTED';
+					break;
+			}
+
+			console.log('DNS Response:', {
+				rcode: rcodeStr,
+				questions: req.packet.questions,
+				answers: res.packet.answers,
+				authorities: res.packet.raw.authorities,
+				additionals: res.packet.additionals
+			});
+			next();
+		});
+	}
 
 	// Start the DNS server
 	s.start(() => {

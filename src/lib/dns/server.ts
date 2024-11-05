@@ -8,7 +8,7 @@ import * as network from 'dinodns/common/network';
 import type { SupportedAnswer } from 'dinodns/types/dns';
 import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
-import { AUTHENTIC_DATA, AUTHORITATIVE_ANSWER, RECURSION_AVAILABLE } from 'dns-packet';
+import { AUTHENTIC_DATA, AUTHORITATIVE_ANSWER } from 'dns-packet';
 import { z } from 'zod';
 
 const REDIS_USER_PREFIX = 'weird:users:';
@@ -39,6 +39,13 @@ const soaSplit = env.DNS_SOA_EMAIL.split('@');
 const DNS_EMAIL = soaSplit[0].replace('.', '\\.') + '.' + soaSplit[1];
 const DNS_NAMESERVERS = env.DNS_NAMESERVERS.split(',');
 const ALLOWED_DOMAINS = env.DNS_ALLOWED_DOMAINS.split(',');
+const matchesAllowedDomains = (name: string): boolean => {
+	for (const domain of ALLOWED_DOMAINS) {
+		if (name == domain || name.endsWith(`.${domain}`)) return true;
+	}
+
+	return false;
+};
 
 /**
  * Start the Weird DNS server and return the `Redis` store with the mapping from username
@@ -54,14 +61,6 @@ export async function startDnsServer() {
 			new network.DNSOverUDP('0.0.0.0', DNS_PORT)
 		]
 	});
-
-	// Setup our static records
-
-	const staticRecords = new DefaultStore();
-
-	// Because Weird is both the DNS server and the app server, we look up
-	// the NS ( nameserver ) records associated to our public domain.
-	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
 
 	// Set all answers to authoritative by default
 	s.use(async (_req, res, next) => {
@@ -83,24 +82,21 @@ export async function startDnsServer() {
 		}
 	});
 
-	// Return an error if the query is not for an allowed domain
-	s.use(async (req, res, next) => {
-		const reqName = req.packet.questions[0].name;
-		let matches = false;
-		for (const domain of ALLOWED_DOMAINS) {
-			if (domain == reqName && reqName.endsWith(`.${domain}`)) {
-				matches = true;
-				break;
-			}
-		}
-		if (!matches) res.errors.nxDomain();
-
-		next();
-	});
-
-	// Now we can add an A record that will direct web traffic to the app
+	// Add an A record that will direct web traffic to the app
+	const staticRecords = new DefaultStore();
+	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
 	staticRecords.set(appDomain, 'A', APP_IPS);
 	s.use(staticRecords.handler);
+
+	// Reject queries for non-allowed domains ( when not in development )
+	s.use(async (req, res, next) => {
+		if (res.finished) return next();
+		const name = req.packet.questions[0].name;
+		if (!dev) {
+			if (!matchesAllowedDomains(name)) res.errors.nxDomain();
+		}
+		next();
+	});
 
 	// Return SOA responses
 	s.use(async (req, res, next) => {
@@ -108,20 +104,16 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		if (question.type == 'SOA') {
-			if (question.name.endsWith(pubenv.PUBLIC_USER_DOMAIN_PARENT)) {
-				res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
-				return res.answer({
-					type: 'SOA',
-					name: pubenv.PUBLIC_USER_DOMAIN_PARENT,
-					data: {
-						mname: DNS_MASTER,
-						rname: DNS_EMAIL,
-						serial: 1
-					}
-				});
-			} else {
-				return res.errors.refused();
-			}
+			res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
+			return res.answer({
+				type: 'SOA',
+				name: pubenv.PUBLIC_USER_DOMAIN_PARENT,
+				data: {
+					mname: DNS_MASTER,
+					rname: DNS_EMAIL,
+					serial: 1
+				}
+			});
 		}
 
 		next();
@@ -133,18 +125,14 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		if (question.type == 'NS') {
-			if (question.name == pubenv.PUBLIC_USER_DOMAIN_PARENT) {
-				res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
-				return res.answer(
-					DNS_NAMESERVERS.map((ns) => ({
-						type: 'NS',
-						name: question.name,
-						data: ns
-					}))
-				);
-			} else {
-				return res.errors.refused();
-			}
+			res.packet.flags = res.packet.flags | AUTHENTIC_DATA;
+			return res.answer(
+				DNS_NAMESERVERS.map((ns) => ({
+					type: 'NS',
+					name: question.name,
+					data: ns
+				}))
+			);
 		}
 
 		next();

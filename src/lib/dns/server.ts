@@ -56,17 +56,7 @@ export async function startDnsServer() {
 	// Because Weird is both the DNS server and the app server, we look up
 	// the NS ( nameserver ) records associated to our public domain.
 	const appDomain = pubenv.PUBLIC_DOMAIN.split(':')[0];
-	const appParentDomain = appDomain.split('.').slice(-2).join('.');
-	const selfIps = (await new Promise((finish) => {
-		dns.resolveNs(appParentDomain, (err, addrs) => {
-			if (err) {
-				// If we can't resolve it, assume we are in local development
-				finish(['127.0.0.1']);
-			} else {
-				finish(addrs);
-			}
-		});
-	})) as string[];
+	const selfIps = pubenv.PUBLIC_IPS.split(',');
 
 	// Now we can add an A record that will direct web traffic to the app
 	staticRecords.set(appDomain, 'A', selfIps);
@@ -299,9 +289,6 @@ export async function startDnsServer() {
 	// Start the DNS server
 	s.start(() => {
 		console.log('Started weird dns server');
-		console.log(
-			`    Resolved nameservers for ${pubenv.PUBLIC_DOMAIN} to ${selfIps}, assuming that resolves to this Weird server.`
-		);
 	});
 
 	return redis;

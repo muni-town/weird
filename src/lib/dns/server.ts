@@ -174,6 +174,7 @@ export async function startDnsServer() {
 
 		const question = req.packet.questions[0];
 		const { type, name } = question;
+		const isApex = name.split('.').length == 2;
 		let record;
 		// If this is an A record query, we also need to check for CNAME
 		// records.
@@ -183,44 +184,51 @@ export async function startDnsServer() {
 			if (record) {
 				try {
 					const parsed = redisDnsRecordSchema.parse(JSON.parse(record));
-					req.packet.answers = [
-						...req.packet.answers,
-						...parsed.map(
-							(r) =>
-								({
-									name,
-									type: 'CNAME',
-									data: r.data,
-									ttl: r.ttl
-								}) as SupportedAnswer
-						)
-					];
-					await Promise.all(
-						parsed.map(
-							(record) =>
-								new Promise((done) => {
-									dns.resolve(record.data, (err, addrs) => {
-										if (err) {
-											console.error('Error looking up A record for cname', record.data, err);
-											return done(null);
-										}
-										res.packet.answers = [
-											...req.packet.answers,
-											...addrs.map(
-												(ip) =>
-													({
-														name: record.data,
-														type: 'A',
-														data: ip
-													}) as SupportedAnswer
-											)
-										];
-										done(null);
-									});
-								})
-						)
-					);
-					res.resolve();
+					// If this is an apex, do cname flattening by resolving it to A records
+					if (isApex) {
+						await Promise.all(
+							parsed.map(
+								(record) =>
+									new Promise((done) => {
+										dns.resolve(record.data, (err, addrs) => {
+											if (err) {
+												console.error('Error looking up A record for CNAME', record.data, err);
+												return done(null);
+											}
+											res.packet.answers = [
+												...req.packet.answers,
+												...addrs.map(
+													(ip) =>
+														({
+															name: record.data,
+															type: 'A',
+															data: ip
+														}) as SupportedAnswer
+												)
+											];
+											done(null);
+										});
+									})
+							)
+						);
+						res.resolve();
+						return next();
+
+						// If this is not an apex
+					} else {
+						res.answer(
+							parsed.map(
+								(r) =>
+									({
+										name,
+										type: 'CNAME',
+										data: r.data,
+										ttl: r.ttl
+									}) as SupportedAnswer
+							)
+						);
+						return next();
+					}
 				} catch (e) {
 					console.warn('Error parsing DNS record from redis:', redisKey, record, e);
 				}

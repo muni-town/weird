@@ -34,7 +34,7 @@ const WEIRD_HOST_A_RECORD_REGEX = new RegExp(
 	`^([^\\.]*)\\.${escapeStringForEmbeddingInRegex(pubenv.PUBLIC_USER_DOMAIN_PARENT.split(':')[0])}$`
 );
 const VALID_DOMAIN_REGEX =
-	/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/;
+	/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/i;
 
 const DNS_PORT = parseInt(env.DNS_PORT || '53');
 const APP_IPS = env.APP_IPS.split(',');

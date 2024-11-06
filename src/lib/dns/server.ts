@@ -74,6 +74,7 @@ export async function startDnsServer() {
 		.connect();
 
 	const makeSoaAnswer = async (name: string): Promise<SoaAnswer> => {
+		const serial = await redis.get('weird:dns:serial');
 		return {
 			name: name.split('.').slice(-2).join('.'),
 			type: 'SOA',
@@ -82,7 +83,7 @@ export async function startDnsServer() {
 				rname: DNS_EMAIL,
 				// TODO: find way to update DNS serial automatically every time DNS resolution may
 				// change.
-				serial: parseInt((await redis.get('weird:dns:serial')) || Date.now().toString()),
+				serial: (serial && parseInt(serial)) || (Date.now() / 1000 / 60 / 60 / 24) * 99,
 				refresh: DNS_TTL * 4,
 				retry: DNS_TTL * 4,
 				expire: 86400, // One day

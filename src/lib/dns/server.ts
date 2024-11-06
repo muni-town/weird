@@ -53,18 +53,6 @@ const matchesAllowedDomains = (name: string): boolean => {
 
 	return false;
 };
-const makeSoaAnswer = (name: string): SoaAnswer => {
-	return {
-		name: name.split('.').slice(-2).join('.'),
-		type: 'SOA',
-		data: {
-			mname: DNS_MASTER,
-			rname: DNS_EMAIL,
-			serial: 1
-		},
-		ttl: DNS_TTL
-	};
-};
 const makeNsAnswers = (name: string): SupportedAnswer[] => {
 	return DNS_NAMESERVERS.map(
 		(ns) =>
@@ -84,6 +72,25 @@ export async function startDnsServer() {
 	const redis = await createClient({ url: env.REDIS_URL })
 		.on('error', (err) => console.error('Redis client error', err))
 		.connect();
+
+	const makeSoaAnswer = async (name: string): Promise<SoaAnswer> => {
+		return {
+			name: name.split('.').slice(-2).join('.'),
+			type: 'SOA',
+			data: {
+				mname: DNS_MASTER,
+				rname: DNS_EMAIL,
+				// TODO: find way to update DNS serial automatically every time DNS resolution may
+				// change.
+				serial: parseInt((await redis.get('weird:dns:serial')) || Date.now().toString()),
+				refresh: DNS_TTL * 4,
+				retry: DNS_TTL * 4,
+				expire: 86400, // One day
+				minimum: DNS_TTL * 4
+			},
+			ttl: DNS_TTL
+		};
+	};
 
 	const s = new server.DefaultServer({
 		networks: [
@@ -165,7 +172,7 @@ export async function startDnsServer() {
 		const question = req.packet.questions[0];
 		if (question.type == 'SOA') {
 			res.packet.flags = res.packet.flags;
-			return res.answer(makeSoaAnswer(question.name));
+			return res.answer(await makeSoaAnswer(question.name));
 		}
 
 		next();
@@ -425,7 +432,7 @@ export async function startDnsServer() {
 			if (res.packet.answers.length == 0) {
 				// Comply with RFC 2308 Section 2.2 by returning an SOA record when there are no other
 				// answers.
-				res.packet.raw.authorities = [makeSoaAnswer(question.name)];
+				res.packet.raw.authorities = [await makeSoaAnswer(question.name)];
 				// If the answer should be supplemented with the NS authority records
 			} else if (question.type != 'NS' && question.type != 'SOA') {
 				res.packet.raw.authorities = makeNsAnswers(question.name);

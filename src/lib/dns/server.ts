@@ -199,6 +199,31 @@ export async function startDnsServer() {
 		const question = req.packet.questions[0];
 		const { type, name } = question;
 		const isApex = name.split('.').length == 2;
+
+		const resolveFromRedis = async () => {
+			// If there is not a CNAME record at for this domain, check for A records
+			const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name;
+			record = await redis.get(redisKey);
+			if (record) {
+				try {
+					const parsed = redisDnsRecordSchema.parse(JSON.parse(record));
+					res.answer(
+						parsed.map(
+							(record) =>
+								({
+									name,
+									type,
+									data: record.data,
+									ttl: record.ttl
+								}) as SupportedAnswer
+						)
+					);
+				} catch (e) {
+					console.warn('Error parsing DNS record from redis:', redisKey, record, e);
+				}
+			}
+		};
+
 		let record;
 		// If this is an A record query, we also need to check for CNAME
 		// records.
@@ -258,28 +283,10 @@ export async function startDnsServer() {
 					console.warn('Error parsing DNS record from redis:', redisKey, record, e);
 				}
 			} else {
-				// If there is not a CNAME record at for this domain, check for A records
-				const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name;
-				record = await redis.get(redisKey);
-				if (record) {
-					try {
-						const parsed = redisDnsRecordSchema.parse(JSON.parse(record));
-						res.answer(
-							parsed.map(
-								(record) =>
-									({
-										name,
-										type,
-										data: record.data,
-										ttl: record.ttl
-									}) as SupportedAnswer
-							)
-						);
-					} catch (e) {
-						console.warn('Error parsing DNS record from redis:', redisKey, record, e);
-					}
-				}
+				resolveFromRedis();
 			}
+		} else {
+			resolveFromRedis();
 		}
 
 		next();

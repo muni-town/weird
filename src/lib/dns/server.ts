@@ -202,7 +202,7 @@ export async function startDnsServer() {
 
 		const resolveFromRedis = async () => {
 			// If there is not a CNAME record at for this domain, check for A records
-			const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name;
+			const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name.toLowerCase();
 			record = await redis.get(redisKey);
 			if (record) {
 				try {
@@ -228,7 +228,7 @@ export async function startDnsServer() {
 		// If this is an A record query, we also need to check for CNAME
 		// records.
 		if (type == 'A') {
-			const redisKey = REDIS_DNS_RECORD_PREFIX + 'CNAME:' + name;
+			const redisKey = REDIS_DNS_RECORD_PREFIX + 'CNAME:' + name.toLowerCase();
 			record = await redis.get(redisKey);
 			if (record) {
 				try {

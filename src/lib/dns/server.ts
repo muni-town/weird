@@ -224,7 +224,7 @@ export async function startDnsServer() {
 												...addrs.map(
 													(ip) =>
 														({
-															name: record.data,
+															name: question.name,
 															type: 'A',
 															data: ip,
 															ttl: DNS_TTL

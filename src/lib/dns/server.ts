@@ -203,6 +203,9 @@ export async function startDnsServer() {
 		const resolveFromRedis = async () => {
 			// If there is not a CNAME record at for this domain, check for A records
 			const redisKey = REDIS_DNS_RECORD_PREFIX + type + ':' + name.toLowerCase();
+			if (type == 'CNAME' && isApex) {
+				return;
+			}
 			record = await redis.get(redisKey);
 			if (record) {
 				try {
@@ -283,10 +286,10 @@ export async function startDnsServer() {
 					console.warn('Error parsing DNS record from redis:', redisKey, record, e);
 				}
 			} else {
-				resolveFromRedis();
+				await resolveFromRedis();
 			}
 		} else {
-			resolveFromRedis();
+			await resolveFromRedis();
 		}
 
 		next();

@@ -1,16 +1,19 @@
+/**
+ * The Weird DNS server implementation.
+ */
+
 import { env } from '$env/dynamic/private';
 import { env as pubenv } from '$env/dynamic/public';
-import { createClient } from 'redis';
 import dns, { type AnyRecord } from 'node:dns';
 
 import * as server from 'dinodns/common/server';
 import * as network from 'dinodns/common/network';
 import type { SupportedAnswer } from 'dinodns/types/dns';
-import { DefaultStore } from 'dinodns/plugins/storage';
 import { dev } from '$app/environment';
 import { AUTHORITATIVE_ANSWER, type SoaAnswer } from 'dns-packet';
 import { z } from 'zod';
 import { RCode } from 'dinodns/common/core/utils';
+import { redis } from '$lib/redis';
 
 const REDIS_USER_PREFIX = 'weird:users:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -37,6 +40,7 @@ const VALID_DOMAIN_REGEX =
 
 const DNS_PORT = parseInt(env.DNS_PORT || '53');
 const APP_IPS = env.APP_IPS.split(',');
+const APP_DOMAIN = pubenv.PUBLIC_DOMAIN.split(':')[0].toLowerCase();
 const DNS_MASTER = env.DNS_SOA_MASTER;
 const soaSplit = env.DNS_SOA_EMAIL.split('@');
 const DNS_EMAIL = soaSplit[0].replace('.', '\\.') + '.' + soaSplit[1];
@@ -69,10 +73,6 @@ const makeNsAnswers = (name: string): SupportedAnswer[] => {
  * Start the Weird DNS server and return the `Redis` store with the mapping from username
  */
 export async function startDnsServer() {
-	const redis = await createClient({ url: env.REDIS_URL })
-		.on('error', (err) => console.error('Redis client error', err))
-		.connect();
-
 	const makeSoaAnswer = async (name: string): Promise<SoaAnswer> => {
 		const serial = await redis.get('weird:dns:serial');
 		return {
@@ -132,7 +132,7 @@ export async function startDnsServer() {
 		if (res.finished) return next();
 		const question = req.packet.questions[0];
 
-		if (question.name == pubenv.PUBLIC_DOMAIN.split(':')[0] && question.type == 'A') {
+		if (question.name.toLowerCase() == APP_DOMAIN && question.type == 'A') {
 			res.answer(
 				APP_IPS.map((ip) => ({
 					name: question.name,

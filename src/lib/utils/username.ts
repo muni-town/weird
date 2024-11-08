@@ -1,5 +1,7 @@
 import { env } from '$env/dynamic/public';
 
+export const validUsernameRegex = /^([a-z0-9][_-]?){3,32}$/;
+
 export interface Username {
 	name: string;
 	domain?: string;

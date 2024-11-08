@@ -15,7 +15,7 @@ import { z } from 'zod';
 import { RCode } from 'dinodns/common/core/utils';
 import { redis } from '$lib/redis';
 
-const REDIS_USER_PREFIX = 'weird:users:';
+const REDIS_USER_PREFIX = 'weird:users:names:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
 
 const redisDnsRecordSchema = z.array(
@@ -99,6 +99,12 @@ export async function startDnsServer() {
 			new network.DNSOverUDP('0.0.0.0', DNS_PORT)
 		]
 	});
+
+	// TODO: handle AXFR requests so we can setup a secondary DNS server.
+
+	// TODO: add glue records for nameservers ( I think ):
+	//
+	// https://serverfault.com/questions/309622/what-is-a-glue-record
 
 	// Set all answers to authoritative by default
 	s.use(async (_req, res, next) => {
@@ -312,7 +318,7 @@ export async function startDnsServer() {
 							case 'TXT':
 								const txtUsername = name.match(WEIRD_HOST_TXT_RECORD_REGEX)?.[1];
 								if (!txtUsername) return returnAnswers(null);
-								const pubkey = await redis.get(REDIS_USER_PREFIX + txtUsername);
+								const pubkey = await redis.hGet(REDIS_USER_PREFIX + txtUsername, 'subspace');
 								if (!pubkey) return returnAnswers(null);
 								returnAnswers([
 									{

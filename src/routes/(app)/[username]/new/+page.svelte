@@ -47,6 +47,10 @@
 	function handleSubmit(e: SubmitEvent) {
 		page.slug = slugifiedSlug;
 	}
+
+	$effect(() => {
+		page.slug = slugify(page.display_name || 'untitled', { strict: true, lower: true });
+	});
 </script>
 
 <svelte:head>
@@ -57,10 +61,6 @@
 	<div class="card m-4 mt-8 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
 		<h1 class="relative my-3 text-center text-4xl">
 			<div>
-				<button
-					class="variant-filled badge absolute right-[-4em] top-[-1em] z-10"
-					onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
-				>
 				<InlineTextEditor bind:this={displayNameEditorEl} bind:content={page.display_name} />
 			</div>
 		</h1>
@@ -68,10 +68,7 @@
 		<label class="flex flex-row items-center gap-2">
 			<span class="basis-40">Page Slug</span>
 			<div class="flex flex-grow flex-col">
-				<input class="input" placeholder="slug" bind:value={page.slug} />
-				<div class="ml-2 mt-1 text-sm">
-					<pre class="inline">&nbsp;{slugifiedSlug}</pre>
-				</div>
+				<input class="border-none bg-transparent" placeholder="slug" bind:value={page.slug} />
 			</div>
 		</label>
 		<div class="flex justify-end text-sm">

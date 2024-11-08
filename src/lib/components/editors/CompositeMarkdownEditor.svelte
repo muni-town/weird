@@ -56,12 +56,6 @@
 		<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}
 			>{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}</button
 		>
-
-		{#if !markdownMode}
-			<button class="variant-filled badge" onclick={() => richEditorEl.focus()}
-				>Click to Edit!</button
-			>
-		{/if}
 	</div>
 	{#if !markdownMode}
 		<RichMarkdownEditor bind:this={richEditorEl} bind:content={contentProxy.value} />

@@ -79,10 +79,6 @@
 			{#if !editingState.editing}
 				{data.page.display_name}
 			{:else}
-				<button
-					class="variant-filled badge absolute right-[-4em] top-[-2em] z-10"
-					onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
-				>
 				<InlineTextEditor
 					bind:this={displayNameEditorEl}
 					bind:content={editingState.page.display_name as string}
@@ -109,14 +105,11 @@
 				<span class="basis-40">Page Slug</span>
 				<div class="flex flex-grow flex-col">
 					<input
-						class="input basis-auto"
+						class="input border-none bg-transparent"
 						placeholder="slug"
 						disabled={!data.profileMatchesUserSession}
 						bind:value={editingState.page.slug}
 					/>
-					<div class="ml-2 mt-1 text-sm">
-						<pre class="inline">&nbsp;{slugifiedSlug}</pre>
-					</div>
 				</div>
 			</label>
 			<div class="flex justify-end text-sm">

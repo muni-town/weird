@@ -1,5 +1,10 @@
-import { claimUsername, deleteUsername } from '$lib/usernames';
+import { claimUsername, deleteUsername, listUsers } from '$lib/usernames';
+import type { ServerLoad } from '@sveltejs/kit';
 import type { Actions } from './$types';
+
+export const load: ServerLoad = async ({}) => {
+	return { users: await listUsers() };
+};
 
 export const actions = {
 	claimUsername: async ({ request }) => {

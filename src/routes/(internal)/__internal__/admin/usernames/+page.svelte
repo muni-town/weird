@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { ActionData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
-	const { form }: { form: ActionData } = $props();
+	const { form, data }: { form: ActionData; data: PageData } = $props();
 </script>
 
 {#if form?.error}
@@ -35,3 +35,24 @@
 		<button>Delete</button>
 	</fieldset>
 </form>
+
+<h2>Users</h2>
+
+<table>
+	<thead>
+		<tr>
+			<td>Username</td>
+			<td>Rauthy ID</td>
+			<td>Subspace</td>
+		</tr>
+	</thead>
+	<tbody>
+		{#each data.users as user}
+			<tr>
+				<td><a href={`/${user.username}`}>{user.username}</a></td>
+				<td>{user.rauthyId}</td>
+				<td>{user.subspace}</td>
+			</tr>
+		{/each}
+	</tbody>
+</table>

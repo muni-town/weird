@@ -56,13 +56,40 @@ export async function deleteUsername(username: string) {
 
 	const multi = redis.multi();
 
-	await multi.del(usernameKey);
+	multi.del(usernameKey);
 	if (user.subspace) {
-		await multi.del(USER_SUBSPACES_PREFIX + user.subspace);
+		multi.del(USER_SUBSPACES_PREFIX + user.subspace);
 	}
 	if (user.rauthyId) {
-		await multi.del(USER_RAUTHY_IDS_PREFIX + user.rauthyId);
+		multi.del(USER_RAUTHY_IDS_PREFIX + user.rauthyId);
 	}
 
 	await multi.exec();
+}
+
+export async function listUsers(): Promise<
+	{
+		username: string;
+		rauthyId: string;
+		subspace: string;
+	}[]
+> {
+	const userKeys = await redis.keys(USER_NAMES_PREFIX + '*');
+	return (
+		await Promise.all(
+			userKeys.map(async (key) => {
+				try {
+					const segments = key.split(':');
+					const username = segments[segments.length - 1];
+					const data = await redis.hGetAll(key);
+					const rauthyId = data.rauthyId;
+					const subspace = data.subspace;
+
+					return { username, rauthyId, subspace };
+				} catch (_) {
+					return undefined;
+				}
+			})
+		)
+	).filter((x) => !!x) as { username: string; rauthyId: string; subspace: string }[];
 }

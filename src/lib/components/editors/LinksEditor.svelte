@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
+	import { importLinksFromOPMLFile } from '$lib/utils/import-opml';
 	import {
 		SortableItem,
 		SortableList,
@@ -64,6 +65,14 @@
 </script>
 
 <div class="flex flex-col" {...attrs}>
+	<button
+		class="variant-ghost-surface btn mb-4 w-max self-start"
+		title="Import links from OPML"
+		onclick={async () => {
+			const linksFromOPML = await importLinksFromOPMLFile();
+			links = [...links, ...linksFromOPML];
+		}}>Import links from OPML</button
+	>
 	<form
 		class="mb-4 flex items-center gap-2"
 		onsubmit={(e) => {

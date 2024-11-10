@@ -7,6 +7,7 @@
 	import { parseUsername } from '$lib/utils/username';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
+	import { goto } from '$app/navigation';
 
 	const { data }: { data: PageData } = $props();
 	const profiles = data.profiles;
@@ -41,6 +42,14 @@
 	});
 
 	let searchbox: SvelteComponent;
+
+	$effect(() => {
+		if (search.length) {
+			goto(`/people/?tag=${search}`);
+		} else {
+			goto(`/people`);
+		}
+	});
 </script>
 
 <svelte:head>
@@ -50,7 +59,7 @@
 <MainContent>
 	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>
 
-	<SearchInput bind:this={searchbox} bind:search />
+	<SearchInput bind:this={searchbox} bind:search autofocus />
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
 		{#each filtered_profiles as profile (profile.username)}

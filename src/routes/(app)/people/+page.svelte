@@ -7,10 +7,11 @@
 	import { parseUsername } from '$lib/utils/username';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
+	import { page } from '$app/stores';
 
 	const { data }: { data: PageData } = $props();
 	const profiles = data.profiles;
-	let search = $state(data.search || '');
+	let search = $state($page.url.hash.slice(1) || '');
 
 	let filtered_profiles = $derived.by(() => {
 		const words = search.split(' ');
@@ -41,6 +42,21 @@
 	});
 
 	let searchbox: SvelteComponent;
+
+	page.subscribe((page) => {
+		const s = page.url.hash.slice(1);
+		if (s != search) {
+			search = s;
+		}
+	});
+
+	$effect(() => {
+		if (search.length) {
+			window.location.hash = '#' + search;
+		} else {
+			window.location.hash = '';
+		}
+	});
 </script>
 
 <svelte:head>
@@ -50,7 +66,7 @@
 <MainContent>
 	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>
 
-	<SearchInput bind:this={searchbox} bind:search />
+	<SearchInput bind:this={searchbox} bind:search autofocus />
 
 	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
 		{#each filtered_profiles as profile (profile.username)}

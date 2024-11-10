@@ -45,7 +45,7 @@
 
 	$effect(() => {
 		if (search.length) {
-			goto(`/people/?tag=${search}`);
+			goto(`/people/?hashtag=${search}`);
 		} else {
 			goto(`/people`);
 		}

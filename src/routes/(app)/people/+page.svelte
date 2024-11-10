@@ -7,11 +7,11 @@
 	import { parseUsername } from '$lib/utils/username';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
-	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	const { data }: { data: PageData } = $props();
 	const profiles = data.profiles;
-	let search = $state(data.search || '');
+	let search = $state($page.url.hash.slice(1) || '');
 
 	let filtered_profiles = $derived.by(() => {
 		const words = search.split(' ');
@@ -43,11 +43,18 @@
 
 	let searchbox: SvelteComponent;
 
+	page.subscribe((page) => {
+		const s = page.url.hash.slice(1);
+		if (s != search) {
+			search = s;
+		}
+	});
+
 	$effect(() => {
 		if (search.length) {
-			goto(`/people/?hashtag=${search}`);
+			window.location.hash = '#' + search;
 		} else {
-			goto(`/people`);
+			window.location.hash = '';
 		}
 	});
 </script>

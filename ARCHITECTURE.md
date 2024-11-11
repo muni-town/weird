@@ -48,4 +48,12 @@ The Leaf server can also connect to other Leaf servers though the Leaf protocol.
 eventually allow Weird to federate with other Weird instances, and synchronize with offline-capable
 desktop applications in the future.
 
+Because the Leaf RPC server is implemented in Rust, the RPC interface is meant to allow it to be
+easily accessed from the SvelteKit server, and the connection is only meant for use by the server.
+It is completely separate from the p2p connections allowed by the Leaf protocol.
+
+For a high-level overview of the Leaf protocol see [Introducing The Leaf Protocol][itlp]
+
 [lpd]: https://github.com/muni-town/agentic-fediverse/blob/master/leaf-protocol-draft.md#leaf-protocol-draft
+[itlp]: https://zicklag.katharos.group/blog/introducing-leaf-protocol/
+

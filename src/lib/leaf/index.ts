@@ -6,12 +6,13 @@ import {
 	type Digest,
 	base32Decode,
 	base32Encode,
-	type PathSegment,
-	type ExactLink
+	type ExactLink,
+	type SubspaceId,
+	type IntoPathSegment,
+	intoPathSegment
 } from 'leaf-proto';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
 import {
-	Username,
 	Tags,
 	WebLinks,
 	WeirdCustomDomain,
@@ -34,11 +35,19 @@ export let WEIRD_NAMESPACE: Digest = null as any;
 export let INSTANCE_SUBSPACE: Digest = null as any;
 
 /** Create an ExactLink from a path in this Weird instance. */
-export function instance_link(...path: PathSegment[]): ExactLink {
+export function instance_link(...path: IntoPathSegment[]): ExactLink {
 	return {
 		namespace: WEIRD_NAMESPACE,
 		subspace: INSTANCE_SUBSPACE,
-		path
+		path: path.map(intoPathSegment)
+	};
+}
+
+export function subspace_link(subspace: SubspaceId, ...path: IntoPathSegment[]): ExactLink {
+	return {
+		namespace: WEIRD_NAMESPACE,
+		subspace,
+		path: path.map(intoPathSegment)
 	};
 }
 
@@ -73,7 +82,6 @@ this secret when running the server next, to keep using the same data:',
 export type KnownComponents = {
 	name?: Name['value'];
 	description?: Description['value'];
-	username?: Username['value'];
 	tags?: Tags['value'];
 	webLinks?: WebLinks['value'];
 	weirdPubpageTheme?: WeirdPubpageTheme['value'];
@@ -88,7 +96,6 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 		link,
 		Name,
 		Description,
-		Username,
 		Tags,
 		WebLinks,
 		WeirdPubpageTheme,
@@ -102,7 +109,6 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 		return {
 			name: ent.get(Name)?.value,
 			description: ent.get(Description)?.value,
-			username: ent.get(Username)?.value,
 			tags: ent.get(Tags)?.value,
 			webLinks: ent.get(WebLinks)?.value,
 			weirdPubpageTheme: ent.get(WeirdPubpageTheme)?.value,

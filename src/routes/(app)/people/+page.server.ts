@@ -2,9 +2,11 @@ import type { PageServerLoad } from './$types';
 import { getProfiles as listProfiles, type Profile } from '$lib/leaf/profile';
 
 export const load: PageServerLoad = async ({}): Promise<{
-	profiles: Profile[];
+	profiles: (Profile & { username: string })[];
 }> => {
 	return {
-		profiles: (await listProfiles()).map((x) => x.profile)
+		profiles: (await listProfiles())
+			.map((x) => (x.username ? { username: x.username, ...x.profile } : undefined))
+			.filter((x) => !!x) as any
 	};
 };

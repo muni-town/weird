@@ -1,6 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
 import {
-	Username,
 	WebLinks,
 	WeirdWikiPage,
 	WeirdWikiRevisionAuthor,
@@ -11,23 +10,25 @@ import {
 } from '$lib/leaf/profile';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
-import { parseUsername } from '$lib/utils/username';
-import { leafClient } from '$lib/leaf';
+import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../../../types';
+import { userNameByRauthyId, userSubspaceByUsername } from '$lib/usernames';
 
 export const load: PageServerLoad = async ({
 	params
 }): Promise<{ page: Page; revisionAuthor: string }> => {
-	const username = parseUsername(params.username);
-	if (username.domain == env.PUBLIC_DOMAIN) {
-		return redirect(302, `/${username.name}/${params.slug}`);
+	const username = params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+	if (username != params.username) {
+		return redirect(302, `/${username}/${params.slug}`);
 	}
-	const fullUsername = `${username.name}@${username.domain || env.PUBLIC_DOMAIN}`;
-	const profileLink = await profileLinkByUsername(fullUsername);
+	const fullUsername = params.username!.includes('.')
+		? params.username!
+		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
 
-	if (!profileLink) return error(404, `User not found: ${fullUsername}`);
-	const revisionLink = appendSubpath(profileLink, params.slug, { Uint: BigInt(params.revision!) });
+	const subspace = await userSubspaceByUsername(fullUsername);
+	if (!subspace) return error(404, `User not found: ${fullUsername}`);
+	const revisionLink = subspace_link(subspace, params.slug, { Uint: BigInt(params.revision) });
 
 	const ent = await leafClient.get_components(
 		revisionLink,
@@ -51,10 +52,7 @@ export const load: PageServerLoad = async ({
 	const revisionAuthor =
 		(await (async () => {
 			if (!authorId) return;
-			const profileLink = profileLinkById(authorId);
-			const ent = await leafClient.get_components(profileLink, Username);
-			const username = ent?.get(Username)?.value;
-			return username;
+			return await userNameByRauthyId(authorId);
 		})()) || '';
 
 	return {

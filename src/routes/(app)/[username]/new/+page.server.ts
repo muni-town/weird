@@ -10,8 +10,9 @@ import {
 	profileLinkById
 } from '$lib/leaf/profile';
 import { Page } from '../types';
-import { leafClient } from '$lib/leaf';
+import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
+import { userSubspaceByRauthyId } from '$lib/usernames';
 
 export const load: PageServerLoad = async ({ fetch, params, request, url }) => {
 	const { sessionInfo } = await getSession(fetch, request);
@@ -40,8 +41,8 @@ export const actions = {
 			return error(400, `Error parsing form data: ${e}`);
 		}
 
-		const profileLink = profileLinkById(sessionInfo.user_id);
-		const pageLink = appendSubpath(profileLink, data.slug);
+		const subspace = await userSubspaceByRauthyId(sessionInfo.user_id)
+		const pageLink = subspace_link(subspace, data.slug);
 
 		const ent = await leafClient.get_components(pageLink);
 		if (ent) return fail(400, { error: 'Page with that slug already exists.', data });

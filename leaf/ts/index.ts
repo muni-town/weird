@@ -43,6 +43,19 @@ export const PathSegmentSchema = BorshSchema.Enum({
 	Bytes: BorshSchema.Vec(BorshSchema.u8)
 });
 
+export type IntoPathSegment = string | boolean | null | PathSegment;
+export function intoPathSegment(value: IntoPathSegment): PathSegment {
+	if (typeof value == 'string') {
+		return { String: value };
+	} else if (typeof value == 'boolean') {
+		return { Bool: value };
+	} else if (value === null) {
+		return { Null: {} };
+	} else {
+		return value;
+	}
+}
+
 export type EntityPath = PathSegment[];
 export const EntityPathSchema = BorshSchema.Vec(PathSegmentSchema);
 
@@ -55,6 +68,8 @@ export function formatEntityPath(p: EntityPath): string {
 			s += `/base32:${base32Encode(new Uint8Array(segment.Bytes))}`;
 		} else if ('Uint' in segment) {
 			s += `/Uint:${segment.Uint.toString()}`;
+		} else if ('Null' in segment) {
+			s += `/Null`
 		} else {
 			throw 'TODO: implement formatting for other path segment types.';
 		}

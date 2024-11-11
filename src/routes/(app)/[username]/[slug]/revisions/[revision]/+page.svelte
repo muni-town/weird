@@ -6,6 +6,7 @@
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
 	import { dateFromUnixTimestamp } from '$lib/utils/time';
+	import { PUBLIC_USER_DOMAIN_PARENT } from '$env/static/public';
 
 	const { data }: { data: PageData } = $props();
 </script>
@@ -36,7 +37,9 @@
 	}).format(dateFromUnixTimestamp(BigInt($page.params.revision)))}
 
 	<div>
-		by <a class="underline" href={`/${data.revisionAuthor}`}>{data.revisionAuthor.split('@')[0]}</a>
+		by <a class="underline" href={`/${data.revisionAuthor}`}
+			>{data.revisionAuthor.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}</a
+		>
 	</div>
 
 	<div

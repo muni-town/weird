@@ -1,13 +1,10 @@
 import { leafClient } from '$lib/leaf';
 import { getSession } from '$lib/rauthy/server';
 import { error, type RequestHandler } from '@sveltejs/kit';
-import { borshSerialize, DatabaseDumpSchema } from 'leaf-proto';
-import { env } from '$env/dynamic/public';
 import { CommonMark, Description, Name, RawImage } from 'leaf-proto/components';
 import {
 	MastodonProfile,
 	Tags,
-	Username,
 	WebLinks,
 	WeirdCustomDomain,
 	WeirdPubpageTheme
@@ -27,7 +24,6 @@ export const GET: RequestHandler = async ({ fetch, request }) => {
 		Name,
 		CommonMark,
 		WebLinks,
-		Username,
 		Tags,
 		WeirdCustomDomain,
 		Description,

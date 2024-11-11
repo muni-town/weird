@@ -1,14 +1,19 @@
-import { BorshSchema, Component, type ExactLink, type PathSegment, type Unit } from 'leaf-proto';
+import {
+	BorshSchema,
+	Component,
+	intoPathSegment,
+	type ExactLink,
+	type IntoPathSegment,
+	type Unit
+} from 'leaf-proto';
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
-import { instance_link, leafClient } from '.';
-import { env } from '$env/dynamic/public';
+import { leafClient, subspace_link } from '.';
 import _ from 'underscore';
-
-export const PROFILE_PREFIX: PathSegment = { String: 'profiles' };
+import { listUsers, userSubspaceByRauthyId, userSubspaceByUsername } from '$lib/usernames';
+import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
-	username?: string;
 	custom_domain?: string;
 	display_name?: string;
 	tags: string[];
@@ -19,23 +24,6 @@ export interface Profile {
 		server: string;
 	};
 	pubpage_theme?: string;
-}
-
-export class Username extends Component {
-	value: string = '';
-	constructor(s: string) {
-		super();
-		this.value = s;
-	}
-	static componentName(): string {
-		return 'Username';
-	}
-	static borshSchema(): BorshSchema {
-		return BorshSchema.String;
-	}
-	static specification(): Component[] {
-		return [new CommonMark('The username of the user represented by this entity.')];
-	}
 }
 
 export class Tags extends Component {
@@ -201,54 +189,27 @@ export class WeirdCustomDomain extends Component {
 /**
  * Append a string subpath to the provided link
  */
-export function appendSubpath(
-	link: ExactLink,
-	...pathSegments: (string | PathSegment)[]
-): ExactLink {
+export function appendSubpath(link: ExactLink, ...pathSegments: IntoPathSegment[]): ExactLink {
 	return {
 		namespace: link.namespace,
 		subspace: link.subspace,
-		path: [...link.path, ...pathSegments.map((x) => (typeof x == 'string' ? { String: x } : x))]
+		path: [...link.path, ...pathSegments.map(intoPathSegment)]
 	};
 }
 
-export function profileLinkById(rauthyId: string): ExactLink {
-	return instance_link(PROFILE_PREFIX, { String: rauthyId });
+export async function profileLinkById(rauthyId: string): Promise<ExactLink> {
+	const subspace = await userSubspaceByRauthyId(rauthyId);
+	return subspace_link(subspace, null);
 }
 export async function profileLinkByUsername(username: string): Promise<ExactLink | undefined> {
-	const profilesLink = instance_link(PROFILE_PREFIX);
-	const entities = await leafClient.list_entities(profilesLink);
-	for (const link of entities) {
-		const ent = await leafClient.get_components(link, Username);
-		if (ent) {
-			const u = ent.get(Username);
-			if (u && u.value == username) {
-				if (!username.endsWith(`@${env.PUBLIC_DOMAIN}`)) {
-					console.warn(
-						`Warning: found local username with domain suffix not matching local domain: ${username}`
-					);
-				}
-				return link;
-			}
-		}
-	}
-
-	return undefined;
+	const subspace = await userSubspaceByUsername(username);
+	if (!subspace) return;
+	return subspace_link(subspace, null);
 }
 export async function profileLinkByDomain(domain: string): Promise<ExactLink | undefined> {
-	const profilesLink = instance_link(PROFILE_PREFIX);
-	const entities = await leafClient.list_entities(profilesLink);
-	for (const link of entities) {
-		const ent = await leafClient.get_components(link, WeirdCustomDomain);
-		if (ent) {
-			const u = ent.get(WeirdCustomDomain);
-			if (u && u.value == domain) {
-				return link;
-			}
-		}
-	}
-
-	return undefined;
+	const resolved = await resolveUserSubspaceFromDNS(domain);
+	if (!resolved) return;
+	return subspace_link(resolved.subspace, null);
 }
 
 export async function getProfile(link: ExactLink): Promise<Profile | undefined> {
@@ -256,7 +217,6 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		link,
 		Name,
 		Description,
-		Username,
 		Tags,
 		WeirdCustomDomain,
 		MastodonProfile,
@@ -265,7 +225,6 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 	);
 	return (
 		(ent && {
-			username: ent.get(Username)?.value,
 			display_name: ent.get(Name)?.value,
 			bio: ent.get(Description)?.value,
 			tags: ent.get(Tags)?.value || [],
@@ -281,20 +240,10 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 	const delComponents = [];
 	const add_components = [];
 
-	if (profile.username) {
-		const existingProfileWithUsername = await profileLinkByUsername(profile.username);
-		if (existingProfileWithUsername && !_.isEqual(link, existingProfileWithUsername)) {
-			throw `Username already taken: ${profile.username}`;
-		}
-	}
-
 	profile.display_name
 		? add_components.push(new Name(profile.display_name))
 		: delComponents.push(Name);
 	profile.bio ? add_components.push(new Description(profile.bio)) : delComponents.push(Description);
-	profile.username
-		? add_components.push(new Username(profile.username))
-		: delComponents.push(Username);
 	profile.mastodon_profile
 		? add_components.push(new MastodonProfile(profile.mastodon_profile))
 		: delComponents.push(MastodonProfile);
@@ -313,7 +262,9 @@ export async function setProfile(link: ExactLink, profile: Profile) {
 }
 
 export async function setCustomDomain(userId: string, domain?: string): Promise<void> {
-	const link = profileLinkById(userId);
+	const link = await profileLinkById(userId);
+
+	if (!link) throw `User '${userId}' does not exist.`;
 
 	if (domain) {
 		const existingProfileWithDomain = await profileLinkByDomain(domain);
@@ -335,10 +286,14 @@ export async function getAvatar(link: ExactLink): Promise<RawImage | undefined> 
 }
 
 export async function getAvatarById(rauthyId: string): Promise<RawImage | undefined> {
-	return await getAvatar(profileLinkById(rauthyId));
+	const id = await profileLinkById(rauthyId);
+	if (!id) return;
+	return await getAvatar(id);
 }
 export async function setAvatarById(rauthyId: string, avatar: RawImage): Promise<void> {
-	return await setAvatar(profileLinkById(rauthyId), avatar);
+	const id = await profileLinkById(rauthyId);
+	if (!id) return;
+	return await setAvatar(id, avatar);
 }
 export async function getAvatarByUsername(username: string): Promise<RawImage | undefined> {
 	const link = await profileLinkByUsername(username);
@@ -347,7 +302,9 @@ export async function getAvatarByUsername(username: string): Promise<RawImage | 
 }
 
 export async function getProfileById(rauthyId: string): Promise<Profile | undefined> {
-	return await getProfile(profileLinkById(rauthyId));
+	const link = await profileLinkById(rauthyId);
+	if (!link) return;
+	return await getProfile(link);
 }
 export async function getProfileByUsername(username: string): Promise<Profile | undefined> {
 	const link = await profileLinkByUsername(username);
@@ -360,42 +317,22 @@ export async function getProfileByDomain(domain: string): Promise<Profile | unde
 	return await getProfile(link);
 }
 export async function setProfileById(rauthyId: string, profile: Profile): Promise<void> {
-	await setProfile(profileLinkById(rauthyId), profile);
+	let link = await profileLinkById(rauthyId);
+	if (!link) throw `user has not yet claimed a username.`;
+	await setProfile(link, profile);
 }
 
-export async function getProfiles(): Promise<{ link: ExactLink; profile: Profile }[]> {
-	const profilesLink = instance_link(PROFILE_PREFIX);
-	const entities = await leafClient.list_entities(profilesLink);
-	const profiles: { profile: Profile; link: ExactLink }[] = [];
-
-	for (const link of entities) {
+export async function getProfiles(): Promise<
+	{ link: ExactLink; profile: Profile; username?: string }[]
+> {
+	const profiles: { link: ExactLink; profile: Profile; username?: string }[] = [];
+	for await (const user of listUsers()) {
+		const link = subspace_link(user.subspace, null);
 		const profile = await getProfile(link);
 		if (!profile) continue;
-		profiles.push({ link, profile });
+		profiles.push({ link, profile, username: user.username });
 	}
 	return profiles;
-}
-
-export async function listDomains(): Promise<string[]> {
-	const profilesLink = instance_link(PROFILE_PREFIX);
-	const entities = await leafClient.list_entities(profilesLink);
-	const domains: string[] = [];
-
-	for (const link of entities) {
-		const ent = await leafClient.get_components(link, WeirdCustomDomain, Username);
-		if (!ent) continue;
-		const domain = ent.get(WeirdCustomDomain);
-		const username = ent.get(Username);
-		if (domain) {
-			domains.push(domain.value);
-		} else if (username) {
-			const [name, domain] = username.value.split('@');
-			if (domain == env.PUBLIC_DOMAIN) {
-				domains.push(`${name}.${env.PUBLIC_USER_DOMAIN_PARENT}`);
-			}
-		}
-	}
-	return domains;
 }
 
 /**

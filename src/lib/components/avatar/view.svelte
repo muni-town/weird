@@ -1,15 +1,8 @@
 <script lang="ts">
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	let {
-		user_id,
-		src,
-		username,
-		width
-	}: { user_id?: string; src?: string; username?: string; width?: string } = $props();
-	let computedSrc = $derived(
-		src || (user_id && `/account/${user_id}/avatar`) || (username && `/${username}/avatar`)
-	);
+	let { src, width }: { src?: string; width?: string } = $props();
+	let computedSrc = $derived(src || '/default-avatar.svg');
 </script>
 
 <Avatar

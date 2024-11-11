@@ -1,15 +1,18 @@
+import { env } from '$env/dynamic/public';
 import { profileLinkByUsername } from '$lib/leaf/profile';
-import { fullyQualifiedUsername } from '$lib/utils/username';
+import { userRauthyIdByUsername } from '$lib/usernames';
 import { error } from '@sveltejs/kit';
 
 export async function ensureUsernameMatchesSessionUserId(
 	username: string,
 	userId: string
 ): Promise<Response | undefined> {
-	let fullUsername = fullyQualifiedUsername(username).toString();
-	const profileLink = await profileLinkByUsername(fullUsername);
-	if (!profileLink) return error(404, `User not found: ${fullUsername}`);
+	const fullUsername = username.includes('.')
+		? username
+		: `${username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+	const id = await userRauthyIdByUsername(fullUsername);
 
-	const last = profileLink.path[profileLink.path.length - 1];
-	if (!('String' in last && last.String == userId)) return error(403, 'Unauthorized');
+	if (userId != id) {
+		return error(403, 'Unauthorized')
+	}
 }

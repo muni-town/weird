@@ -4,7 +4,6 @@ import { type CheckResponseError } from '$lib/utils/http';
 import { getSession } from '$lib/rauthy/server';
 import { RawImage } from 'leaf-proto/components';
 import sharp from 'sharp';
-import { env } from '$env/dynamic/public';
 
 export const actions = {
 	default: async ({ fetch, request }) => {
@@ -13,12 +12,6 @@ export const actions = {
 
 		const data = await request.formData();
 
-		let username = data.get('username')?.toString() || undefined;
-		if (username === '') {
-			username = undefined;
-		} else if (username) {
-			if (!username?.includes('@')) username = `${username}@${env.PUBLIC_DOMAIN}`;
-		}
 		let display_name = data.get('display_name')?.toString() || undefined;
 		if (display_name === '') {
 			display_name = undefined;
@@ -61,7 +54,6 @@ export const actions = {
 		}
 
 		const profile: Profile = {
-			username,
 			display_name,
 			tags,
 			links,

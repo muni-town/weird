@@ -1,10 +1,10 @@
+// @ts-nocheck
 import { leafClient, type KnownComponents, loadKnownComponents } from '$lib/leaf';
 import { base32Decode, base32Encode, type EntityPath, type ExactLink } from 'leaf-proto';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import {
 	Tags,
-	Username,
 	WebLinks,
 	WeirdCustomDomain,
 	WeirdPubpageTheme,
@@ -13,29 +13,46 @@ import {
 } from '$lib/leaf/profile';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
 import { getSession } from '$lib/rauthy/server';
+import { userNameAndIdBySubspace } from '$lib/usernames';
 
 type Data =
 	| {
 			Namespaces: string[];
 	  }
-	| { Subspaces: string[]; namespace: string }
-	| { Entities: EntityPath[]; namespace: string; subspace: string }
+	| { Subspaces: { subspace: string; rauthyId?: string; username?: string }[]; namespace: string }
+	| { Entities: { path: EntityPath; name?: string }[]; namespace: string; subspace: string }
 	| { Entity: EntityPath; namespace: string; subspace: string; components: KnownComponents };
 
-export const load: PageServerLoad = async ({ params }): Promise<Data> => {
+export const load = async ({ params }: Parameters<PageServerLoad>[0]): Promise<Data> => {
 	try {
 		if (!params.namespace) {
 			const namespaces = await leafClient.list_namespaces();
 			return { Namespaces: namespaces.map((x) => base32Encode(x)) };
 		} else if (params.namespace && !params.subspace) {
 			const subspaces = await leafClient.list_subspaces();
-			return { Subspaces: subspaces.map((x) => base32Encode(x)), namespace: params.namespace };
+			return {
+				Subspaces: await Promise.all(
+					subspaces.map(async (x) => ({
+						subspace: base32Encode(x),
+						...(await userNameAndIdBySubspace(x))
+					}))
+				),
+				namespace: params.namespace
+			};
 		} else if (params.namespace && params.subspace && !params.entityPath) {
 			const namespace = base32Decode(params.namespace);
 			const subspace = base32Decode(params.subspace);
 			const links = await leafClient.list_entities({ namespace, subspace, path: [] });
 			return {
-				Entities: links.map((x) => x.path),
+				Entities: await Promise.all(
+					links.map(async (x) => {
+						const name = (await leafClient.get_components(x, Name))?.get(Name)?.value;
+						return {
+							path: x.path,
+							name
+						};
+					})
+				),
 				namespace: params.namespace,
 				subspace: params.subspace
 			};
@@ -80,9 +97,9 @@ export const actions = {
 
 			const formData = await request.formData();
 
-			let username: string | undefined = formData.get('username')?.toString() || '';
-			if (username == '') username = undefined;
-			components.push(username ? new Username(username) : Username);
+			// let username: string | undefined = formData.get('username')?.toString() || '';
+			// if (username == '') username = undefined;
+			// components.push(username ? new Username(username) : Username);
 
 			let name: string | undefined = formData.get('name')?.toString() || '';
 			if (name == '') name = undefined;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { formatEntityPath } from 'leaf-proto';
+	import { base32Encode, formatEntityPath } from 'leaf-proto';
 	import type { ActionData, PageData } from './$types';
 	import type { KnownComponents } from '$lib/leaf';
 
@@ -66,35 +66,69 @@
 		<a href="/__internal__/admin/database-dump/view">debug dump page</a>.
 	</p>
 
-	Namespaces:
-	<ul>
-		{#each data.Namespaces as ns}
-			<li><a href={`${$page.url}/${ns}`} class="font-mono">{ns}</a></li>
-		{/each}
-	</ul>
+	<table>
+		<thead>
+			<tr>
+				<td>Namespace</td>
+				<td>Note</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				{#each data.Namespaces as ns}
+					<td><a href={`${$page.url}/${ns}`} class="font-mono">{ns}</a></td>
+					{#if ns == 'x5lutctyz4otmhdkc2k7loxnljwzf4ronh6ymdb3p6yiqkhmfh4q'}
+						<td>Weird Namespace</td>
+					{/if}
+				{/each}
+			</tr>
+		</tbody>
+	</table>
 {:else if data.Subspaces}
-	Subspaces:
-	<ul>
-		{#each data.Subspaces as ss}
-			<li><a href={`${$page.url}/${ss}`} class="font-mono">{ss}</a></li>
-		{/each}
-	</ul>
+	<table>
+		<thead>
+			<tr>
+				<td>Subspace</td>
+				<td>Username</td>
+				<td>RauthyId</td>
+			</tr>
+		</thead>
+		<tbody>
+			{#each data.Subspaces as ss}
+				<tr>
+					<td><a href={`${$page.url}/${ss.subspace}`} class="font-mono">{ss.subspace}</a></td>
+					<td>{ss.username}</td>
+					<td>{ss.rauthyId}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
 {:else if data.Entities}
-	Entities:
-	<ul>
-		{#each data.Entities as link}
-			<li>
-				<a
-					href={`${$page.url}/${encodeURIComponent(
-						JSON.stringify(link, (_key, value) =>
-							typeof value === 'bigint' ? Number(value) : value
-						)
-					)}`}
-					class="font-mono">{formatEntityPath(link)}</a
-				>
-			</li>
-		{/each}
-	</ul>
+	<table>
+		<thead>
+			<tr>
+				<td>Entity Path</td>
+				<td>Name</td>
+			</tr>
+		</thead>
+		<tbody>
+			{#each data.Entities as ent}
+				<tr>
+					<td>
+						<a
+							href={`${$page.url}/${encodeURIComponent(
+								JSON.stringify(ent.path, (_key, value) =>
+									typeof value === 'bigint' ? Number(value) : value
+								)
+							)}`}
+							class="font-mono">{formatEntityPath(ent.path)}</a
+						>
+					</td>
+					<td>{ent.name}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
 {:else if data.Entity}
 	<h1>Entity</h1>
 	{#if form?.error}
@@ -103,10 +137,10 @@
 		</article>
 	{/if}
 	<form method="post" style="margin-bottom: 8em;" class="flex flex-col gap-3">
-		<label>
+		<!-- <label>
 			Username
 			<input class="input" name="username" value={knownComponents.username} />
-		</label>
+		</label> -->
 		<label>
 			Name
 			<input class="input" name="name" value={knownComponents.name} />

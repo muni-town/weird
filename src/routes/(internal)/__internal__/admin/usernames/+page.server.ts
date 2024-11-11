@@ -1,9 +1,11 @@
-import { claimUsername, deleteUsername, listUsers } from '$lib/usernames';
+import { claimUsername, unsetUsername, listUsers } from '$lib/usernames';
 import type { ServerLoad } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const load: ServerLoad = async ({}) => {
-	return { users: await listUsers() };
+	const users = [];
+	for await (const user of listUsers()) users.push(user);
+	return { users };
 };
 
 export const actions = {
@@ -11,11 +13,10 @@ export const actions = {
 		const formData = await request.formData();
 		const username = formData.get('username')?.toString();
 		const rauthyId = formData.get('rauthyId')?.toString();
-		const subspace = formData.get('subspace')?.toString();
-		if (!(username && rauthyId && subspace)) return { error: 'You must fill in all fields' };
+		if (!(username && rauthyId)) return { error: 'You must fill in all fields' };
 
 		try {
-			await claimUsername(username, rauthyId, subspace);
+			await claimUsername(username.includes('.') ? { domain: username } : { username }, rauthyId);
 		} catch (e) {
 			return { error: `Error claiming username: ${e}` };
 		}
@@ -28,7 +29,7 @@ export const actions = {
 		if (!username) return { error: 'You must fill in all fields' };
 
 		try {
-			await deleteUsername(username);
+			await unsetUsername(username);
 		} catch (e) {
 			return { error: `Error deleting username: ${e}` };
 		}

@@ -1,3 +1,4 @@
+import { base32Decode, type SubspaceId } from 'leaf-proto';
 import dns, {
 	type AnyRecord,
 	type MxRecord,
@@ -16,6 +17,7 @@ export type ResolveResponse =
 	| string[][]
 	| AnyRecord[];
 
+export async function resolveAuthoritative(hostname: string, type: 'TXT' | 'A'): Promise<string[]>;
 export async function resolveAuthoritative(hostname: string, type = 'A'): Promise<ResolveResponse> {
 	const resolver = new dns.Resolver();
 	resolver.setServers(dns.getServers());
@@ -42,4 +44,27 @@ export async function resolveAuthoritative(hostname: string, type = 'A'): Promis
 		})
 	);
 	return result;
+}
+
+export type ResolvedUser = {
+	subspace: SubspaceId;
+};
+export async function resolveUserSubspaceFromDNS(
+	domain: string
+): Promise<ResolvedUser | undefined> {
+	const txtRecords = await resolveAuthoritative('_weird.' + domain, 'TXT');
+	// TODO: Resolve Iroh ticket / NodeID along with subspace
+	for (const record of txtRecords) {
+		const [key, value] = record.split('=');
+
+		if (key == 'subspace') {
+			let subspace;
+			try {
+				subspace = base32Decode(value);
+			} catch (_) {}
+			if (subspace) {
+				return { subspace };
+			}
+		}
+	}
 }

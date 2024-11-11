@@ -1,15 +1,20 @@
 import { env } from '$env/dynamic/private';
-import { listDomains } from '$lib/leaf/profile';
+import { listUsers } from '$lib/usernames';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async () => {
 	try {
-		const customDomains: string[] = await listDomains();
+		const domains: string[] = [];
+		for await (const user of listUsers()) {
+			if (user.username) {
+				domains.push(user.username);
+			}
+		}
 
 		const routers: {
 			[key: string]: { rule: string; tls?: { certResolver: string }; service: string };
 		} = {};
-		for (const domain of customDomains) {
+		for (const domain of domains) {
 			const routerName = `${env.TRAEFIK_CONFIG_NAMESPACE}-rtr-${domain.replaceAll('.', '-')}`;
 			routers[routerName] = {
 				rule: `Host(\`${domain}\`)`,

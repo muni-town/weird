@@ -321,10 +321,17 @@ export async function startDnsServer() {
 								const pubkey = await redis.hGet(REDIS_USER_PREFIX + txtUsername, 'subspace');
 								if (!pubkey) return returnAnswers(null);
 								returnAnswers([
+									// TODO: Resolve Iroh ticket / NodeID along with subspace
+									// {
+									// 	name,
+									// 	type,
+									// 	data: `server=${await leafClient.node_id()}`,
+									// 	ttl: DNS_TTL
+									// },
 									{
 										name,
 										type,
-										data: pubkey,
+										data: `subspace=${pubkey}`,
 										ttl: DNS_TTL
 									}
 								]);

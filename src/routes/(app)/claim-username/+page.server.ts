@@ -1,14 +1,20 @@
-import { env } from '$env/dynamic/public';
-import { getProfileById, setProfileById } from '$lib/leaf/profile';
 import { getSession } from '$lib/rauthy/server';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.js';
+import { claimUsername, userNameByRauthyId } from '$lib/usernames.js';
+import { getAvatar, profileLinkById, setAvatar } from '$lib/leaf/profile.js';
+import { RawImage } from 'leaf-proto/components.js';
+
+import { createAvatar } from '@dicebear/core';
+import { glass } from '@dicebear/collection';
 
 export const load: PageServerLoad = async ({ fetch, request }) => {
 	const { sessionInfo } = await getSession(fetch, request);
 	if (!sessionInfo) return redirect(303, '/login');
-	const profile = await getProfileById(sessionInfo.user_id);
-	if (profile?.username) return redirect(303, '/my-profile');
+	const username = await userNameByRauthyId(sessionInfo.user_id);
+	if (username) {
+		return redirect(303, `/${username}`);
+	}
 };
 
 export const actions = {
@@ -21,12 +27,15 @@ export const actions = {
 		if (!username) return fail(400, { error: 'Username not provided ' });
 
 		try {
-			const existingProfile = (await getProfileById(sessionInfo.user_id)) || {
-				tags: [],
-				links: []
-			};
-			existingProfile.username = `${username}@${env.PUBLIC_DOMAIN}`;
-			await setProfileById(sessionInfo.user_id, existingProfile);
+			await claimUsername({ username }, sessionInfo.user_id);
+			const profileLink = await profileLinkById(sessionInfo.user_id);
+			const avatar = createAvatar(glass, { seed: sessionInfo.user_id, radius: 50 });
+			if (!(await getAvatar(profileLink))) {
+				setAvatar(
+					profileLink,
+					new RawImage('image/svg+xml', new TextEncoder().encode(avatar.toString()))
+				);
+			}
 		} catch (error) {
 			return fail(400, { error });
 		}

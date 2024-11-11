@@ -3,21 +3,18 @@
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import MainContent from '$lib/components/theme/MainContent.svelte';
 	import SearchInput from '$lib/components/theme/SearchInput.svelte';
-	import type { Profile } from '$lib/leaf/profile';
-	import { parseUsername } from '$lib/utils/username';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 
 	const { data }: { data: PageData } = $props();
-	const profiles = data.profiles;
-	let search = $state($page.url.hash.slice(1) || '');
+	let search = $state('');
+	let profiles = $derived(data.profiles);
 
 	let filtered_profiles = $derived.by(() => {
 		const words = search.split(' ');
 		return profiles
-			.filter((x: Profile) => {
-				if (!x.username) return false;
+			.filter((x) => {
 				if (search == '') return true;
 				for (const word of words) {
 					const wordLowercase = word.toLowerCase();
@@ -30,32 +27,20 @@
 				}
 				return false;
 			})
-			.map((profile: Profile) => {
+			.map((profile) => {
 				// Remove the domain for local usernames
-				const parsedUsername = profile.username && parseUsername(profile.username);
-				const username =
-					parsedUsername && parsedUsername.domain == env.PUBLIC_DOMAIN
-						? parsedUsername.name
-						: profile.username;
+				const username = profile.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
 				return { ...profile, username };
 			});
 	});
 
 	let searchbox: SvelteComponent;
 
-	page.subscribe((page) => {
-		const s = page.url.hash.slice(1);
-		if (s != search) {
-			search = s;
-		}
-	});
-
 	$effect(() => {
-		if (search.length) {
-			window.location.hash = '#' + search;
-		} else {
-			window.location.hash = '';
-		}
+		search = decodeURIComponent($page.url.hash.slice(1));
+	});
+	$effect(() => {
+		window.location.hash = `#${search}`;
 	});
 </script>
 
@@ -75,7 +60,7 @@
 			>
 				<div class="flex w-[15em] flex-col items-center text-center">
 					<div class="mb-3 flex flex-col flex-wrap items-center gap-7">
-						<Avatar width="w-[8em]" username={`${profile.username}@${env.PUBLIC_DOMAIN}`} />
+						<Avatar width="w-[8em]" src={`/${profile.username}/avatar`} />
 						<h2 class="text-2xl font-semibold">
 							<a href={`/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}

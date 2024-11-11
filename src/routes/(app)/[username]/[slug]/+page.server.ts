@@ -4,27 +4,28 @@ import {
 	WeirdWikiPage,
 	WeirdWikiRevisionAuthor,
 	appendSubpath,
-	profileLinkByUsername
 } from '$lib/leaf/profile';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
-import { fullyQualifiedUsername, parseUsername } from '$lib/utils/username';
-import { leafClient } from '$lib/leaf';
+import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../types';
 import { getSession } from '$lib/rauthy/server';
 import { dateToUnixTimestamp } from '$lib/utils/time';
+import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames';
 
 export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> => {
-	const username = parseUsername(params.username);
-	if (username.domain == env.PUBLIC_DOMAIN) {
-		return redirect(302, `/${username.name}/${params.slug}`);
+	const username = params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+	if (username != params.username) {
+		return redirect(302, `/${username}/${params.slug}`);
 	}
-	const fullUsername = `${username.name}@${username.domain || env.PUBLIC_DOMAIN}`;
-	const profileLink = await profileLinkByUsername(fullUsername);
+	const fullUsername = params.username!.includes('.')
+		? params.username!
+		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
 
-	if (!profileLink) return error(404, `User not found: ${fullUsername}`);
-	const pageLink = appendSubpath(profileLink, params.slug);
+	const subspace = await userSubspaceByUsername(fullUsername);
+	if (!subspace) return error(404, `User not found: ${fullUsername}`);
+	const pageLink = subspace_link(subspace, params.slug);
 
 	const ent = await leafClient.get_components(pageLink, CommonMark, WebLinks, Name, WeirdWikiPage);
 	if (!ent) return error(404, 'Page not found');
@@ -52,11 +53,13 @@ export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> 
 
 export const actions = {
 	default: async ({ request, params, url, fetch }) => {
-		let fullUsername = fullyQualifiedUsername(params.username!).toString();
-		const profileLink = await profileLinkByUsername(fullUsername);
-		if (!profileLink) return error(404, `User not found: ${fullUsername}`);
+		const fullUsername = params.username!.includes('.')
+			? params.username!
+			: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+		const subspace = await userSubspaceByUsername(fullUsername);
+		if (!subspace) return error(404, `User not found: ${fullUsername}`);
 
-		const oldPageLink = appendSubpath(profileLink, params.slug);
+		const oldPageLink = subspace_link(subspace, params.slug);
 
 		const oldEnt = await leafClient.get_components(oldPageLink, WeirdWikiPage);
 		const isWikiPage = !!oldEnt?.get(WeirdWikiPage);
@@ -64,8 +67,7 @@ export const actions = {
 		const { sessionInfo } = await getSession(fetch, request);
 		if (!sessionInfo) return redirect(302, `/login?to=${url}`);
 
-		const last = profileLink.path[profileLink.path.length - 1];
-		const editorIsOwner = 'String' in last && last.String == sessionInfo.user_id;
+		const editorIsOwner = sessionInfo.user_id == (await userRauthyIdByUsername(fullUsername));
 
 		// If this isn't a wiki page, we need to make sure that only the author can edit the page.
 		if (!isWikiPage && !editorIsOwner) {
@@ -92,7 +94,7 @@ export const actions = {
 			// Only the page owner is allowed to rename the page
 			newSlug = editorIsOwner ? data.slug : params.slug;
 
-			const pageLink = appendSubpath(profileLink, newSlug);
+			const pageLink = subspace_link(subspace, newSlug);
 			const revisionLink = appendSubpath(pageLink, { Uint: dateToUnixTimestamp(new Date()) });
 
 			if (data.slug != params.slug) {

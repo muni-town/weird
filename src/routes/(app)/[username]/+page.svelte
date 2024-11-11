@@ -71,10 +71,7 @@
 	});
 
 	let profile = $derived(data.profile as Profile);
-	let pubpageHost = $derived(
-		data.profile.custom_domain ||
-			`${data.profile.username?.split('@')[0]}.${env.PUBLIC_USER_DOMAIN_PARENT}`
-	);
+	let pubpageHost = $state(data.username);
 	let pubpageUrl = $derived(`${new URL(env.PUBLIC_URL).protocol}//${pubpageHost}`);
 
 	let editingTagsState = $state('');
@@ -91,14 +88,6 @@
 		}
 	});
 
-	let editingUsernameProxy = $state({
-		get value() {
-			return editingState.profile.username?.split('@')[0];
-		},
-		set value(value) {
-			editingState.profile.username = `${value}@${env.PUBLIC_DOMAIN}`;
-		}
-	});
 	const editingLinksProxy = {
 		get value() {
 			return JSON.stringify(editingState.profile.links);
@@ -127,7 +116,7 @@
 			if (!editingState.profile.bio) editingState.profile.bio = '';
 			if (!editingState.profile.bio)
 				editingState.profile.display_name =
-					data.profile.display_name || data.profile.username?.split('@')[0];
+					data.profile.display_name || data.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
 
 			editingState.editing = true;
 			editingTagsState = data.profile.tags.join(', ');
@@ -156,7 +145,7 @@
 
 <svelte:head>
 	<title>
-		{profile.display_name || profile.username} |
+		{profile.display_name || data.username} |
 		{env.PUBLIC_INSTANCE_NAME}
 	</title>
 </svelte:head>
@@ -165,10 +154,10 @@
 	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
-				<Avatar username={profile.username} />
+				<Avatar src={`/${data.username}/avatar`} />
 			{:else}
 				<figure class="relative">
-					<Avatar username={profile.username} src={avatarSrcOverride} />
+					<Avatar src={avatarSrcOverride || `/${data.username}/avatar`} />
 					<figcaption
 						class="absolute left-0 top-0 h-full w-full rounded-full bg-black/75 bg-opacity-50 opacity-0 hover:opacity-100"
 					>
@@ -186,7 +175,7 @@
 				<h1 class="relative my-3 grid text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
-							{profile.display_name || profile.username?.split('@')[0]}
+							{profile.display_name || data.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}
 						</div>
 					{:else}
 						<div style="grid-area: 1 / 1;">
@@ -234,12 +223,6 @@
 							out:fadeOut={{ key: 'edit-buttons' }}
 							enctype="multipart/form-data"
 						>
-							<input
-								name="username"
-								type="hidden"
-								class="input"
-								bind:value={editingUsernameProxy.value}
-							/>
 							<input type="hidden" name="display_name" value={editingState.profile.display_name} />
 							<input
 								name="avatar"

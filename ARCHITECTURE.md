@@ -56,4 +56,3 @@ For a high-level overview of the Leaf protocol see [Introducing The Leaf Protoco
 
 [lpd]: https://github.com/muni-town/agentic-fediverse/blob/master/leaf-protocol-draft.md#leaf-protocol-draft
 [itlp]: https://zicklag.katharos.group/blog/introducing-leaf-protocol/
-

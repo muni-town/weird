@@ -7,6 +7,7 @@ type SocialMediaConfigEntry = {
 export const socialMediaConfig: Record<string, SocialMediaConfigEntry> = {
 	'facebook.com': { icon: 'mdi:facebook', class: 'button-facebook', name: 'Facebook' },
 	'twitter.com': { icon: 'mdi:twitter', class: 'button-twitter', name: 'Twitter' },
+	'x.com': { icon: 'mdi:twitter', class: 'button-twitter', name: 'Twitter' },
 	'linkedin.com': { icon: 'mdi:linkedin', class: 'button-linkedin', name: 'LinkedIn' },
 	'instagram.com': { icon: 'mdi:instagram', class: 'button-instagram', name: 'Instagram' },
 	'youtube.com': { icon: 'mdi:youtube', class: 'button-youtube', name: 'YouTube' },

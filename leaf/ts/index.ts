@@ -69,7 +69,7 @@ export function formatEntityPath(p: EntityPath): string {
 		} else if ('Uint' in segment) {
 			s += `/Uint:${segment.Uint.toString()}`;
 		} else if ('Null' in segment) {
-			s += `/Null`
+			s += `/Null`;
 		} else {
 			throw 'TODO: implement formatting for other path segment types.';
 		}

@@ -8,6 +8,7 @@
 	} from '@rodrigodagostino/svelte-sortable-list';
 	import { Handle } from '@rodrigodagostino/svelte-sortable-list';
 	import { IconHandle } from '@rodrigodagostino/svelte-sortable-list';
+	import SocialMediaButton from '../social-media/social-media-button.svelte';
 
 	let {
 		links = $bindable(),
@@ -103,9 +104,7 @@
 						<Handle>
 							<IconHandle />
 						</Handle>
-						<a class="variant-ghost btn" target="_blank" href={link.url}>
-							{link.label}
-						</a>
+						<SocialMediaButton url={link.url} />
 
 						<button
 							class="variant-ghost btn-icon btn-icon-sm"

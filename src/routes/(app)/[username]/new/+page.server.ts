@@ -41,7 +41,7 @@ export const actions = {
 			return error(400, `Error parsing form data: ${e}`);
 		}
 
-		const subspace = await userSubspaceByRauthyId(sessionInfo.user_id)
+		const subspace = await userSubspaceByRauthyId(sessionInfo.user_id);
 		const pageLink = subspace_link(subspace, data.slug);
 
 		const ent = await leafClient.get_components(pageLink);

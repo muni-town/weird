@@ -1,10 +1,5 @@
 import type { Actions, PageServerLoad } from './$types';
-import {
-	WebLinks,
-	WeirdWikiPage,
-	WeirdWikiRevisionAuthor,
-	appendSubpath,
-} from '$lib/leaf/profile';
+import { WebLinks, WeirdWikiPage, WeirdWikiRevisionAuthor, appendSubpath } from '$lib/leaf/profile';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 import { leafClient, subspace_link } from '$lib/leaf';

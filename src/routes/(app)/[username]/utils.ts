@@ -13,6 +13,6 @@ export async function ensureUsernameMatchesSessionUserId(
 	const id = await userRauthyIdByUsername(fullUsername);
 
 	if (userId != id) {
-		return error(403, 'Unauthorized')
+		return error(403, 'Unauthorized');
 	}
 }

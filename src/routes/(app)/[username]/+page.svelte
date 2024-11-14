@@ -16,6 +16,7 @@
 	import { crossfade } from 'svelte/transition';
 
 	import { page } from '$app/stores';
+	import SocialMediaButton from '$lib/components/social-media/social-media-button.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -269,11 +270,7 @@
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-2">
 							{#each profile.links as link}
-								<li>
-									<a class="variant-ghost btn" href={link.url}>
-										{link.label || link.url}
-									</a>
-								</li>
+								<SocialMediaButton url={link.url} />
 							{/each}
 						</ul>
 					{:else}

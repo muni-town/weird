@@ -39,7 +39,7 @@ const VALID_DOMAIN_REGEX =
 	/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/i;
 
 const DNS_PORT = parseInt(env.DNS_PORT || '53');
-const APP_IPS = env.APP_IPS.split(',');
+export const APP_IPS = env.APP_IPS.split(',');
 const APP_DOMAIN = pubenv.PUBLIC_DOMAIN.split(':')[0].toLowerCase();
 const DNS_MASTER = env.DNS_SOA_MASTER;
 const soaSplit = env.DNS_SOA_EMAIL.split('@');

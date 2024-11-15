@@ -1,5 +1,5 @@
 import { appendSubpath, getProfile, listChildren, profileLinkByUsername } from '$lib/leaf/profile';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from '../$types';
 import { getSession } from '$lib/rauthy/server';
 import { leafClient, subspace_link } from '$lib/leaf';
@@ -8,9 +8,14 @@ import { env } from '$env/dynamic/public';
 import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
+	if (params.username?.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
+		return redirect(302, `/${params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}`);
+	}
+
 	const fullUsername = params.username!.includes('.')
 		? params.username!
 		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+
 	let profileMatchesUserSession = false;
 
 	const subspace = await userSubspaceByUsername(fullUsername);

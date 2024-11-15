@@ -2,6 +2,8 @@ import { redis } from '$lib/redis';
 import { base32Decode, base32Encode, type SubspaceId } from 'leaf-proto';
 import { leafClient } from './leaf';
 import { env } from '$env/dynamic/public';
+import { resolveAuthoritative } from './dns/resolve';
+import { APP_IPS } from './dns/server';
 
 export const validUsernameRegex = /^([a-z0-9][_-]?){3,32}$/;
 
@@ -35,6 +37,26 @@ export async function claimUsername(
 		}
 	} else {
 		// Claim a custom domain
+		const isApex = input.domain.split('.').length == 2;
+
+		if (isApex) {
+			const ips = await resolveAuthoritative(input.domain, 'A');
+			let matches = 0;
+			for (const ip of ips) {
+				if (ip in APP_IPS) {
+					matches += 1;
+				} else {
+					throw `DNS validation failed: ${input.domain} resolves to \
+an IP address ${ip} that is not the Weird server.`;
+				}
+			}
+
+			if (matches == 0) {
+				throw `DNS validation failed: ${input.domain} does not resolve \
+to the weird server.`;
+			}
+		} else {
+		}
 
 		throw "Can't use custom domains yet";
 

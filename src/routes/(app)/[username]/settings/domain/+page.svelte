@@ -9,7 +9,6 @@
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 	const profile = data.profile;
-	const userName = profile?.username?.split('@')[0];
 
 	const publicUrl = new URL(env.PUBLIC_URL);
 

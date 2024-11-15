@@ -5,6 +5,7 @@
 	import Retro from '$lib/themes/retro.svelte';
 	// import Panel from '$lib/components/subsite-admin/panel.svelte';
 	import type { Profile } from '$lib/leaf/profile';
+	import { page } from '$app/stores';
 	const { data }: { data: PageData } = $props();
 	const profile: Profile = data.profile!;
 	// const token = data.token!;
@@ -22,7 +23,7 @@
 		unsavedChanges = true;
 	};
 
-	const display_name = profile.display_name || (profile.username || '').split('@')[0];
+	const display_name = profile.display_name || $page.url.host;
 
 	const submitChanges = async () => {
 		alert('TODO: unimplemented.');

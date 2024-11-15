@@ -9,12 +9,10 @@ export const load: PageServerLoad = async ({
 	profile: Profile;
 	params: typeof params;
 }> => {
-	let profile = await getProfileByUsername(`${params.usernameOrDomain}@${env.PUBLIC_DOMAIN}`);
+	console.log(params.username);
+	let profile = await getProfileByUsername(params.username);
 	if (!profile) {
-		profile = await getProfileByDomain(params.usernameOrDomain);
-		if (!profile) {
-			return error(404, 'Profile not found.');
-		}
+		return error(404, 'Profile not found.');
 	}
 
 	return { profile, params: { ...params } };

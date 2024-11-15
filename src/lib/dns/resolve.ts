@@ -18,6 +18,7 @@ export type ResolveResponse =
 	| AnyRecord[];
 
 export async function resolveAuthoritative(hostname: string, type: 'TXT' | 'A'): Promise<string[]>;
+export async function resolveAuthoritative(hostname: string, type: 'A'): Promise<string[]>;
 export async function resolveAuthoritative(hostname: string, type = 'A'): Promise<ResolveResponse> {
 	const resolver = new dns.Resolver();
 	resolver.setServers(dns.getServers());

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
@@ -122,11 +123,11 @@
 			<h1 style="margin-top: 1em;">{profile.display_name}</h1>
 		{/if}
 		<span>
-			{profile.username}
+			{$page.url.host.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}
 		</span>
 
 		<div class="links">
-			<a href={`${env.PUBLIC_URL}/${profile.username}`} class="link">Weird</a>
+			<a href={`${env.PUBLIC_URL}/${$page.url.host}`} class="link">Weird</a>
 			{#if profile.links}
 				{#each profile.links as link}
 					{#if is_author}

@@ -34,12 +34,12 @@
 
 			<div class="flex-grow"></div>
 
-			<h2 class="mb-2 text-lg font-bold">Settings</h2>
+			<!-- <h2 class="mb-2 text-lg font-bold">Settings</h2>
 			<div class="flex flex-col gap-2">
 				<a class="variant-ghost btn" href={`/${$page.params.username}/settings/domain`}
 					>Domain Management</a
 				>
-			</div>
+			</div> -->
 		</aside>
 	{/if}
 

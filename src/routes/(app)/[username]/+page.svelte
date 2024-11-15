@@ -17,6 +17,7 @@
 
 	import { page } from '$app/stores';
 	import SocialMediaButton from '$lib/components/social-media/social-media-button.svelte';
+	import FeaturedSocialMediaButton from '$lib/components/social-media/featured-social-media-button.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -173,7 +174,7 @@
 				</figure>
 			{/if}
 			<div class="flex flex-col">
-				<h1 class="relative my-3 grid text-4xl">
+				<h1 class="relative grid text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
 							{profile.display_name || data.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}
@@ -195,6 +196,13 @@
 					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
 					href={pubpageUrl}>{pubpageHost}</a
 				>
+				{#if !editingState.editing}
+					<div class="mt-4 flex flex-wrap items-center gap-4">
+						{#each profile.links as link}
+							<FeaturedSocialMediaButton url={link.url} />
+						{/each}
+					</div>
+				{/if}
 				{#if form?.error}
 					<aside class="alert variant-ghost-error my-2 w-full">
 						<div class="alert-message">

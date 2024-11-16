@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { base32Encode, formatEntityPath } from 'leaf-proto';
+	import { formatEntityPath } from 'leaf-proto';
 	import type { ActionData, PageData } from './$types';
 	import type { KnownComponents } from '$lib/leaf';
 
@@ -37,8 +37,15 @@
 	});
 
 	let knownComponents: KnownComponents = $derived(data.components || {});
-	let editingTagsState = $state(data.components?.tags?.join(', ') || '');
-	let editingWebLinksState = $state(JSON.stringify(data.components?.webLinks || [], null, '  '));
+	let editingTagsState = $state('');
+	let editingWebLinksState = $state('');
+
+	$effect(() => {
+		editingTagsState = data.components?.tags?.join(', ') || '';
+	});
+	$effect(() => {
+		editingWebLinksState = JSON.stringify(data.components?.webLinks || [], null, '  ');
+	});
 </script>
 
 <article>

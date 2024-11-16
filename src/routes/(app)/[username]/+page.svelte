@@ -269,7 +269,7 @@
 					<h2 class="mb-3 text-center text-2xl font-bold">Links</h2>
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-2">
-							{#each profile.links as link}
+							{#each profile.links as link (link.url)}
 								<SocialMediaButton url={link.url} />
 							{/each}
 						</ul>

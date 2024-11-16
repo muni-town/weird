@@ -18,7 +18,7 @@ export async function setUserSubspace(rauthyId: string, subspace: SubspaceId) {
 }
 
 export async function claimUsername(
-	input: { username: string } | { domain: string },
+	input: { username: string } | { domain: string; skipDomainCheck?: boolean },
 	rauthyId: string
 ) {
 	const rauthyIdKey = USER_RAUTHY_IDS_PREFIX + rauthyId;
@@ -31,7 +31,7 @@ export async function claimUsername(
 		// Claiming a local username
 
 		if (!input.username.match(validUsernameRegex)) {
-			throw 'Username does not pass valid username check.';
+			throw `Username does not pass valid username check: '${input.username}'`;
 		} else {
 			username = input.username + '.' + env.PUBLIC_USER_DOMAIN_PARENT;
 		}
@@ -39,28 +39,30 @@ export async function claimUsername(
 		// Claim a custom domain
 		const isApex = input.domain.split('.').length == 2;
 
-		if (isApex) {
-			const ips = await resolveAuthoritative(input.domain, 'A');
-			let matches = 0;
-			for (const ip of ips) {
-				if (ip in APP_IPS) {
-					matches += 1;
-				} else {
-					throw `DNS validation failed: ${input.domain} resolves to \
+		if (!input.skipDomainCheck) {
+			if (isApex) {
+				const ips = await resolveAuthoritative(input.domain, 'A');
+				let matches = 0;
+				for (const ip of ips) {
+					if (ip in APP_IPS) {
+						matches += 1;
+					} else {
+						throw `DNS validation failed: ${input.domain} resolves to \
 an IP address ${ip} that is not the Weird server.`;
+					}
 				}
+
+				if (matches == 0) {
+					throw `DNS validation failed: ${input.domain} does not resolve \
+to the weird server.`;
+				}
+			} else {
 			}
 
-			if (matches == 0) {
-				throw `DNS validation failed: ${input.domain} does not resolve \
-to the weird server.`;
-			}
-		} else {
+			throw "Can't use custom domains yet";
 		}
 
-		throw "Can't use custom domains yet";
-
-		// username = input.domain;
+		username = input.domain;
 	}
 
 	const usernameKey = USER_NAMES_PREFIX + username;

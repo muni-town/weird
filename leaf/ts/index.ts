@@ -666,14 +666,16 @@ export class RpcClient {
 
 	async add_components<C extends Component>(
 		link: ExactLink,
-		components: C[],
+		components: (C | { schema: Digest; data: Uint8Array })[],
 		replaceExisting = true
 	): Promise<Digest> {
 		let componentData = components.map((component) => {
-			return {
-				schema: Object.getPrototypeOf(component).constructor.schemaId(),
-				data: component.serialize()
-			};
+			return component instanceof Component
+				? {
+						schema: Object.getPrototypeOf(component).constructor.schemaId(),
+						data: component.serialize()
+					}
+				: component;
 		});
 		const resp = await this.#send_req({
 			AddComponents: {

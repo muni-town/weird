@@ -32,16 +32,8 @@ export const WEIRD_NAMESPACE_SECRET: Digest = new Uint8Array([
 
 export let WEIRD_NAMESPACE: Digest = null as any;
 
-export let INSTANCE_SUBSPACE: Digest = null as any;
+// export let INSTANCE_SUBSPACE: Digest = null as any;
 
-/** Create an ExactLink from a path in this Weird instance. */
-export function instance_link(...path: IntoPathSegment[]): ExactLink {
-	return {
-		namespace: WEIRD_NAMESPACE,
-		subspace: INSTANCE_SUBSPACE,
-		path: path.map(intoPathSegment)
-	};
-}
 
 export function subspace_link(subspace: SubspaceId, ...path: IntoPathSegment[]): ExactLink {
 	return {
@@ -55,13 +47,12 @@ if (!building) {
 	leafClient = new RpcClient(env.BACKEND_URL, env.BACKEND_SECRET);
 	WEIRD_NAMESPACE = await leafClient.import_namespace_secret(WEIRD_NAMESPACE_SECRET);
 
-	let secret: string = env.INSTANCE_SUBSPACE_SECRET;
+	// let secret: string = env.INSTANCE_SUBSPACE_SECRET;
 
-	INSTANCE_SUBSPACE = await leafClient.import_subspace_secret(base32Decode(secret));
+	// INSTANCE_SUBSPACE = await leafClient.import_subspace_secret(base32Decode(secret));
 
 	console.log(`Leaf client initialized:
-    Weird Namespace ID        : ${base32Encode(WEIRD_NAMESPACE)}
-    Weird Instance Subspace ID: ${base32Encode(INSTANCE_SUBSPACE)}`);
+    Weird Namespace ID        : ${base32Encode(WEIRD_NAMESPACE)}`);
 }
 
 export type KnownComponents = {

@@ -55,9 +55,17 @@ if (!building) {
 	leafClient = new RpcClient(env.BACKEND_URL, env.BACKEND_SECRET);
 	WEIRD_NAMESPACE = await leafClient.import_namespace_secret(WEIRD_NAMESPACE_SECRET);
 
-	let secret: string = env.INSTANCE_SUBSPACE_SECRET;
+	let secret: string | undefined = env.INSTANCE_SUBSPACE_SECRET;
 
-	INSTANCE_SUBSPACE = await leafClient.import_subspace_secret(base32Decode(secret));
+	if (!secret) {
+		INSTANCE_SUBSPACE = await leafClient.create_subspace();
+		console.warn(
+			`INSTANCE_SUBSPACE_SECRET env variable not set, generating a secret.
+Set the env var to: ${base32Encode((await leafClient.get_subspace_secret(INSTANCE_SUBSPACE))!)}`
+		);
+	} else {
+		INSTANCE_SUBSPACE = await leafClient.import_subspace_secret(base32Decode(secret));
+	}
 
 	console.log(`Leaf client initialized:
     Weird Namespace ID        : ${base32Encode(WEIRD_NAMESPACE)}

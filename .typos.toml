@@ -4,3 +4,4 @@ extend-exclude = ["src/lib/pow/wasm/*"]
 [default.extend-words]
 ratatui = "ratatui"
 additionals = "additionals"
+datas = "datas"

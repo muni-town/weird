@@ -7,7 +7,7 @@ import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../types';
 import { getSession } from '$lib/rauthy/server';
 import { dateToUnixTimestamp } from '$lib/utils/time';
-import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames';
+import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> => {
 	const username = params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];

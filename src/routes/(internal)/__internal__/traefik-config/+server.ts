@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { listUsers } from '$lib/usernames';
+import { listUsers } from '$lib/usernames/index';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async () => {

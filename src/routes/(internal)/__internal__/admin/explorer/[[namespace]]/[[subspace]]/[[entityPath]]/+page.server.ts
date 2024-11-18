@@ -13,7 +13,7 @@ import {
 } from '$lib/leaf/profile';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
 import { getSession } from '$lib/rauthy/server';
-import { userNameAndIdBySubspace } from '$lib/usernames';
+import { userNameAndIdBySubspace } from '$lib/usernames/index';
 
 type Data =
 	| {

@@ -1,11 +1,12 @@
 import { redis } from '$lib/redis';
 import { base32Decode, base32Encode, type SubspaceId } from 'leaf-proto';
-import { leafClient } from './leaf';
+import { leafClient } from '../leaf';
 import { env } from '$env/dynamic/public';
-import { resolveAuthoritative } from './dns/resolve';
-import { APP_IPS } from './dns/server';
+import { resolveAuthoritative } from '../dns/resolve';
+import { APP_IPS } from '../dns/server';
+import { validUsernameRegex } from './client';
 
-export const validUsernameRegex = /^([a-z0-9][_-]?){3,32}$/;
+export { validUsernameRegex };
 
 const USER_NAMES_PREFIX = 'weird:users:names:';
 const USER_RAUTHY_IDS_PREFIX = 'weird:users:rauthyIds:';
@@ -83,6 +84,8 @@ to the weird server.`;
 		multi.hSet(usernameKey, 'rauthyId', rauthyId);
 		multi.hSet(rauthyIdKey, 'username', username);
 		multi.hSet(subspaceKey, 'username', username);
+		console.log(`Set ${rauthyIdKey} username to ${username}`);
+		console.log(`Set ${subspaceKey} username to ${username}`);
 
 		try {
 			await multi.exec();
@@ -94,6 +97,8 @@ to the weird server.`;
 			);
 		}
 	}
+
+	throw 'Could not claim username after 3 attempts.';
 }
 
 export async function unsetUsername(username: string) {
@@ -103,14 +108,18 @@ export async function unsetUsername(username: string) {
 
 	const user = await redis.hGetAll(usernameKey);
 
+	const subspaceKey = USER_SUBSPACES_PREFIX + user.subspace;
+	const rauthyIdKey = USER_RAUTHY_IDS_PREFIX + user.rauthyId;
+	await redis.watch([subspaceKey, rauthyIdKey]);
+
 	const multi = redis.multi();
 
 	multi.del(usernameKey);
-	if (user.subspace) {
-		multi.hDel(USER_SUBSPACES_PREFIX + user.subspace, 'username');
+	if (user.subspace == (await redis.hGet(subspaceKey, 'username'))) {
+		multi.hDel(subspaceKey, 'username');
 	}
-	if (user.rauthyId) {
-		multi.hDel(USER_RAUTHY_IDS_PREFIX + user.rauthyId, 'username');
+	if (user.rauthyId == (await redis.hGet(rauthyIdKey, 'username'))) {
+		multi.hDel(rauthyIdKey, 'username');
 	}
 
 	await multi.exec();

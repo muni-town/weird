@@ -1,4 +1,9 @@
-import { claimUsername, unsetUsername, listUsers, userSubspaceByRauthyId } from '$lib/usernames';
+import {
+	claimUsername,
+	unsetUsername,
+	listUsers,
+	userSubspaceByRauthyId
+} from '$lib/usernames/index';
 import { fail, type ServerLoad } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import {

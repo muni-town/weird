@@ -12,7 +12,7 @@ import {
 import { Page } from '../types';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
-import { userSubspaceByRauthyId } from '$lib/usernames';
+import { userSubspaceByRauthyId } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({ fetch, params, request, url }) => {
 	const { sessionInfo } = await getSession(fetch, request);

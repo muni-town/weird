@@ -5,7 +5,7 @@ import { getSession } from '$lib/rauthy/server';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { Name } from 'leaf-proto/components';
 import { env } from '$env/dynamic/public';
-import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames';
+import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames/index';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 	if (params.username?.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {

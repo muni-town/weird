@@ -2,9 +2,39 @@
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
+	import type { ActionData } from './settings/$types';
 	import Icon from '@iconify/svelte';
+	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+	import SetHandleModal from './components/ChangeHandleModal.svelte';
+	import { goto } from '$app/navigation';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
+
+	const modalStore = getModalStore();
+	let error: string | null = $state(null);
+
+	const setHandleModal: ModalSettings = {
+		type: 'component',
+		component: { ref: SetHandleModal },
+		async response(r) {
+			if (r.ok) {
+				const resp = await fetch(`/${data.username}/settings/handle`, {
+					method: 'post',
+					body: JSON.stringify({ username: r.ok }),
+					headers: [['content-type', 'application/json']]
+				});
+
+				const respData: { username: string } | { error: string } = await resp.json();
+
+				if ('error' in respData) {
+					error = respData.error;
+				} else {
+					error = null;
+					await goto(`/${respData.username}`);
+				}
+			}
+		}
+	};
 </script>
 
 <div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
@@ -34,18 +64,25 @@
 
 			<div class="flex-grow"></div>
 
-			<!-- <h2 class="mb-2 text-lg font-bold">Settings</h2>
-			<div class="flex flex-col gap-2">
-				<a class="variant-ghost btn" href={`/${$page.params.username}/settings/domain`}
-					>Domain Management</a
-				>
-			</div> -->
+			<h2 class="mb-2 text-lg font-bold">Settings</h2>
+			<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
+				Change Handle
+			</button>
 		</aside>
 	{/if}
 
 	<div class="hidden flex-grow sm:block"></div>
 
-	{@render children()}
+	<div class="flex flex-col items-center">
+		{#if error}
+			<aside class="alert variant-ghost-error relative mt-8 w-full">
+				<div class="alert-message">
+					<p>{error}</p>
+				</div>
+			</aside>
+		{/if}
+		{@render children()}
+	</div>
 
 	<div class="hidden flex-grow sm:block"></div>
 </div>

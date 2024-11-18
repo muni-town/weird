@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 import { leafClient, subspace_link } from '$lib/leaf';
-import { userSubspaceByUsername } from '$lib/usernames';
+import { userSubspaceByUsername } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({
 	params

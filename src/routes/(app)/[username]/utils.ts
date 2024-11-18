@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/public';
 import { profileLinkByUsername } from '$lib/leaf/profile';
-import { userRauthyIdByUsername } from '$lib/usernames';
+import { userRauthyIdByUsername } from '$lib/usernames/index';
 import { error } from '@sveltejs/kit';
 
 export async function ensureUsernameMatchesSessionUserId(

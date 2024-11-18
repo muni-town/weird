@@ -1,4 +1,4 @@
-import { claimUsername, unsetUsername, listUsers } from '$lib/usernames';
+import { claimUsername, unsetUsername, listUsers } from '$lib/usernames/index';
 import type { ServerLoad } from '@sveltejs/kit';
 import type { Actions } from './$types';
 

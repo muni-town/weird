@@ -9,12 +9,12 @@ import {
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import { leafClient, subspace_link } from '.';
 import _ from 'underscore';
-import { listUsers, userSubspaceByRauthyId, userSubspaceByUsername } from '$lib/usernames';
+import { listUsers, userSubspaceByRauthyId, userSubspaceByUsername } from '$lib/usernames/index';
 import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
-	custom_domain?: string;
+	// custom_domain?: string;
 	display_name?: string;
 	tags: string[];
 	bio?: string;
@@ -228,7 +228,7 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 			display_name: ent.get(Name)?.value,
 			bio: ent.get(Description)?.value,
 			tags: ent.get(Tags)?.value || [],
-			custom_domain: ent.get(WeirdCustomDomain)?.value,
+			// custom_domain: ent.get(WeirdCustomDomain)?.value,
 			links: ent.get(WebLinks)?.value || [],
 			mastodon_profile: ent.get(MastodonProfile)?.value,
 			pubpage_theme: ent.get(WeirdPubpageTheme)?.value

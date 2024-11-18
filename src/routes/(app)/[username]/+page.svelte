@@ -72,7 +72,7 @@
 	});
 
 	let profile = $derived(data.profile as Profile);
-	let pubpageHost = $state(data.username);
+	let pubpageHost = $derived(data.username);
 	let pubpageUrl = $derived(`${new URL(env.PUBLIC_URL).protocol}//${pubpageHost}`);
 
 	let editingTagsState = $state('');

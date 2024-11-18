@@ -1,7 +1,7 @@
 import { getSession } from '$lib/rauthy/server';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { userNameByRauthyId as usernameByRauthyId } from '$lib/usernames';
+import { userNameByRauthyId as usernameByRauthyId } from '$lib/usernames/index';
 import { env } from '$env/dynamic/public';
 
 export const load: PageServerLoad = async ({ fetch, request }): Promise<void> => {

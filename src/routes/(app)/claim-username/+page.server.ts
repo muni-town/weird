@@ -1,7 +1,7 @@
 import { getSession } from '$lib/rauthy/server';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.js';
-import { claimUsername, userNameByRauthyId } from '$lib/usernames.js';
+import { claimUsername, userNameByRauthyId } from '$lib/usernames/index';
 import { getAvatar, profileLinkById, setAvatar } from '$lib/leaf/profile.js';
 import { RawImage } from 'leaf-proto/components.js';
 

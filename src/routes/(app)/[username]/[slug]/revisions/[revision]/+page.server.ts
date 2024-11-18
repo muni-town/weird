@@ -13,7 +13,7 @@ import { env } from '$env/dynamic/public';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../../../types';
-import { userNameByRauthyId, userSubspaceByUsername } from '$lib/usernames';
+import { userNameByRauthyId, userSubspaceByUsername } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({
 	params

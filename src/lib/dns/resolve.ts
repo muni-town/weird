@@ -23,11 +23,23 @@ export async function resolveAuthoritative(hostname: string, type: 'CNAME'): Pro
 export async function resolveAuthoritative(hostname: string, type = 'A'): Promise<ResolveResponse> {
 	const resolver = new dns.Resolver();
 	resolver.setServers(dns.getServers());
-	const ns: string[] = await new Promise((res, rej) =>
-		resolver.resolveNs(hostname, (err, addrs) => {
-			err ? rej(err) : res(addrs);
-		})
-	);
+	const ns: string[] = await new Promise((res, rej) => {
+		let h = hostname;
+		// Climb the subdomains looking for a NS response.
+		while (true) {
+			resolver.resolveNs(h, (err, addrs) => {
+				if (err) {
+					if (h.split('.').length <= 2) {
+						rej(err);
+					} else {
+						h = h.split('.').slice(1).join('.');
+					}
+				} else {
+					return res(addrs);
+				}
+			});
+		}
+	});
 	const nsIps: string[][] = await Promise.all(
 		ns.map(async (host) => {
 			if (isIP(host) || isIP(host.split(':')[0])) {

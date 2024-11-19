@@ -317,7 +317,7 @@ export async function startDnsServer() {
 						const { type, name } = question;
 						switch (type) {
 							case 'TXT':
-								const txtUsername = name.match(WEIRD_HOST_TXT_RECORD_REGEX)?.[1];
+								const txtUsername = name.toLowerCase().match(WEIRD_HOST_TXT_RECORD_REGEX)?.[1];
 								if (!txtUsername) return returnAnswers(null);
 								const pubkey = await redis.hGet(REDIS_USER_PREFIX + txtUsername, 'subspace');
 								if (!pubkey) return returnAnswers(null);
@@ -338,7 +338,7 @@ export async function startDnsServer() {
 								]);
 								break;
 							case 'A':
-								const aUsername = name.match(WEIRD_HOST_A_RECORD_REGEX)?.[1];
+								const aUsername = name.toLowerCase().match(WEIRD_HOST_A_RECORD_REGEX)?.[1];
 								if (!aUsername) return returnAnswers(null);
 
 								// TODO: eventually we only want to return records for users that exist

@@ -3,14 +3,21 @@ import {
 	claimUsername,
 	unsetUsername,
 	userNameByRauthyId,
-	validUsernameRegex
+	validUsernameRegex,
+	validDomainRegex
 } from '$lib/usernames';
 import { type RequestHandler, json } from '@sveltejs/kit';
 import { z } from 'zod';
 
-const Req = z.object({
-	username: z.string().regex(validUsernameRegex)
-});
+const Req = z.union([
+	z.object({
+		username: z.string().regex(validUsernameRegex)
+	}),
+
+	z.object({
+		domain: z.string().regex(validDomainRegex)
+	})
+]);
 type Req = z.infer<typeof Req>;
 
 export const POST: RequestHandler = async ({ request, fetch }) => {
@@ -25,14 +32,13 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		return new Response(null, { status: 403 });
 	}
 	const oldUsername = await userNameByRauthyId(sessionInfo.user_id);
+
 	try {
-		await claimUsername({ username: parsed.data.username }, sessionInfo.user_id);
-		console.log('unset', oldUsername);
+		await claimUsername(parsed.data, sessionInfo.user_id);
 		if (oldUsername) {
 			await unsetUsername(oldUsername);
 		}
-
-		return json({ username: parsed.data.username });
+		return json(parsed.data);
 	} catch (e) {
 		return json({ error: `${e}` });
 	}

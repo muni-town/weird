@@ -4,9 +4,10 @@ import { leafClient } from '../leaf';
 import { env } from '$env/dynamic/public';
 import { resolveAuthoritative } from '../dns/resolve';
 import { APP_IPS } from '../dns/server';
-import { validUsernameRegex } from './client';
+import { validDomainRegex, validUsernameRegex } from './client';
+import { dev } from '$app/environment';
 
-export { validUsernameRegex };
+export { validUsernameRegex, validDomainRegex };
 
 const USER_NAMES_PREFIX = 'weird:users:names:';
 const USER_RAUTHY_IDS_PREFIX = 'weird:users:rauthyIds:';
@@ -39,28 +40,68 @@ export async function claimUsername(
 	} else {
 		// Claim a custom domain
 		const isApex = input.domain.split('.').length == 2;
+		const domainWithoutPort = input.domain.split(':')[0];
 
 		if (!input.skipDomainCheck) {
-			if (isApex) {
-				const ips = await resolveAuthoritative(input.domain, 'A');
-				let matches = 0;
-				for (const ip of ips) {
-					if (ip in APP_IPS) {
-						matches += 1;
-					} else {
-						throw `DNS validation failed: ${input.domain} resolves to \
-an IP address ${ip} that is not the Weird server.`;
-					}
-				}
-
-				if (matches == 0) {
-					throw `DNS validation failed: ${input.domain} does not resolve \
-to the weird server.`;
-				}
-			} else {
+			// Make sure the port matches
+			const appPort = env.PUBLIC_DOMAIN.split(':')[1];
+			const domainPort = input.domain.split(':')[1];
+			if (appPort != domainPort) {
+				throw `The port for the specified domain ${domainPort} does not match the port of the weird server ${appPort}.`;
 			}
 
-			throw "Can't use custom domains yet";
+			let tries = 0;
+			while (true) {
+				try {
+					if (isApex) {
+						const ips = await resolveAuthoritative(domainWithoutPort, 'A');
+						let matches = 0;
+						for (const ip of ips) {
+							if (ip in APP_IPS || (dev && ip.startsWith('127.'))) {
+								matches += 1;
+							} else {
+								throw `DNS validation failed: ${input.domain} resolves to \
+an IP address ${ip} that is not the Weird server.`;
+							}
+						}
+
+						if (matches == 0) {
+							throw `DNS validation failed: ${input.domain} does not resolve \
+to the weird server.`;
+						}
+					} else {
+						const cnames = await resolveAuthoritative(domainWithoutPort, 'CNAME');
+						if (!(cnames.length == 1 && cnames[0] == env.PUBLIC_DOMAIN)) {
+							throw `Expected a single CNAME record pointing to ${env.PUBLIC_DOMAIN} \
+but found ${cnames.length} records: ${cnames}`;
+						}
+					}
+
+					const txtRecords = await resolveAuthoritative('_weird.' + domainWithoutPort, 'TXT');
+					const expectedValue = `subspace=${subspace}`;
+					let matches = false;
+					for (const record of txtRecords) {
+						if (record == expectedValue) {
+							matches = true;
+							break;
+						}
+					}
+					if (!matches) {
+						throw `DNS validation failed: TXT record not found at \`_weird.${domainWithoutPort}\` \
+with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v}"`).join(', ')}`;
+					}
+
+					break;
+				} catch (e) {
+					tries += 1;
+
+					if (tries > 5) {
+						throw e;
+					} else {
+						await new Promise((res) => setTimeout(res, 1000));
+					}
+				}
+			}
 		}
 
 		username = input.domain;

@@ -16,6 +16,7 @@
 		"@codemirror/language": "^6.10.3",
 		"@dicebear/collection": "^9.2.2",
 		"@dicebear/core": "^9.2.2",
+		"@floating-ui/dom": "^1.6.12",
 		"@iconify/svelte": "^4.0.2",
 		"@keyv/redis": "^3.0.1",
 		"@lezer/highlight": "^1.2.1",

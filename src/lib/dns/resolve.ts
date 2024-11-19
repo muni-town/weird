@@ -19,6 +19,7 @@ export type ResolveResponse =
 
 export async function resolveAuthoritative(hostname: string, type: 'TXT' | 'A'): Promise<string[]>;
 export async function resolveAuthoritative(hostname: string, type: 'A'): Promise<string[]>;
+export async function resolveAuthoritative(hostname: string, type: 'CNAME'): Promise<string[]>;
 export async function resolveAuthoritative(hostname: string, type = 'A'): Promise<ResolveResponse> {
 	const resolver = new dns.Resolver();
 	resolver.setServers(dns.getServers());
@@ -41,6 +42,7 @@ export async function resolveAuthoritative(hostname: string, type = 'A'): Promis
 	resolver.setServers(nsIps.flat());
 	const result: ResolveResponse = await new Promise((res, rej) =>
 		resolver.resolve(hostname, type, (err, addrs) => {
+			console.log(err);
 			err ? rej(err) : res(addrs);
 		})
 	);

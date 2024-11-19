@@ -2,39 +2,27 @@
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
-	import type { ActionData } from './settings/$types';
 	import Icon from '@iconify/svelte';
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
-	import { goto } from '$app/navigation';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 
 	const modalStore = getModalStore();
 	let error: string | null = $state(null);
 
-	const setHandleModal: ModalSettings = {
+	const setHandleModal: ModalSettings = $derived({
 		type: 'component',
 		component: { ref: SetHandleModal },
+		subspace: data.subspace,
 		async response(r) {
-			if (r.ok) {
-				const resp = await fetch(`/${data.username}/settings/handle`, {
-					method: 'post',
-					body: JSON.stringify({ username: r.ok }),
-					headers: [['content-type', 'application/json']]
-				});
-
-				const respData: { username: string } | { error: string } = await resp.json();
-
-				if ('error' in respData) {
-					error = respData.error;
-				} else {
-					error = null;
-					await goto(`/${respData.username}`);
-				}
+			if ('error' in r) {
+				error = r.error;
+			} else {
+				error = null;
 			}
 		}
-	};
+	});
 </script>
 
 <div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">

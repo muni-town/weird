@@ -6,6 +6,7 @@ import { leafClient, subspace_link } from '$lib/leaf';
 import { Name } from 'leaf-proto/components';
 import { env } from '$env/dynamic/public';
 import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames/index';
+import { base32Encode } from 'leaf-proto';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 	if (params.username?.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
@@ -40,5 +41,11 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 		)
 	).filter((x) => x) as { slug: string; name?: string }[];
 
-	return { profile, profileMatchesUserSession, pages, username: fullUsername };
+	return {
+		profile,
+		profileMatchesUserSession,
+		pages,
+		username: fullUsername,
+		subspace: base32Encode(subspace)
+	};
 };

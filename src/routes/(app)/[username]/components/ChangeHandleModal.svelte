@@ -195,14 +195,14 @@
 														<td>
 															<code class="font-mono">CNAME</code>
 														</td>
-														<td> <pre>{domain.split('.').slice(0, -2)}</pre> </td>
+														<td> <pre>{domain.split('.').slice(0, -2).join('.')}</pre> </td>
 														<td> <pre>a.weird.one</pre> </td>
 													</tr>
 													<tr>
 														<td>
 															<pre>TXT</pre>
 														</td>
-														<td> <pre>_weird.{domain.split('.').slice(0, -2)}</pre> </td>
+														<td> <pre>_weird.{domain.split('.').slice(0, -2).join('.')}</pre> </td>
 														<td> <pre>"subspace={($modalStore[0] as any).subspace}"</pre> </td>
 													</tr>
 												</tbody>

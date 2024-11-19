@@ -71,7 +71,7 @@ to the weird server.`;
 						}
 					} else {
 						const cnames = await resolveAuthoritative(domainWithoutPort, 'CNAME');
-						if (!(cnames.length == 1 && cnames[0] == env.PUBLIC_DOMAIN)) {
+						if (!(cnames.length == 1 && cnames[0] == env.PUBLIC_DOMAIN.split(':')[0])) {
 							throw `Expected a single CNAME record pointing to ${env.PUBLIC_DOMAIN} \
 but found ${cnames.length} records: ${cnames}`;
 						}
@@ -125,8 +125,6 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 		multi.hSet(usernameKey, 'rauthyId', rauthyId);
 		multi.hSet(rauthyIdKey, 'username', username);
 		multi.hSet(subspaceKey, 'username', username);
-		console.log(`Set ${rauthyIdKey} username to ${username}`);
-		console.log(`Set ${subspaceKey} username to ${username}`);
 
 		try {
 			await multi.exec();

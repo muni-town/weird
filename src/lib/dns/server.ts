@@ -190,7 +190,8 @@ export async function startDnsServer() {
 		if (res.finished) return next();
 
 		const question = req.packet.questions[0];
-		if (question.type == 'NS') {
+		// Note: we have a different custom responder for NS records in dev
+		if (question.type == 'NS' && !dev) {
 			res.packet.flags = res.packet.flags;
 			return res.answer(makeNsAnswers(question.name));
 		}
@@ -382,60 +383,71 @@ export async function startDnsServer() {
 			// If there's already an answer, continue
 			if (res.finished) return next();
 
+			const question = req.packet.questions[0];
+			const { type, name } = question;
+
+			if (name.endsWith('.localhost')) {
+				if (type == 'A') {
+					res.answer([
+						{
+							name,
+							type,
+							data: '127.0.0.1',
+							ttl: DNS_TTL
+						}
+					]);
+					return next();
+				} else if (type == 'CNAME') {
+					res.answer([
+						{
+							name,
+							type,
+							data: pubenv.PUBLIC_DOMAIN.split(':')[0],
+							ttl: DNS_TTL
+						}
+					]);
+					return next();
+				}
+			}
+
 			const resolver = new dns.Resolver();
 			resolver.setServers(defaultDnsServers);
 
-			// Collect answers asynchronously
-			const results = (await Promise.all(
-				req.packet.questions.map(
-					(question) =>
-						new Promise((returnAnswers) => {
-							const { type, name } = question;
-							switch (type) {
-								case 'TXT':
-								case 'A':
-									resolver.resolve(name, type, (err, ans) => {
-										if (!err) {
-											returnAnswers(
-												(ans as AnyRecord[]).map((answer) => ({
-													name,
-													type,
-													data: answer,
-													ttl: DNS_TTL
-												}))
-											);
-										} else {
-											returnAnswers([]);
-										}
-									});
-									break;
-								case 'NS':
-									// Pretend to be the authoritative nameserver for everything so that resolving users
-									// by the authoritative namerserver always resolves locally during dev.
-									returnAnswers([
-										{
-											name,
-											type,
-											data: localServer,
-											ttl: DNS_TTL
-										}
-									]);
-								default:
-									returnAnswers(null);
+			switch (type) {
+				case 'TXT':
+				case 'A':
+					resolver.resolve(name, type, (err, ans) => {
+						if (!err) {
+							res.answer(
+								(ans as AnyRecord[]).map((answer) => ({
+									name,
+									type,
+									data: answer,
+									ttl: DNS_TTL
+								})) as unknown as SupportedAnswer[]
+							);
+						}
+					});
+					break;
+				case 'NS':
+					// Pretend to be the authoritative nameserver for every apex so that resolving users
+					// by the authoritative namerserver always resolves locally during dev.
+					if (name.split('.').length == 2) {
+						res.answer([
+							{
+								name,
+								type,
+								data: localServer,
+								ttl: DNS_TTL
 							}
-						})
-				)
-			)) as (SupportedAnswer[] | null)[];
-
-			// Return answers
-			const filtered = results
-				.filter((x) => !!x)
-				.map((x) => x as unknown as SupportedAnswer)
-				.flat();
-			if (filtered.length > 0) {
-				res.answer(filtered);
-			} else {
-				res.errors.nxDomain();
+						]);
+					} else {
+						res.answer([]);
+						// Don't go to next so that our normal default NS response doesn't get created.
+						// We're trying to emulate the way that authoritative nameservers won't respond
+						// to NS queries on subdomains that don't have custom nameservers.
+						return;
+					}
 			}
 
 			next();

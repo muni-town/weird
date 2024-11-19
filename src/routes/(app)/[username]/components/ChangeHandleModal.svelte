@@ -227,7 +227,7 @@
 			<button class="btn {parent.buttonNeutral}" onclick={parent.onClose} type="button"
 				>{parent.buttonTextCancel}</button
 			>
-			<button class="btn {parent.buttonPositive}" type="submit" disabled={!valid && !verifying}
+			<button class="btn {parent.buttonPositive}" type="submit" disabled={!valid || verifying}
 				>Save</button
 			>
 		</footer>

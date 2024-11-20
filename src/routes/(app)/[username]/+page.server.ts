@@ -67,7 +67,7 @@ export const actions = {
 			if (avatarData.name != '') {
 				const origData = new Uint8Array(await avatarData.arrayBuffer());
 				const resized = new Uint8Array(
-					(await sharp(origData).resize(256, 256).webp().toBuffer()).buffer
+					(await sharp(origData).rotate().resize(256, 256).webp().toBuffer()).buffer
 				);
 				await setAvatarById(sessionInfo.user_id, new RawImage('image/webp', resized));
 			}

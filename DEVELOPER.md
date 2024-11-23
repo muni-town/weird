@@ -91,6 +91,28 @@ cargo r
 pnpm run dev
 ```
 
+### Admin User
+
+The local dev env has an automatically created admin user that you can login with to get admin permissions:
+
+**Email:** `admin@localhost.de`
+**Password:** `adminadmin`
+
+### Debugging Tools
+
+Users that have the `admin` role, as configured in Rauthy are able to access the Weird admin menu
+from the app nav toolbar or by going to
+[`http://localhost:9523/__internal__/admin`](http://localhost:9523/__internal__/admin).
+
+At the time of writing this includes:
+
+- Link to the auth server admin interface
+- A database dump / restore feature
+- A database data explorer
+- A utility to update the username domain for all users on the instance
+
+More utilities may be added in the future as we find time and deem necessary.
+
 ### Environment
 
 Once you run [Development](#development) commands you will have the following services available running in your system.

@@ -22,6 +22,36 @@ export interface Profile {
 	pubpage_theme?: string;
 }
 
+export class VerifiedLinkDate extends Component {
+  value: number;
+
+  constructor(dateVerified: number) {
+    super();
+
+    this.value = dateVerified;
+  }
+
+  static componentName(): string {
+    return 'VerifiedLinkDate';
+  }
+
+  static borshSchema(): BorshSchema {
+    return BorshSchema.u64;
+  }
+
+  static specification(): Component[] {
+    const COMMON_MARK_SPEC = `
+      Contains the date that a link was verified by Weird.
+      The username and link that has been verified should be in the last two
+      path segments of entities path:
+      "example-path-to-entity/username/https://github.com/username"
+    `;
+    return [
+      new CommonMark(COMMON_MARK_SPEC)
+    ];
+  }
+}
+
 export class Tags extends Component {
 	value: string[] = [];
 	constructor(tags: string[]) {

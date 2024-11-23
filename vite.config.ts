@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import { sveltekit } from '@sveltejs/kit/vite';
 import wasm from 'vite-plugin-wasm';
 import topLevelAwait from 'vite-plugin-top-level-await';
@@ -18,5 +20,9 @@ export default defineConfig({
 		rollupOptions: {
 			external: 'sharp'
 		}
+	},
+	test: {
+	  include: ['./src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+	  watch: false,
 	}
 });

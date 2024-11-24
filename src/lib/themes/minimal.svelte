@@ -179,7 +179,7 @@
 
 		{#if profile.tags && profile.tags.length > 0}
 			<div style="padding-bottom: 3rem;">
-				<span class="tags">
+				<div class="tags">
 					{#each profile.tags as tag}
 						{#if is_author}
 							<span contenteditable="true" bind:textContent={tag} class="tag">
@@ -204,7 +204,7 @@
 							+
 						</span>
 					{/if}
-				</span>
+				</div>
 			</div>
 		{/if}
 	</main>
@@ -227,13 +227,18 @@
 	}
 	.tag {
 		padding: 0.25em;
+		color: white;
+		text-decoration-color: white;
+		font-weight: 400;
+		font-size: 16px;
 	}
 	.tag::before {
 		content: '#';
 	}
 	.links {
-		margin: 0.5em;
 		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 	.link {
 		margin: 0.5em;
@@ -263,5 +268,8 @@
 		margin: auto;
 		margin-top: 0px;
 		z-index: 2;
+	}
+	.tags {
+		margin-top: 24px;
 	}
 </style>

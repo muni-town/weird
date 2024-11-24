@@ -1,6 +1,24 @@
 # Leaf Protocol
 
-This is a Rust crate implementing the draft [Leaf Protocol specification][lp].
+This is the work-in-progress SDK packages implementing the draft [Leaf Protocol specification][lp].
+
+For more information on the Leaf protocol see.
+
+- [Introducing the Leaf Protocol][ilp]
+- [Leaf, Atproto and ActivityPub][laa]
+
+[lp]: https://github.com/muni-town/agentic-fediverse/blob/main/leaf-protocol-draft.md
+[ilp]: https://zicklag.katharos.group/blog/introducing-leaf-protocol/
+[laa]: https://blog.muni.town/leaf-atproto-activitypub/
+
+## Organization
+
+Most of folders here are crates for the Rust implementation, and the TypeScript client implementation is in the `ts` folder.
+
+Note that the implementations are incomplete, along with the Leaf draft specification, and not everything is in sync yet.
+
+## Summary
+
 In short, every "thing" is considered an Entity, which exists in a namespace at a certain path, kind of like a filesystem.
 The entity may have any number of Components added to it, which are pieces of data that match a specific Schema.
 The idea is to make a bunch of small Components that describe different aspect of the Entities, so that different apps can simultaneously understand and add only partial data about the entity.
@@ -13,4 +31,6 @@ It would also have a `NameDescription` component, and maybe a `Slug` component t
 Each chat message would have an `Author` component that would contain a link to another Entity that has the info describing the author of the chat. The author, for example, would have an Image component that would be used for their avatar, as well as a `NameDescription`, and a `Slug` ( we should discuss a standard component for `Slug` or `MachineName` or something eventually ).
 In Rust, each component will be a Rust struct or Enum that derives `BorshSerialize` and `BorshDeserialize`, as well as custom `HasBorshSchema`, and `Component` traits.
 
-[lp]: https://github.com/muni-town/agentic-fediverse/blob/main/leaf-protocol-draft.md
+## License
+
+See [LICENSE.md](./LICENSE.md).

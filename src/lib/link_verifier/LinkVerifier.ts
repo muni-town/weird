@@ -42,7 +42,7 @@ export class LinkVerifier {
 		return [...this.webLinks];
 	}
 
-	async verify(): Promise<WebLink[]> {
+	async verify(target: string): Promise<WebLink[]> {
    const verifiedLinks: WebLink[] = [];
 
 	 for (const webLink of this.webLinks) {
@@ -52,7 +52,7 @@ export class LinkVerifier {
       if (typeof linkVerificationStrategyFactory === 'function') {
         const dom = await LinkVerifier.fetchHtml(webLink);
         const strategy = linkVerificationStrategyFactory(dom);
-        const isVerified = await strategy.verify();
+        const isVerified = await strategy.verify(target);
 
         if (isVerified) {
           verifiedLinks.push(webLink);

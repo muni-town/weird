@@ -1,16 +1,12 @@
-import {
-	BorshSchema,
-	Component,
-	intoPathSegment,
-	type ExactLink,
-	type IntoPathSegment,
-	type Unit
-} from 'leaf-proto';
+import { BorshSchema, Component, intoPathSegment } from 'leaf-proto';
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
-import { leafClient, subspace_link } from '.';
 import _ from 'underscore';
+
 import { listUsers, userSubspaceByRauthyId, userSubspaceByUsername } from '$lib/usernames/index';
 import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
+import { leafClient, subspace_link } from '.';
+
+import type { ExactLink, IntoPathSegment, Unit } from 'leaf-proto';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
@@ -236,29 +232,16 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		undefined
 	);
 }
+
 export async function setProfile(link: ExactLink, profile: Profile) {
-	const delComponents = [];
-	const add_components = [];
-
-	profile.display_name
-		? add_components.push(new Name(profile.display_name))
-		: delComponents.push(Name);
-	profile.bio ? add_components.push(new Description(profile.bio)) : delComponents.push(Description);
-	profile.mastodon_profile
-		? add_components.push(new MastodonProfile(profile.mastodon_profile))
-		: delComponents.push(MastodonProfile);
-	profile.pubpage_theme
-		? add_components.push(new WeirdPubpageTheme(profile.pubpage_theme))
-		: delComponents.push(WeirdPubpageTheme);
-	add_components.push(new WebLinks(profile.links));
-	add_components.push(new Tags(profile.tags));
-
-	// NOTE: We don't set the user domain with this function. Setting the domain should be done
-	// separately with `setCustomDomain()`.
-
-	// TODO: allow deleting and adding components in the same RPC request.
-	if (delComponents.length > 0) await leafClient.del_components(link, delComponents);
-	await leafClient.add_components(link, add_components);
+	await leafClient.update_components(link, [
+		profile.display_name ? new Name(profile.display_name) : Name,
+		profile.bio ? new Description(profile.bio) : Description,
+		profile.mastodon_profile ? new MastodonProfile(profile.mastodon_profile) : MastodonProfile,
+		profile.pubpage_theme ? new WeirdPubpageTheme(profile.pubpage_theme) : WeirdPubpageTheme,
+		profile.links ? new WebLinks(profile.links) : WebLinks,
+		profile.tags ? new Tags(profile.tags) : Tags
+	]);
 }
 
 export async function setCustomDomain(userId: string, domain?: string): Promise<void> {

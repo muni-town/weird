@@ -10,6 +10,6 @@ export class GitHubLinkVerificationStrategy extends LinkVerificationStrategy {
   async verify(target: string): Promise<boolean> {
     const document = this.dom.window.document;
     const nodes = Array.from(document.querySelectorAll('a[rel="nofollow me"]'));
-    return !!nodes.find((node) => node.getAttribute('href') === `https://a.weird.one/${target}`);
+    return !!nodes.find((node) => node.getAttribute('href') === target);
   }
 }

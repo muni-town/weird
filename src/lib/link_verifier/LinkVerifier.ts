@@ -18,11 +18,13 @@ export function verifiableOriginFilter(webLink: WebLink): boolean {
 	);
 }
 
-export class LinkVerifier {
-	private webLinks: WebLink[];
+export type LinkArray = { label?: string; url: string }[];
 
-	constructor(links: WebLinks) {
-		this.webLinks = links.value.filter(verifiableOriginFilter);
+export class LinkVerifier {
+	private webLinks: LinkArray;
+
+	constructor(links: LinkArray) {
+		this.webLinks = links.filter(verifiableOriginFilter);
 	}
 
 	private static async fetchHtml(webLink: WebLink): Promise<JSDOM> {
@@ -57,6 +59,8 @@ export class LinkVerifier {
         if (isVerified) {
           verifiedLinks.push(webLink);
         }
+
+        continue;
       }
 
       // This should not happen, but if we got here somehow its likely we got a false positive

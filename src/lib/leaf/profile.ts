@@ -7,6 +7,7 @@ import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 import { leafClient, subspace_link } from '.';
 
 import type { ExactLink, IntoPathSegment, Unit } from 'leaf-proto';
+import { LinkVerifier } from '$lib/link_verifier/LinkVerifier';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
@@ -234,6 +235,8 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 }
 
 export async function setProfile(link: ExactLink, profile: Profile) {
+  const linkVerifier = new LinkVerifier(profile.links);
+  await linkVerifier.verify(profile.display_name as string);
 	await leafClient.update_components(link, [
 		profile.display_name ? new Name(profile.display_name) : Name,
 		profile.bio ? new Description(profile.bio) : Description,

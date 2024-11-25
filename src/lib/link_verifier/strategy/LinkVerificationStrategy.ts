@@ -2,7 +2,7 @@ import { JSDOM } from 'jsdom';
 
 export interface ILinkVerificationStrategy {
   name: string;
-  verify(target: string): Promise<boolean>;
+  verify(userProfileLink: string): Promise<boolean>;
 }
 
 export type LinkVerificationStrategyFactory = (dom: JSDOM) => ILinkVerificationStrategy;

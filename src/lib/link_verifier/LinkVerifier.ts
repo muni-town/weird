@@ -2,8 +2,9 @@ import { JSDOM } from 'jsdom';
 
 import { GitHubLinkVerificationStrategy } from './strategy/GitHubLinkVerificationStrategy';
 
-import type { WebLink, WebLinks } from '$lib/leaf/profile';
+import type { WebLink } from '$lib/leaf/profile';
 import type { LinkVerificationStrategyFactory } from './strategy/LinkVerificationStrategy';
+import type { ExactLink } from 'leaf-proto';
 
 export const VERIFIABLE_ORIGIN_STRATEGY: Record<string, LinkVerificationStrategyFactory> = {
 	'https://github.com': (dom) => new GitHubLinkVerificationStrategy(dom),
@@ -44,7 +45,7 @@ export class LinkVerifier {
 		return [...this.webLinks];
 	}
 
-	async verify(target: string): Promise<WebLink[]> {
+	async verify(userProfileLink: string): Promise<WebLink[]> {
    const verifiedLinks: WebLink[] = [];
 
 	 for (const webLink of this.webLinks) {
@@ -54,7 +55,7 @@ export class LinkVerifier {
       if (typeof linkVerificationStrategyFactory === 'function') {
         const dom = await LinkVerifier.fetchHtml(webLink);
         const strategy = linkVerificationStrategyFactory(dom);
-        const isVerified = await strategy.verify(target);
+        const isVerified = await strategy.verify(userProfileLink);
 
         if (isVerified) {
           verifiedLinks.push(webLink);

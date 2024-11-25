@@ -7,7 +7,7 @@ import type { LinkVerificationStrategyFactory } from './strategy/LinkVerificatio
 import type { ExactLink } from 'leaf-proto';
 
 export const VERIFIABLE_ORIGIN_STRATEGY: Record<string, LinkVerificationStrategyFactory> = {
-	'https://github.com': (dom) => new GitHubLinkVerificationStrategy(dom),
+	'https://github.com': (dom) => new GitHubLinkVerificationStrategy(dom)
 };
 
 export const VERIFIABLE_ORIGINS: string[] = Object.keys(VERIFIABLE_ORIGIN_STRATEGY);
@@ -46,29 +46,31 @@ export class LinkVerifier {
 	}
 
 	async verify(userProfileLink: string): Promise<WebLink[]> {
-   const verifiedLinks: WebLink[] = [];
+		const verifiedLinks: WebLink[] = [];
 
-	 for (const webLink of this.webLinks) {
-		const origin = new URL(webLink.url).origin;
-      const linkVerificationStrategyFactory = VERIFIABLE_ORIGIN_STRATEGY[origin] as LinkVerificationStrategyFactory | null;
+		for (const webLink of this.webLinks) {
+			const origin = new URL(webLink.url).origin;
+			const linkVerificationStrategyFactory = VERIFIABLE_ORIGIN_STRATEGY[
+				origin
+			] as LinkVerificationStrategyFactory | null;
 
-      if (typeof linkVerificationStrategyFactory === 'function') {
-        const dom = await LinkVerifier.fetchHtml(webLink);
-        const strategy = linkVerificationStrategyFactory(dom);
-        const isVerified = await strategy.verify(userProfileLink);
+			if (typeof linkVerificationStrategyFactory === 'function') {
+				const dom = await LinkVerifier.fetchHtml(webLink);
+				const strategy = linkVerificationStrategyFactory(dom);
+				const isVerified = await strategy.verify(userProfileLink);
 
-        if (isVerified) {
-          verifiedLinks.push(webLink);
-        }
+				if (isVerified) {
+					verifiedLinks.push(webLink);
+				}
 
-        continue;
-      }
+				continue;
+			}
 
-      // This should not happen, but if we got here somehow its likely we got a false positive
-      // in the origins map.
-      throw new Error(`The WebLink with URL "${webLink.url}" is not supported by any strategy.`);
+			// This should not happen, but if we got here somehow its likely we got a false positive
+			// in the origins map.
+			throw new Error(`The WebLink with URL "${webLink.url}" is not supported by any strategy.`);
 		}
 
-    return verifiedLinks;
+		return verifiedLinks;
 	}
 }

@@ -22,7 +22,7 @@ export default defineConfig({
 		}
 	},
 	test: {
-	  include: ['./src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
-	  watch: false,
+		include: ['./src/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
+		watch: false
 	}
 });

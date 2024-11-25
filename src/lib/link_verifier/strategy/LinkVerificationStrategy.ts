@@ -1,8 +1,8 @@
 import { JSDOM } from 'jsdom';
 
 export interface ILinkVerificationStrategy {
-  name: string;
-  verify(userProfileLink: string): Promise<boolean>;
+	name: string;
+	verify(userProfileLink: string): Promise<boolean>;
 }
 
 export type LinkVerificationStrategyFactory = (dom: JSDOM) => ILinkVerificationStrategy;
@@ -21,6 +21,6 @@ export abstract class LinkVerificationStrategy implements ILinkVerificationStrat
 	}
 
 	public async verify(target: string): Promise<boolean> {
-    throw new Error('Not Implemented');
+		throw new Error('Not Implemented');
 	}
 }

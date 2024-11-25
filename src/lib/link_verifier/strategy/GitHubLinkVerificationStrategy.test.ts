@@ -66,17 +66,17 @@ const GITHUB_PROFILE_SNIPPET = `
   </ul>`;
 
 test('verifies an owned githubs link', async () => {
-  const dom = new JSDOM(GITHUB_PROFILE_SNIPPET);
-  const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
-  const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/estebanborai');
+	const dom = new JSDOM(GITHUB_PROFILE_SNIPPET);
+	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
+	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/estebanborai');
 
-  expect(isOwner).toStrictEqual(true);
+	expect(isOwner).toStrictEqual(true);
 });
 
 test('invalidates a non owners github link', async () => {
-  const dom = new JSDOM(GITHUB_PROFILE_SNIPPET);
-  const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
-  const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/zicklag');
+	const dom = new JSDOM(GITHUB_PROFILE_SNIPPET);
+	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
+	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/zicklag');
 
-  expect(isOwner).toStrictEqual(false);
+	expect(isOwner).toStrictEqual(false);
 });

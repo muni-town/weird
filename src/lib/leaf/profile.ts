@@ -235,10 +235,10 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 }
 
 export async function setProfile(link: ExactLink, profile: Profile) {
-  const linkVerifier = new LinkVerifier(profile.links);
-  // Here we should pass the user profile link such as:
-  // https://a.weird.one/username
-  // await linkVerifier.verify(userProfileLink);
+	const linkVerifier = new LinkVerifier(profile.links);
+	// Here we should pass the user profile link such as:
+	// https://a.weird.one/username
+	// await linkVerifier.verify(userProfileLink);
 	await leafClient.update_components(link, [
 		profile.display_name ? new Name(profile.display_name) : Name,
 		profile.bio ? new Description(profile.bio) : Description,

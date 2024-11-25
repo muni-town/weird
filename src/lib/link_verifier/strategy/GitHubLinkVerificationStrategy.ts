@@ -3,13 +3,13 @@ import { JSDOM } from 'jsdom';
 import { LinkVerificationStrategy } from './LinkVerificationStrategy';
 
 export class GitHubLinkVerificationStrategy extends LinkVerificationStrategy {
-  constructor(dom: JSDOM) {
-    super('GitHubLinkVerificationStrategy', dom);
-  }
+	constructor(dom: JSDOM) {
+		super('GitHubLinkVerificationStrategy', dom);
+	}
 
-  async verify(userProfileLink: string): Promise<boolean> {
-    const document = this.dom.window.document;
-    const nodes = Array.from(document.querySelectorAll('a[rel="nofollow me"]'));
-    return !!nodes.find((node) => node.getAttribute('href') === userProfileLink);
-  }
+	async verify(userProfileLink: string): Promise<boolean> {
+		const document = this.dom.window.document;
+		const nodes = Array.from(document.querySelectorAll('a[rel="nofollow me"]'));
+		return !!nodes.find((node) => node.getAttribute('href') === userProfileLink);
+	}
 }

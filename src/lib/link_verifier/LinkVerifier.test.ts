@@ -1,26 +1,26 @@
 import { expect, test } from 'vitest';
 
-import { WebLink, WebLinks } from "$lib/leaf/profile";
+import { WebLink, WebLinks } from '$lib/leaf/profile';
 
 import { LinkVerifier } from './LinkVerifier';
 
 test('filters verifiable origins', () => {
-  const webLinks = [
-    {
-      url: 'https://github.com/EstebanBorai',
-      label: 'GitHub',
-    },
-    {
-      url: 'https://www.nytimes.com/',
-      label: 'The New York Times',
-    }
-  ];
-  const linkVerifier = new LinkVerifier(webLinks);
-  const filteredLinks = linkVerifier.links.map((webLink) => ({
-    url: webLink.url,
-    label: webLink.label,
-  }));
+	const webLinks = [
+		{
+			url: 'https://github.com/EstebanBorai',
+			label: 'GitHub'
+		},
+		{
+			url: 'https://www.nytimes.com/',
+			label: 'The New York Times'
+		}
+	];
+	const linkVerifier = new LinkVerifier(webLinks);
+	const filteredLinks = linkVerifier.links.map((webLink) => ({
+		url: webLink.url,
+		label: webLink.label
+	}));
 
-  expect(filteredLinks.find(({ url }) => webLinks[0].url === url)).toBeTruthy();
-  expect(filteredLinks.find(({ url }) => webLinks[1].url === url)).toBeFalsy();
+	expect(filteredLinks.find(({ url }) => webLinks[0].url === url)).toBeTruthy();
+	expect(filteredLinks.find(({ url }) => webLinks[1].url === url)).toBeFalsy();
 });

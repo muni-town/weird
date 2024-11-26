@@ -31,7 +31,9 @@
 				// Remove the domain for local usernames
 				const username = profile.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
 				return { ...profile, username };
-			});
+			})
+			.map((x) => ({ sort: Math.random(), ...x }))
+			.sort((a, b) => a.sort - b.sort);
 	});
 
 	let searchbox: SvelteComponent;

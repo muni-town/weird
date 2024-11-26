@@ -1,5 +1,5 @@
 [files]
-extend-exclude = ["src/lib/pow/wasm/*"]
+extend-exclude = ["src/lib/pow/wasm/*", "pnpm-lock.yaml"]
 
 [default.extend-words]
 ratatui = "ratatui"

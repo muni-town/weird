@@ -10,6 +10,18 @@ export class GitHubLinkVerificationStrategy extends LinkVerificationStrategy {
 	async verify(userProfileLink: string): Promise<boolean> {
 		const document = this.dom.window.document;
 		const nodes = Array.from(document.querySelectorAll('a[rel="nofollow me"]'));
-		return !!nodes.find((node) => node.getAttribute('href') === userProfileLink);
+		const element = nodes.find((node) => node.getAttribute('href')?.startsWith(userProfileLink));
+
+		if (!element) {
+			return false;
+		}
+
+		const href = element.getAttribute('href');
+
+		if (!href) {
+			return false;
+		}
+
+		return href.startsWith(userProfileLink);
 	}
 }

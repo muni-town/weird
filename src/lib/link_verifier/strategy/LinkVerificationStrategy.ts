@@ -20,7 +20,7 @@ export abstract class LinkVerificationStrategy implements ILinkVerificationStrat
 		return this.strategyName;
 	}
 
-	public async verify(target: string): Promise<boolean> {
+	public async verify(userProfileLink: string): Promise<boolean> {
 		throw new Error('Not Implemented');
 	}
 }

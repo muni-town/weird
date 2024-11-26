@@ -23,9 +23,11 @@ export type LinkArray = { label?: string; url: string }[];
 
 export class LinkVerifier {
 	private webLinks: LinkArray;
+	private userName: string;
 
-	constructor(links: LinkArray) {
+	constructor(links: LinkArray, userName: string) {
 		this.webLinks = links.filter(verifiableOriginFilter);
+		this.userName = userName;
 	}
 
 	private static async fetchHtml(webLink: WebLink): Promise<JSDOM> {
@@ -45,7 +47,7 @@ export class LinkVerifier {
 		return [...this.webLinks];
 	}
 
-	async verify(userProfileLink: string): Promise<WebLink[]> {
+	async verify(): Promise<WebLink[]> {
 		const verifiedLinks: WebLink[] = [];
 
 		for (const webLink of this.webLinks) {
@@ -57,7 +59,7 @@ export class LinkVerifier {
 			if (typeof linkVerificationStrategyFactory === 'function') {
 				const dom = await LinkVerifier.fetchHtml(webLink);
 				const strategy = linkVerificationStrategyFactory(dom);
-				const isVerified = await strategy.verify(userProfileLink);
+				const isVerified = await strategy.verify(this.userProfileLink());
 
 				if (isVerified) {
 					verifiedLinks.push(webLink);
@@ -72,5 +74,9 @@ export class LinkVerifier {
 		}
 
 		return verifiedLinks;
+	}
+
+	private userProfileLink(): string {
+		return `https://a.weird.one/${this.userName}`;
 	}
 }

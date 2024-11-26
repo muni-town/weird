@@ -2,7 +2,13 @@ import { BorshSchema, Component, intoPathSegment } from 'leaf-proto';
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import _ from 'underscore';
 
-import { listUsers, userSubspaceByRauthyId, userSubspaceByUsername } from '$lib/usernames/index';
+import {
+	listUsers,
+	userNameByRauthyId,
+	userSubspaceByRauthyId,
+	userSubspaceByUsername
+} from '$lib/usernames/index';
+import { LinkVerifier } from '$lib/link_verifier/LinkVerifier';
 import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 import { leafClient, subspace_link } from '.';
 
@@ -302,6 +308,10 @@ export async function getProfileByDomain(domain: string): Promise<Profile | unde
 export async function setProfileById(rauthyId: string, profile: Profile): Promise<void> {
 	let link = await profileLinkById(rauthyId);
 	if (!link) throw `user has not yet claimed a username.`;
+	const userName = await userNameByRauthyId(rauthyId);
+	if (!userName) throw `user has no username`;
+	const linkVerifier = new LinkVerifier(profile.links, userName);
+	await linkVerifier.verify();
 	await setProfile(link, profile);
 }
 

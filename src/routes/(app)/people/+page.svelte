@@ -1,19 +1,37 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import Avatar from '$lib/components/avatar/view.svelte';
 	import MainContent from '$lib/components/theme/MainContent.svelte';
 	import SearchInput from '$lib/components/theme/SearchInput.svelte';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
+	import { Avatar } from '@skeletonlabs/skeleton';
+
+	// Use seeded random generator so that SSR has same result as CSR hydration.
+	//
+	// https://decode.sh/seeded-random-number-generator-in-js/
+	function random(seed: number) {
+		var m = 2 ** 35 - 31;
+		var a = 185852;
+		var s = seed % m;
+		let rng = function () {
+			const n = (s = (s * a) % m) / m;
+			return n;
+		};
+		// For some reason the first call is predictably lower than everything else so call it once
+		rng();
+		return rng;
+	}
 
 	const { data }: { data: PageData } = $props();
 	let search = $state('');
+	let rng = $derived(random(data.randomSeed));
 	let profiles = $derived(data.profiles);
 
 	let filtered_profiles = $derived.by(() => {
+		rng();
 		const words = search.split(' ');
-		return profiles
+		const p = profiles
 			.filter((x) => {
 				if (search == '') return true;
 				for (const word of words) {
@@ -32,8 +50,11 @@
 				const username = profile.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
 				return { ...profile, username };
 			})
-			.map((x) => ({ sort: Math.random(), ...x }))
-			.sort((a, b) => a.sort - b.sort);
+			.map((x) => ({ sort: rng(), ...x }));
+		p.sort((a, b) => {
+			return a.sort - b.sort;
+		});
+		return p;
 	});
 
 	let searchbox: SvelteComponent;

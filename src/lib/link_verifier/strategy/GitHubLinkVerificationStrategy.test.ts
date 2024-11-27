@@ -1,4 +1,4 @@
-import { parseHTML } from "linkedom"
+import { parseHTML } from 'linkedom';
 import { expect, test } from 'vitest';
 
 import { GitHubLinkVerificationStrategy } from './GitHubLinkVerificationStrategy';

@@ -1,5 +1,4 @@
-import { JSDOM } from 'jsdom';
-
+import { parseHTML } from 'linkedom';
 import { GitHubLinkVerificationStrategy } from './strategy/GitHubLinkVerificationStrategy';
 
 import type { WebLink } from '$lib/leaf/profile';
@@ -29,12 +28,12 @@ export class LinkVerifier {
 		this.userName = userName;
 	}
 
-	private static async fetchHtml(webLink: WebLink): Promise<JSDOM> {
+	private static async fetchHtml(webLink: WebLink): Promise<Window> {
 		const res = await fetch(webLink.url);
 
 		if (res.status === 200) {
 			const resText = await res.text();
-			return new JSDOM(resText);
+			return parseHTML(resText);
 		}
 
 		throw new Error(

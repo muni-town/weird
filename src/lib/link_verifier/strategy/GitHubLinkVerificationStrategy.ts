@@ -1,14 +1,12 @@
-import { JSDOM } from 'jsdom';
-
 import { LinkVerificationStrategy } from './LinkVerificationStrategy';
 
 export class GitHubLinkVerificationStrategy extends LinkVerificationStrategy {
-	constructor(dom: JSDOM) {
+	constructor(dom: Window) {
 		super('GitHubLinkVerificationStrategy', dom);
 	}
 
 	async verify(userProfileLink: string): Promise<boolean> {
-		const document = this.dom.window.document;
+		const document = this.dom.document;
 		const nodes = Array.from(document.querySelectorAll('a[rel="nofollow me"]'));
 		const element = nodes.find((node) => node.getAttribute('href')?.startsWith(userProfileLink));
 

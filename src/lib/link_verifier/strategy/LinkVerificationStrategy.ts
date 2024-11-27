@@ -1,17 +1,15 @@
-import { JSDOM } from 'jsdom';
-
 export interface ILinkVerificationStrategy {
 	name: string;
 	verify(userProfileLink: string): Promise<boolean>;
 }
 
-export type LinkVerificationStrategyFactory = (dom: JSDOM) => ILinkVerificationStrategy;
+export type LinkVerificationStrategyFactory = (dom: Window) => ILinkVerificationStrategy;
 
 export abstract class LinkVerificationStrategy implements ILinkVerificationStrategy {
-	protected dom: JSDOM;
+	protected dom: Window;
 	protected strategyName: string;
 
-	constructor(name: string, dom: JSDOM) {
+	constructor(name: string, dom: Window) {
 		this.dom = dom;
 		this.strategyName = name;
 	}

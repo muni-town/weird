@@ -1,4 +1,4 @@
-import { JSDOM } from 'jsdom';
+import { parseHTML } from "linkedom"
 import { expect, test } from 'vitest';
 
 import { GitHubLinkVerificationStrategy } from './GitHubLinkVerificationStrategy';
@@ -66,7 +66,7 @@ const GITHUB_PROFILE_SNIPPET = `
   </ul>`;
 
 test('verifies an owned githubs link', async () => {
-	const dom = new JSDOM(GITHUB_PROFILE_SNIPPET);
+	const dom = parseHTML(GITHUB_PROFILE_SNIPPET);
 	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
 	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/estebanborai');
 
@@ -74,7 +74,7 @@ test('verifies an owned githubs link', async () => {
 });
 
 test('invalidates a non owners github link', async () => {
-	const dom = new JSDOM(GITHUB_PROFILE_SNIPPET);
+	const dom = parseHTML(GITHUB_PROFILE_SNIPPET);
 	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
 	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/zicklag');
 

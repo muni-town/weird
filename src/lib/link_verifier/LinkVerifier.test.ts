@@ -1,7 +1,5 @@
 import { expect, test } from 'vitest';
 
-import { WebLink, WebLinks } from '$lib/leaf/profile';
-
 import { LinkVerifier } from './LinkVerifier';
 
 test('filters verifiable origins', () => {
@@ -15,7 +13,7 @@ test('filters verifiable origins', () => {
 			label: 'The New York Times'
 		}
 	];
-	const linkVerifier = new LinkVerifier(webLinks);
+	const linkVerifier = new LinkVerifier(webLinks, 'username');
 	const filteredLinks = linkVerifier.links.map((webLink) => ({
 		url: webLink.url,
 		label: webLink.label

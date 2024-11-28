@@ -18,6 +18,7 @@
 	import { page } from '$app/stores';
 	import SocialMediaButton from '$lib/components/social-media/social-media-button.svelte';
 	import FeaturedSocialMediaButton from '$lib/components/social-media/featured-social-media-button.svelte';
+	import PostCard from './post-card.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -231,6 +232,7 @@
 							in:fadeIn={{ key: 'edit-buttons' }}
 							out:fadeOut={{ key: 'edit-buttons' }}
 							enctype="multipart/form-data"
+							action="?/edit"
 						>
 							<input type="hidden" name="display_name" value={editingState.profile.display_name} />
 							<input
@@ -321,6 +323,29 @@
 					</span>
 				</div>
 			{/if}
+
+			<div>
+				{#if editingState.editing}
+					<form method="POST" action="?/rss">
+						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto] rounded-none">
+							<div class="input-group-shim">
+								<Icon icon="mdi:rss" class="h-6 w-6" />
+							</div>
+							<input type="url" placeholder="Enter RSS Link" name="rssLink" />
+
+							<button type="submit" class="text-ba variant-filled-secondary">Import</button>
+						</div>
+						<span class="text-sm text-error-300">{form?.rss?.error}</span>
+					</form>
+				{/if}
+
+				{#if form?.rss?.items}<div class="mt-8 grid grid-cols-1 gap-4">
+						{#each form.rss.items ?? [] as post}
+							<PostCard {post} />
+						{/each}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 </main>

@@ -86,10 +86,11 @@
 		"vite-plugin-wasm": "^3.3.0",
 		"vitest": "^2.1.6",
 		"ws": "^8.18.0",
+		"@atproto/api": "^0.13.18",
+		"fast-xml-parser": "^4.5.0",
 		"zod": "^3.23.8"
 	},
 	"dependencies": {
-		"@atproto/api": "^0.13.18",
 		"sharp": "^0.33.5",
 		"zlib-sync": "^0.1.9"
 	},

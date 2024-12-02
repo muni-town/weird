@@ -104,7 +104,7 @@
 						<Handle>
 							<IconHandle />
 						</Handle>
-						<SocialMediaButton url={link.url} />
+						<SocialMediaButton isEditing url={link.url} />
 
 						<button
 							class="variant-ghost btn-icon btn-icon-sm"

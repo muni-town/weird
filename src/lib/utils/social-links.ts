@@ -4,17 +4,22 @@ type SocialMediaConfigEntry = {
 	name: string;
 };
 
-export const socialMediaConfig: Record<string, SocialMediaConfigEntry> = {
+const featuredSocialMediaConfig: Record<string, SocialMediaConfigEntry> = {
 	'facebook.com': { icon: 'mdi:facebook', class: 'button-facebook', name: 'Facebook' },
 	'twitter.com': { icon: 'mdi:twitter', class: 'button-twitter', name: 'Twitter' },
 	'x.com': { icon: 'mdi:twitter', class: 'button-twitter', name: 'Twitter' },
 	'linkedin.com': { icon: 'mdi:linkedin', class: 'button-linkedin', name: 'LinkedIn' },
 	'instagram.com': { icon: 'mdi:instagram', class: 'button-instagram', name: 'Instagram' },
 	'youtube.com': { icon: 'mdi:youtube', class: 'button-youtube', name: 'YouTube' },
+	'github.com': { icon: 'mdi:github', class: 'button-github', name: 'GitHub' },
 	'tiktok.com': { icon: 'mdi:tiktok', class: 'button-tiktok', name: 'TikTok' },
-	'pinterest.com': { icon: 'mdi:pinterest', class: 'button-pinterest', name: 'Pinterest' },
-	'snapchat.com': { icon: 'mdi:snapchat', class: 'button-snapchat', name: 'Snapchat' },
 	'reddit.com': { icon: 'mdi:reddit', class: 'button-reddit', name: 'Reddit' },
+	'pinterest.com': { icon: 'mdi:pinterest', class: 'button-pinterest', name: 'Pinterest' }
+};
+
+export const socialMediaConfig: Record<string, SocialMediaConfigEntry> = {
+	...featuredSocialMediaConfig,
+	'snapchat.com': { icon: 'mdi:snapchat', class: 'button-snapchat', name: 'Snapchat' },
 	'tumblr.com': { icon: 'mdi:tumblr', class: 'button-tumblr', name: 'Tumblr' },
 	'flickr.com': { icon: 'mdi:flickr', class: 'button-flickr', name: 'Flickr' },
 	'whatsapp.com': { icon: 'mdi:whatsapp', class: 'button-whatsapp', name: 'WhatsApp' },
@@ -29,7 +34,6 @@ export const socialMediaConfig: Record<string, SocialMediaConfigEntry> = {
 	'quora.com': { icon: 'mdi:quora', class: 'button-quora', name: 'Quora' },
 	'telegram.org': { icon: 'mdi:telegram', class: 'button-telegram', name: 'Telegram' },
 	'skype.com': { icon: 'mdi:skype', class: 'button-skype', name: 'Skype' },
-	'github.com': { icon: 'mdi:github', class: 'button-github', name: 'GitHub' },
 	'stackoverflow.com': {
 		icon: 'mdi:stack-overflow',
 		class: 'button-stackoverflow',
@@ -61,4 +65,10 @@ export function getSocialMediaDetails(url: string) {
 			name: domain
 		}
 	);
+}
+
+export function getFeaturedSocialMediaDetails(url: string) {
+	const domain = getDomain(url);
+	const socialMedia = domain ? featuredSocialMediaConfig[domain] : null;
+	return socialMedia;
 }

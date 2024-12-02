@@ -325,7 +325,7 @@
 			{/if}
 
 			<div>
-				{#if editingState.editing}
+				{#if editingState.editing && env.PUBLIC_ENABLE_EXPERIMENTS == 'true'}
 					<form method="POST" action="?/rss">
 						<div class="input-group input-group-divider grid-cols-[auto_1fr_auto] rounded-none">
 							<div class="input-group-shim">

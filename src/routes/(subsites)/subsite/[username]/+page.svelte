@@ -3,6 +3,7 @@
 	import type { PageData } from './$types';
 	import Minimal from '$lib/themes/minimal.svelte';
 	import Retro from '$lib/themes/retro.svelte';
+  import Weird from '$lib/themes/weird.svelte';
 	// import Panel from '$lib/components/subsite-admin/panel.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import { page } from '$app/stores';
@@ -11,7 +12,7 @@
 	// const token = data.token!;
 	// const is_author = data.is_author!;
 
-	let theme: string = $state(profile.pubpage_theme || 'minimal');
+	let theme: string = $state(profile.pubpage_theme || 'weird');
 	let unsavedChanges = $state(false);
 	let avatar = $state(`/avatar`);
 
@@ -105,6 +106,8 @@
 	<Minimal {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
 {:else if theme === 'retro'}
 	<Retro {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
+{:else if theme === 'weird'}
+	<Weird {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} {footer} />
 {/if}
 
 {#if unsavedChanges}
@@ -113,9 +116,11 @@
 		<button class="btn" onclick={() => submitChanges()}> Save </button>
 	</div>
 {/if}
-<footer>
-	Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
-</footer>
+{#snippet footer()}
+  <footer>
+    Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
+  </footer>
+{/snippet}
 
 <style>
 	footer {

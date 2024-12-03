@@ -13,6 +13,7 @@
 		"test": "vitest"
 	},
 	"devDependencies": {
+		"@atproto/api": "^0.13.18",
 		"@codemirror/lang-markdown": "^6.3.1",
 		"@codemirror/language": "^6.10.4",
 		"@dicebear/collection": "^9.2.2",
@@ -50,7 +51,8 @@
 		"eslint": "^8.57.1",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.46.0",
-		"keyv": "^4.5.4",
+		"fast-xml-parser": "^4.5.0",
+		"keyv": "^5.2.1",
 		"leaf-proto": "workspace:*",
 		"linkedom": "^0.18.5",
 		"linktree-parser": "^1.5.0",
@@ -86,8 +88,6 @@
 		"vite-plugin-wasm": "^3.3.0",
 		"vitest": "^2.1.6",
 		"ws": "^8.18.0",
-		"@atproto/api": "^0.13.18",
-		"fast-xml-parser": "^4.5.0",
 		"zod": "^3.23.8"
 	},
 	"dependencies": {

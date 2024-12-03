@@ -7,7 +7,7 @@ import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../types';
 import { getSession } from '$lib/rauthy/server';
 import { dateToUnixTimestamp } from '$lib/utils/time';
-import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> => {
 	const username = params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> 
 		? params.username!
 		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
 
-	const subspace = await userSubspaceByUsername(fullUsername);
+	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);
 	const pageLink = subspace_link(subspace, params.slug);
 
@@ -51,7 +51,7 @@ export const actions = {
 		const fullUsername = params.username!.includes('.')
 			? params.username!
 			: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
-		const subspace = await userSubspaceByUsername(fullUsername);
+		const subspace = await usernames.getSubspace(fullUsername);
 		if (!subspace) return error(404, `User not found: ${fullUsername}`);
 
 		const oldPageLink = subspace_link(subspace, params.slug);
@@ -62,7 +62,7 @@ export const actions = {
 		const { sessionInfo } = await getSession(fetch, request);
 		if (!sessionInfo) return redirect(302, `/login?to=${url}`);
 
-		const editorIsOwner = sessionInfo.user_id == (await userRauthyIdByUsername(fullUsername));
+		const editorIsOwner = sessionInfo.user_id == (await usernames.getRauthyId(fullUsername));
 
 		// If this isn't a wiki page, we need to make sure that only the author can edit the page.
 		if (!isWikiPage && !editorIsOwner) {

@@ -2,11 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
 import { ensureUsernameMatchesSessionUserId } from '../utils';
-import {
-	WebLinks,
-	WeirdWikiPage,
-	getProfileById,
-} from '$lib/leaf/profile';
+import { WebLinks, WeirdWikiPage, getProfileById } from '$lib/leaf/profile';
 import { Page } from '../types';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';

@@ -13,7 +13,7 @@ import {
 } from '$lib/leaf/profile';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
 import { getSession } from '$lib/rauthy/server';
-import { userNameAndIdBySubspace } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 
 type Data =
 	| {
@@ -34,7 +34,7 @@ export const load = async ({ params }: Parameters<PageServerLoad>[0]): Promise<D
 				Subspaces: await Promise.all(
 					subspaces.map(async (x) => ({
 						subspace: base32Encode(x),
-						...(await userNameAndIdBySubspace(x))
+						...(await usernames.getBySubspace(x))
 					}))
 				),
 				namespace: params.namespace

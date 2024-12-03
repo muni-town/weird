@@ -13,7 +13,7 @@ import { env } from '$env/dynamic/public';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
 import { Page } from '../../../types';
-import { userNameByRauthyId, userSubspaceByUsername } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({
 	params
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({
 		? params.username!
 		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
 
-	const subspace = await userSubspaceByUsername(fullUsername);
+	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);
 	const revisionLink = subspace_link(subspace, params.slug, { Uint: BigInt(params.revision) });
 
@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({
 	const revisionAuthor =
 		(await (async () => {
 			if (!authorId) return;
-			return await userNameByRauthyId(authorId);
+			return await usernames.getByRauthyId(authorId);
 		})()) || '';
 
 	return {

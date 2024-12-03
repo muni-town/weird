@@ -333,7 +333,7 @@
 							</div>
 							<input type="url" placeholder="Enter RSS Link" name="rssLink" />
 
-							<button type="submit" class="text-base variant-filled-secondary">Import</button>
+							<button type="submit" class="variant-filled-secondary text-base">Import</button>
 						</div>
 						<span class="text-sm text-error-300">{form?.rss?.error}</span>
 					</form>

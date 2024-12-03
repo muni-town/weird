@@ -2,12 +2,7 @@ import { BorshSchema, Component, intoPathSegment } from 'leaf-proto';
 import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import _ from 'underscore';
 
-import {
-	listUsers,
-	userNameByRauthyId,
-	userSubspaceByRauthyId,
-	userSubspaceByUsername
-} from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 import { LinkVerifier } from '$lib/link_verifier/LinkVerifier';
 import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 import { leafClient, subspace_link } from '.';
@@ -200,11 +195,11 @@ export function appendSubpath(link: ExactLink, ...pathSegments: IntoPathSegment[
 }
 
 export async function profileLinkById(rauthyId: string): Promise<ExactLink> {
-	const subspace = await userSubspaceByRauthyId(rauthyId);
+	const subspace = await usernames.subspaceByRauthyId(rauthyId);
 	return subspace_link(subspace, null);
 }
 export async function profileLinkByUsername(username: string): Promise<ExactLink | undefined> {
-	const subspace = await userSubspaceByUsername(username);
+	const subspace = await usernames.getSubspace(username);
 	if (!subspace) return;
 	return subspace_link(subspace, null);
 }
@@ -308,7 +303,7 @@ export async function getProfileByDomain(domain: string): Promise<Profile | unde
 export async function setProfileById(rauthyId: string, profile: Profile): Promise<void> {
 	let link = await profileLinkById(rauthyId);
 	if (!link) throw `user has not yet claimed a username.`;
-	const userName = await userNameByRauthyId(rauthyId);
+	const userName = await usernames.getByRauthyId(rauthyId);
 	if (!userName) throw `user has no username`;
 	const linkVerifier = new LinkVerifier(profile.links, userName);
 	await linkVerifier.verify();
@@ -319,7 +314,7 @@ export async function getProfiles(): Promise<
 	{ link: ExactLink; profile: Profile; username?: string }[]
 > {
 	const profiles: { link: ExactLink; profile: Profile; username?: string }[] = [];
-	for await (const user of listUsers()) {
+	for await (const user of usernames.list()) {
 		const link = subspace_link(user.subspace, null);
 		const profile = await getProfile(link);
 		if (!profile) continue;

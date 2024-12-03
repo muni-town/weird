@@ -7,25 +7,23 @@ import { APP_IPS } from '../dns/server';
 import { validDomainRegex, validUsernameRegex } from './client';
 import { dev } from '$app/environment';
 
-export { validUsernameRegex, validDomainRegex };
-
 const USER_NAMES_PREFIX = 'weird:users:names:';
 const USER_RAUTHY_IDS_PREFIX = 'weird:users:rauthyIds:';
 const USER_SUBSPACES_PREFIX = 'weird:users:subspaces:';
 
-export async function setUserSubspace(rauthyId: string, subspace: SubspaceId) {
+async function setSubspace(rauthyId: string, subspace: SubspaceId) {
 	const sspace = base32Encode(subspace);
 	await redis.hSet(USER_RAUTHY_IDS_PREFIX + rauthyId, 'subspace', sspace);
 	await redis.hSet(USER_SUBSPACES_PREFIX + sspace, 'rauthyId', rauthyId);
 }
 
-export async function claimUsername(
+async function claim(
 	input: { username: string } | { domain: string; skipDomainCheck?: boolean },
 	rauthyId: string
 ) {
 	const rauthyIdKey = USER_RAUTHY_IDS_PREFIX + rauthyId;
 
-	const subspace = base32Encode(await userSubspaceByRauthyId(rauthyId));
+	const subspace = base32Encode(await subspaceByRauthyId(rauthyId));
 	const subspaceKey = USER_SUBSPACES_PREFIX + subspace;
 
 	let username;
@@ -140,7 +138,7 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 	throw 'Could not claim username after 3 attempts.';
 }
 
-export async function unsetUsername(username: string) {
+async function unset(username: string) {
 	const usernameKey = USER_NAMES_PREFIX + username;
 
 	await redis.watch(usernameKey);
@@ -164,7 +162,7 @@ export async function unsetUsername(username: string) {
 	await multi.exec();
 }
 
-export async function* listUsers(): AsyncGenerator<{
+async function* list(): AsyncGenerator<{
 	username?: string;
 	rauthyId: string;
 	subspace: Uint8Array;
@@ -174,37 +172,37 @@ export async function* listUsers(): AsyncGenerator<{
 		const rauthyId = segments[segments.length - 1];
 		yield {
 			rauthyId,
-			username: await userNameByRauthyId(rauthyId),
-			subspace: await userSubspaceByRauthyId(rauthyId)
+			username: await getByRauthyId(rauthyId),
+			subspace: await subspaceByRauthyId(rauthyId)
 		};
 	}
 }
 
-export async function userNameByRauthyId(rauthyId: string): Promise<string | undefined> {
+async function getByRauthyId(rauthyId: string): Promise<string | undefined> {
 	return await redis.hGet(USER_RAUTHY_IDS_PREFIX + rauthyId, 'username');
 }
 
-export async function userSubspaceByRauthyId(rauthyId: string): Promise<Uint8Array> {
+async function subspaceByRauthyId(rauthyId: string): Promise<Uint8Array> {
 	let subspaceStr = await redis.hGet(USER_RAUTHY_IDS_PREFIX + rauthyId, 'subspace');
 	let subspace;
 	if (!subspaceStr) {
 		subspace = await leafClient.create_subspace();
-		await setUserSubspace(rauthyId, subspace);
+		await setSubspace(rauthyId, subspace);
 		return subspace;
 	} else {
 		return base32Decode(subspaceStr);
 	}
 }
 
-export async function userSubspaceByUsername(username: string): Promise<Uint8Array | undefined> {
+async function getSubspace(username: string): Promise<Uint8Array | undefined> {
 	const subspaceStr = await redis.hGet(USER_NAMES_PREFIX + username, 'subspace');
 	return subspaceStr ? base32Decode(subspaceStr) : undefined;
 }
-export async function userRauthyIdByUsername(username: string): Promise<string | undefined> {
+async function getRauthyId(username: string): Promise<string | undefined> {
 	return await redis.hGet(USER_NAMES_PREFIX + username, 'rauthyId');
 }
 
-export async function userNameAndIdBySubspace(
+async function getBySubspace(
 	subspace: SubspaceId
 ): Promise<{ username?: string; rauthyId?: string }> {
 	const key = USER_SUBSPACES_PREFIX + base32Encode(subspace);
@@ -212,3 +210,17 @@ export async function userNameAndIdBySubspace(
 	const rauthyId = await redis.hGet(key, 'rauthyId');
 	return { username, rauthyId };
 }
+
+export const usernames = {
+	validDomainRegex,
+	validUsernameRegex,
+	setSubspace,
+	claim,
+	unset,
+	list,
+	getByRauthyId,
+	subspaceByRauthyId,
+	getSubspace,
+	getRauthyId,
+	getBySubspace
+};

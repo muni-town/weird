@@ -1,11 +1,11 @@
 import { env } from '$env/dynamic/private';
-import { listUsers } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async () => {
 	try {
 		const domains: string[] = [];
-		for await (const user of listUsers()) {
+		for await (const user of usernames.list()) {
 			if (user.username) {
 				domains.push(user.username);
 			}

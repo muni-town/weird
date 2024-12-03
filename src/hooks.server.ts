@@ -1,5 +1,5 @@
 import { setGlobalDispatcher, EnvHttpProxyAgent } from 'undici';
-import { client_login as discord_bot_login } from './lib/discord_bot';
+import { client_login as discord_bot_login } from './lib/discord-bot';
 import { ProxyAgent } from 'proxy-agent';
 import https from 'https';
 import http from 'http';

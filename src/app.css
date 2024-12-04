@@ -2,3 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 @tailwind variants;
+
+@font-face {
+  font-family: Uncut Sans;
+  src: url("/UncutSans-Variable.woff2");
+}

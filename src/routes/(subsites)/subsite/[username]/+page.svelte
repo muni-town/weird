@@ -3,6 +3,7 @@
 	import type { PageData } from './$types';
 	import Minimal from '$lib/themes/minimal.svelte';
 	import Retro from '$lib/themes/retro.svelte';
+  import Weird from '$lib/themes/weird.svelte';
 	// import Panel from '$lib/components/subsite-admin/panel.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import { page } from '$app/stores';
@@ -11,7 +12,7 @@
 	// const token = data.token!;
 	// const is_author = data.is_author!;
 
-	let theme: string = $state(profile.pubpage_theme || 'minimal');
+	let theme: string = $state(profile.pubpage_theme || 'weird');
 	let unsavedChanges = $state(false);
 	let avatar = $state(`/avatar`);
 
@@ -63,6 +64,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="color-scheme" content="light dark" />
 	<link rel="stylesheet" href="pico.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/open-props"/>
 	<title>{display_name}</title>
 </svelte:head>
 
@@ -105,6 +107,8 @@
 	<Minimal {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
 {:else if theme === 'retro'}
 	<Retro {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
+{:else if theme === 'weird'}
+	<Weird {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} {footer} />
 {/if}
 
 {#if unsavedChanges}
@@ -113,19 +117,19 @@
 		<button class="btn" onclick={() => submitChanges()}> Save </button>
 	</div>
 {/if}
-<footer>
-	Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
-</footer>
+{#snippet footer()}
+  <footer>
+    Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
+  </footer>
+{/snippet}
 
 <style>
+  @import "https://unpkg.com/open-props";
+
 	footer {
-		margin-left: 1em;
-		margin-right: 1em;
-		position: fixed;
-		bottom: 0;
-		text-align: center;
 		width: 100%;
-		margin-bottom: 0.5em;
+		margin-bottom: 1rem;
+    text-align: center;
 	}
 	.unsaved-changes {
 		padding: 0.75rem 1.25rem;

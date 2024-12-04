@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 import { leafClient, subspace_link } from '$lib/leaf';
-import { userSubspaceByUsername } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({
 	params
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({
 	const fullUsername = params.username!.includes('.')
 		? params.username!
 		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
-	const subspace = await userSubspaceByUsername(fullUsername);
+	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);
 
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);

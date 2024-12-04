@@ -12,24 +12,24 @@ import {
 	WebLinks
 } from '$lib/leaf/profile';
 import { getDiscordUserRauthyId } from '$lib/leaf/discord';
-import Keyv from 'keyv';
 import { leafClient } from '$lib/leaf';
 import { Name } from 'leaf-proto/components';
+import { redis } from '$lib/redis';
+import { usernames } from '$lib/usernames';
 
-// TODO: allow using Redis for key-value storage so that it can be clustered properly.
-const discordLoginLinkIds = new Keyv({ namespace: 'discord-login-links' });
+const REDIS_PREFIX = 'weird:discord-login-links:';
 
 export const createDiscordLoginLinkId = async (discordId: string): Promise<string> => {
 	const linkid = crypto.randomUUID();
 	// Create a login link that is valid for 10 minutes
-	await discordLoginLinkIds.set(linkid, discordId, 10 * 60 * 1000);
+	await redis.set(REDIS_PREFIX + linkid, discordId, { EX: 10 * 60 * 1000 });
 	return linkid;
 };
 
-export const getDiscordIdForLoginLink = async (loginLink: string): Promise<string | undefined> => {
-	const discordId = await discordLoginLinkIds.get(loginLink);
-	if (discordId) await discordLoginLinkIds.delete(loginLink);
-	return discordId;
+export const getDiscordIdForLoginLink = async (linkId: string): Promise<string | undefined> => {
+	const discordId = await redis.get(REDIS_PREFIX + linkId);
+	if (discordId) await redis.del(linkId);
+	return discordId || undefined;
 };
 
 const LOGIN_CMD = 'weird-login';
@@ -104,7 +104,7 @@ client.on('interactionCreate', async function (interaction) {
 			});
 			return;
 		}
-		const profileLink = getProfileLinkById(userId);
+		const profileLink = await getProfileLinkById(userId);
 		const profile = await getProfile(profileLink);
 		if (!profile) {
 			interaction.reply({
@@ -127,7 +127,7 @@ client.on('interactionCreate', async function (interaction) {
 		]);
 
 		interaction.reply({
-			content: `Links imported successfully (http://${PublicEnv.PUBLIC_DOMAIN}/${profile.username}/discord-links):\n${links.join('\n')}`,
+			content: `Links imported successfully (http://${PublicEnv.PUBLIC_DOMAIN}/${await usernames.getByRauthyId(userId)}/discord-links):\n${links.join('\n')}`,
 			ephemeral: true
 		});
 	}

@@ -1,21 +1,15 @@
 import { getSession } from '$lib/rauthy/server';
-import {
-	claimUsername,
-	unsetUsername,
-	userNameByRauthyId,
-	validUsernameRegex,
-	validDomainRegex
-} from '$lib/usernames';
+import { usernames } from '$lib/usernames';
 import { type RequestHandler, json } from '@sveltejs/kit';
 import { z } from 'zod';
 
 const Req = z.union([
 	z.object({
-		username: z.string().regex(validUsernameRegex)
+		username: z.string().regex(usernames.validUsernameRegex)
 	}),
 
 	z.object({
-		domain: z.string().regex(validDomainRegex)
+		domain: z.string().regex(usernames.validDomainRegex)
 	})
 ]);
 type Req = z.infer<typeof Req>;
@@ -31,12 +25,12 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 	if (!sessionInfo) {
 		return new Response(null, { status: 403 });
 	}
-	const oldUsername = await userNameByRauthyId(sessionInfo.user_id);
+	const oldUsername = await usernames.getByRauthyId(sessionInfo.user_id);
 
 	try {
-		await claimUsername(parsed.data, sessionInfo.user_id);
+		await usernames.claim(parsed.data, sessionInfo.user_id);
 		if (oldUsername) {
-			await unsetUsername(oldUsername);
+			await usernames.unset(oldUsername);
 		}
 		return json(parsed.data);
 	} catch (e) {

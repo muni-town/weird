@@ -1,12 +1,13 @@
 import { setProfileById, setAvatarById, type Profile } from '$lib/leaf/profile';
-import { type Actions, redirect, fail } from '@sveltejs/kit';
+import { type Actions, redirect, fail, error } from '@sveltejs/kit';
 import { type CheckResponseError } from '$lib/utils/http';
 import { getSession } from '$lib/rauthy/server';
 import { RawImage } from 'leaf-proto/components';
 import sharp from 'sharp';
+import { XMLParser } from 'fast-xml-parser';
 
 export const actions = {
-	default: async ({ fetch, request }) => {
+	edit: async ({ fetch, request }) => {
 		let { sessionInfo } = await getSession(fetch, request);
 		if (!sessionInfo) return fail(403, { error: 'Not logged in' });
 
@@ -85,5 +86,36 @@ export const actions = {
 		}
 
 		redirect(303, '/my-profile');
+	},
+	rss: async ({ fetch, request }) => {
+		const formData = await request.formData();
+		const rssLink = formData.get('rssLink');
+
+		if (!rssLink)
+			return {
+				rss: {
+					error: 'Please enter RSS Link'
+				}
+			};
+
+		const response = await fetch(rssLink.toString());
+		if (!response.ok) {
+			return {
+				rss: {
+					error: 'Error while parsing RSS Link'
+				}
+			};
+		}
+		const xmlText = await response.text();
+		const parser = new XMLParser();
+		const parsedData = parser.parse(xmlText);
+
+		// Adjust this based on your RSS feed structure
+		const items = parsedData?.rss?.channel?.item || [];
+		return {
+			rss: {
+				items
+			}
+		};
 	}
 } satisfies Actions;

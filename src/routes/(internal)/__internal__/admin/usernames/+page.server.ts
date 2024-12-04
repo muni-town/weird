@@ -1,10 +1,10 @@
-import { claimUsername, unsetUsername, listUsers } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 import type { ServerLoad } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const load: ServerLoad = async ({}) => {
 	const users = [];
-	for await (const user of listUsers()) users.push(user);
+	for await (const user of usernames.list()) users.push(user);
 	return { users };
 };
 
@@ -16,7 +16,7 @@ export const actions = {
 		if (!(username && rauthyId)) return { error: 'You must fill in all fields' };
 
 		try {
-			await claimUsername(username.includes('.') ? { domain: username } : { username }, rauthyId);
+			await usernames.claim(username.includes('.') ? { domain: username } : { username }, rauthyId);
 		} catch (e) {
 			return { error: `Error claiming username: ${e}` };
 		}
@@ -29,7 +29,7 @@ export const actions = {
 		if (!username) return { error: 'You must fill in all fields' };
 
 		try {
-			await unsetUsername(username);
+			await usernames.unset(username);
 		} catch (e) {
 			return { error: `Error deleting username: ${e}` };
 		}

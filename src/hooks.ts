@@ -5,9 +5,7 @@ export const reroute: Reroute = ({ url }) => {
 	// Check for cases where we route the URL without modification
 	if (
 		// When the host is the default public domain
-		url.host == env.PUBLIC_DOMAIN ||
-		// When request is a DNS challenge
-		url.pathname.startsWith('/__internal__/dns-challenge')
+		url.host == env.PUBLIC_DOMAIN
 	) {
 		return url.pathname;
 	}

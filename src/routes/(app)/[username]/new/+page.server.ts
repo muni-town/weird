@@ -2,17 +2,11 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
 import { ensureUsernameMatchesSessionUserId } from '../utils';
-import {
-	WebLinks,
-	WeirdWikiPage,
-	appendSubpath,
-	getProfileById,
-	profileLinkById
-} from '$lib/leaf/profile';
+import { WebLinks, WeirdWikiPage, getProfileById } from '$lib/leaf/profile';
 import { Page } from '../types';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
-import { userSubspaceByRauthyId } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({ fetch, params, request, url }) => {
 	const { sessionInfo } = await getSession(fetch, request);
@@ -41,7 +35,7 @@ export const actions = {
 			return error(400, `Error parsing form data: ${e}`);
 		}
 
-		const subspace = await userSubspaceByRauthyId(sessionInfo.user_id);
+		const subspace = await usernames.subspaceByRauthyId(sessionInfo.user_id);
 		const pageLink = subspace_link(subspace, data.slug);
 
 		const ent = await leafClient.get_components(pageLink);

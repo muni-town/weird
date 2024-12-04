@@ -1,9 +1,4 @@
-import {
-	claimUsername,
-	unsetUsername,
-	listUsers,
-	userSubspaceByRauthyId
-} from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 import { fail, type ServerLoad } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import {
@@ -29,7 +24,7 @@ import { glass } from '@dicebear/collection';
 
 export const load: ServerLoad = async ({}) => {
 	const users = [];
-	for await (const user of listUsers()) users.push(user);
+	for await (const user of usernames.list()) users.push(user);
 	return { users };
 };
 
@@ -98,7 +93,7 @@ export const actions = {
 			if (_.isEqual(path[0], { String: 'profiles' })) {
 				if ('String' in path[1]) {
 					const rauthyId = path[1].String;
-					const subspace = await userSubspaceByRauthyId(rauthyId);
+					const subspace = await usernames.subspaceByRauthyId(rauthyId);
 
 					// User profile
 					let newLink: ExactLink;
@@ -135,9 +130,9 @@ export const actions = {
 						}
 					}
 					if (customDomain) {
-						await claimUsername({ domain: customDomain, skipDomainCheck: true }, rauthyId);
+						await usernames.claim({ domain: customDomain, skipDomainCheck: true }, rauthyId);
 					} else if (username) {
-						await claimUsername({ username }, rauthyId);
+						await usernames.claim({ username }, rauthyId);
 					}
 					await leafClient.add_components(newLink, components);
 

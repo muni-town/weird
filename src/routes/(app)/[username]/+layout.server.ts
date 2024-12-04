@@ -5,7 +5,7 @@ import { getSession } from '$lib/rauthy/server';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { Name } from 'leaf-proto/components';
 import { env } from '$env/dynamic/public';
-import { userRauthyIdByUsername, userSubspaceByUsername } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 import { base32Encode } from 'leaf-proto';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
@@ -19,13 +19,13 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 
 	let profileMatchesUserSession = false;
 
-	const subspace = await userSubspaceByUsername(fullUsername);
+	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);
 
 	const profile = (await getProfile(subspace_link(subspace, null))) || { tags: [], links: [] };
 
 	const { sessionInfo } = await getSession(fetch, request);
-	if (sessionInfo && sessionInfo.user_id == (await userRauthyIdByUsername(fullUsername))) {
+	if (sessionInfo && sessionInfo.user_id == (await usernames.getRauthyId(fullUsername))) {
 		profileMatchesUserSession = true;
 	}
 

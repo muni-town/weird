@@ -1,7 +1,7 @@
 import { getSession } from '$lib/rauthy/server';
 import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types.js';
-import { claimUsername, userNameByRauthyId } from '$lib/usernames/index';
+import { usernames } from '$lib/usernames/index';
 import { getAvatar, profileLinkById, setAvatar } from '$lib/leaf/profile.js';
 import { RawImage } from 'leaf-proto/components.js';
 
@@ -11,7 +11,7 @@ import { glass } from '@dicebear/collection';
 export const load: PageServerLoad = async ({ fetch, request }) => {
 	const { sessionInfo } = await getSession(fetch, request);
 	if (!sessionInfo) return redirect(303, '/login');
-	const username = await userNameByRauthyId(sessionInfo.user_id);
+	const username = await usernames.getByRauthyId(sessionInfo.user_id);
 	if (username) {
 		return redirect(303, `/${username}`);
 	}
@@ -27,7 +27,7 @@ export const actions = {
 		if (!username) return fail(400, { error: 'Username not provided ' });
 
 		try {
-			await claimUsername({ username }, sessionInfo.user_id);
+			await usernames.claim({ username }, sessionInfo.user_id);
 			const profileLink = await profileLinkById(sessionInfo.user_id);
 			const avatar = createAvatar(glass, { seed: sessionInfo.user_id, radius: 50 });
 			if (!(await getAvatar(profileLink))) {

@@ -1,7 +1,7 @@
 import { getSession } from '$lib/rauthy/server';
 import { redirect, type ServerLoad, fail } from '@sveltejs/kit';
 import { setDiscordUserRauthyId } from '$lib/leaf/discord.js';
-import { getDiscordIdForLoginLink } from '$lib/discord_bot/index.js';
+import { getDiscordIdForLoginLink } from '$lib/discord-bot';
 
 export const load: ServerLoad = async ({ params, fetch, request }) => {
 	let { sessionInfo } = await getSession(fetch, request);

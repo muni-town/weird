@@ -16,7 +16,11 @@ const config = {
 		join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')
 	],
 	theme: {
-		extend: {}
+		extend: {
+      fontFamily: {
+        uncut: ["Uncut Sans"]
+      }
+    }
 	},
 	plugins: [
 		typography,

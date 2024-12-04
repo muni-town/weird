@@ -19,30 +19,10 @@
 
   let { avatar, profile, token, is_author, setAvatar, setUnsavedChanges, footer }: Props = $props();
 
-	let editingTags = false;
-	let linkLabel = '';
-	let linkUrl = '';
-
-	type WorkCapacity = 'full_time' | 'part_time' | 'not_specified';
-	type WorkCompensation = 'paid' | 'volunteer' | 'not_specified';
-	const printWorkCapacity = (c?: WorkCapacity): string => {
-		if (c == 'full_time') {
-			return 'Full Time';
-		} else if (c == 'part_time') {
-			return 'Part Time';
-		} else {
-			return 'Not Specified';
-		}
-	};
-	const printWorkCompensation = (c?: WorkCompensation): string => {
-		if (c == 'paid') {
-			return 'Paid';
-		} else if (c == 'volunteer') {
-			return 'Volunteer';
-		} else {
-			return 'Not Specified';
-		}
-	};
+	let editingTags = $state(false);
+	let linkLabel = $state('');
+	let linkUrl = $state('');
+  let avatarInput = $state<HTMLInputElement>();
 
 	let initialLoaded = true;
 	$effect(() => {
@@ -52,7 +32,7 @@
 		initialLoaded = false;
   });
 
-	let editingAvatar = '';
+	let editingAvatar = $state('');
 	const ChangeAvatar = (e: any) => {
 		const file = e.target.files[0];
 		const reader = new FileReader();
@@ -85,10 +65,6 @@
 	};
 </script>
 
-<svelte:head>
-	<link rel="stylesheet" href="https://unpkg.com/pico.css/dist/pico.min.css" />
-</svelte:head>
-
 {#if profile}
 	{#if editingAvatar != ''}
 		<AvatarEditor
@@ -103,24 +79,25 @@
 	{/if}
 
 	<main> 
-
-    <section class="container">
+    <section>
       <EditLinks label={linkLabel} url={linkUrl} open={editingTags} saveCallback={editLinkCallback} />
-      <input type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
+      <input bind:this={avatarInput} type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
       {#if is_author}
         <figure class="avatar-figure">
-          <img src={avatar} width="200px" alt="Avatar" />
+          <img src={avatar} alt={`${profile.display_name} avatar`} />
           <figcaption class="avatar-figcaption">
-            <label
-              for="avatar"
-              onclick={() => document.querySelector('input[name="avatar"]')?.click()}
-            >
-              <img src="/edit-avatar.png" />
+            <label for="avatar">
+              <button onclick={() => avatarInput?.focus()}>
+                <!-- TODO: find png -->
+                <img src="/edit-avatar.png" alt={"edit-avatar"} />
+              </button>
             </label>
           </figcaption>
         </figure>
       {:else}
-        <img src={avatar} width="200px" alt="Avatar" />
+        <figure class="avatar-figure">
+          <img src={avatar} alt={`${profile.display_name} avatar`} />
+        </figure>
       {/if}
       {#if is_author}
         <h1
@@ -129,28 +106,23 @@
           style="margin-top: 1em;"
         ></h1>
       {:else}
-        <h1 style="margin-top: 1em;">{profile.display_name}</h1>
+        <h1>{profile.display_name}</h1>
       {/if}
-      <span>
-        {$page.url.host.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}
-      </span>
-
 
       {#if profile.bio}
         {#if is_author}
-          <p
-            style="max-width: 800px; text-align:justify;"
-            bind:textContent={profile.bio}
-            contenteditable="true"
-          ></p>
+            <textarea
+              style="max-width: 800px; text-align:justify;"
+              bind:value={profile.bio}
+              contenteditable="true"
+            ></textarea>
         {:else}
-          <div class="prose mx-auto max-w-[800px] dark:prose-invert">
-            {@html renderMarkdownSanitized(profile.bio)}
-          </div>
+          {@html renderMarkdownSanitized(profile.bio)}
         {/if}
       {/if}
 
       {#if profile.tags && profile.tags.length > 0}
+        <h1>Tags</h1>
         <div class="tags">
           {#each profile.tags as tag}
             {#if is_author}
@@ -162,7 +134,7 @@
                 onclick={() => deleteTag(tag)}>&times;</span
               >
             {:else}
-              <a href={`${env.PUBLIC_URL}/people?q=${tag}`} target="_blank" class="tag">
+              <a href={`${env.PUBLIC_URL}/people?q=${tag}`} target="_blank" class="tag"> 
                 {tag}
               </a>
             {/if}
@@ -180,7 +152,7 @@
       {/if}
     </section>
 
-		<div class="links container">
+		<section class="links">
 			<a href={`${env.PUBLIC_URL}/${$page.url.host}`} class="link">Weird</a>
 			{#if profile.links}
 				{#each profile.links as link}
@@ -197,7 +169,7 @@
 							class="link"
 						>
 							{link.label}
-						</a>
+						</a>blackblack
 					{:else}
 						<a href={link.url} target="_blank" class="link">
 							{link.label || link.url}
@@ -215,108 +187,85 @@
 					+
 				</span>
 			{/if}
-		</div>
+		</section>
 
     {@render footer()}
 	</main>
 {/if}
 
 <style>
-	main {
-    width: 100vw;
-    height: 100vh;
-		display: flex;
-		align-items: center;
-    justify-content: center;
-		flex-direction: column;
-    padding: 2.25rem 2.25rem;
-    background: rgb(46,16,101);
-    background: linear-gradient(180deg, rgba(46,16,101,1) 0%, rgba(107,33,168,1) 25%, rgba(208,42,109,1) 100%);
-    font-family: monospace;
+  @import "https://unpkg.com/open-props";
+  @import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+  @font-face {
+    font-family: "Uncut Sans";
+    src: url("/UncutSans-Variable.woff2");
   }
 
-  .container {
+  main {
+    width: 100vw;
+    height: 100%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 5rem;
-    border: 4px solid black;
-    border-radius: 0.75rem;
-    max-width: 42rem;
-    backdrop-filter: blur(1.5rem);
+    gap: 2rem;
+    padding: var(--size-fluid-4);
+    font-weight: normal;
+    font-family: "Space Mono", monospace !important;
+    background: linear-gradient(180deg,#240940 40%,#8e4569 80%, #be185d);
+  }
+
+  h1 {
+    font-family: "Rubik Mono One";
+  }
+
+  section {
+    background-color: rgba(255,255,255,0.1);
+    padding: var(--size-fluid-5);
+    border: var(--border-size-2) solid black;
+    border-radius: var(--radius-3);
+    width: 100%;
+    margin: 0 auto;
+    max-width: var(--size-content-3);
+  }
+
+  .avatar-figure img {
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .tags {
-    display: flex; 
-    gap: 1rem;
+    display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: row;
+    gap: 1.5rem;
   }
 
-	.tag {
-		color: black;
-    text-decoration: none;
-		font-weight: 400;
-		font-size: 16px;
-    background-color: #a78bfa;
-    border: 2px solid black;
-    border-radius: 9999px;
-    text-align: center;
-    width: fit-content;
-    padding: 0.25rem 0.75rem;
-	}
-
-	.links {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-    gap: 1rem;
-    padding-top: 1.75rem;
-    padding-bottom: 1.75rem;
-	}
-
-	.link {
-    text-align: center;
-    width: 100%;
-    padding: 1rem 2rem;
-    background-color: #a78bfa;
-    text-decoration: none;
+  .tag {
     color: black;
-    border-radius: 0.5rem;
-    border: 2px solid black;
-    font-weight: bold;
-    box-shadow: 0.25rem 0.25rem black;
+    background-color: #A092E3;
+    padding: var(--size-fluid-1) var(--size-fluid-2);
+    border: var(--border-size-2) solid black;
+    border-radius: var(--radius-round);
+    text-decoration: none;
   }
 
-	.avatar-figure {
-		position: relative;
-		border-radius: 100%;
-    border: 4px solid black;
-	}
+  .links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
 
-	.avatar-figure img {
-		position: relative;
-		z-index: -3;
-	}
-
-	.avatar-figcaption {
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		border-radius: 100%;
-		background-color: var(--pico-secondary);
-		height: 70px;
-		width: 70px;
-		z-index: 1;
-	}
-
-	.avatar-figcaption img {
-		height: 50px;
-		width: 50px;
-		display: block;
-		margin: auto;
-		margin-top: 0px;
-		z-index: 2;
-	}
+  .link {
+    color: black;
+    font-family: "Rubik Mono One";
+    background-color: #A092E3;
+    padding: var(--size-fluid-1) var(--size-fluid-2);
+    border: var(--border-size-2) solid black;
+    border-radius: var(--radius-2);
+    box-shadow: 0.35rem 0.45rem black;
+    text-decoration: none;
+    text-align: center;
+  }
 </style>

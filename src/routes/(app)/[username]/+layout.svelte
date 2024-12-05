@@ -1,10 +1,12 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { type Snippet } from 'svelte';
 	import { page } from '$app/stores';
 	import type { PageData } from './$types';
 	import Icon from '@iconify/svelte';
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
+	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
+	import { env } from '$env/dynamic/public';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 
@@ -15,6 +17,18 @@
 		type: 'component',
 		component: { ref: SetHandleModal },
 		subspace: data.subspace,
+		async response(r) {
+			if ('error' in r) {
+				error = r.error;
+			} else {
+				error = null;
+			}
+		}
+	});
+	const manageSubscriptionModal: ModalSettings = $derived({
+		type: 'component',
+		component: { ref: ManageSubscriptionModal },
+		subscriptionInfo: data.subscriptionInfo,
 		async response(r) {
 			if ('error' in r) {
 				error = r.error;
@@ -53,9 +67,19 @@
 			<div class="flex-grow"></div>
 
 			<h2 class="mb-2 text-lg font-bold">Settings</h2>
-			<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
-				Change Handle
-			</button>
+			<div class="flex flex-col gap-2">
+				{#if env.PUBLIC_ENABLE_EXPERIMENTS == 'true'}
+					<button
+						class="variant-ghost btn"
+						onclick={() => modalStore.trigger(manageSubscriptionModal)}
+					>
+						Manage Subscription
+					</button>
+				{/if}
+				<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
+					Change Handle
+				</button>
+			</div>
 		</aside>
 	{/if}
 

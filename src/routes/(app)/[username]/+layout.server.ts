@@ -1,4 +1,4 @@
-import { appendSubpath, getProfile, listChildren, profileLinkByUsername } from '$lib/leaf/profile';
+import { getProfile, listChildren } from '$lib/leaf/profile';
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from '../$types';
 import { getSession } from '$lib/rauthy/server';
@@ -7,6 +7,7 @@ import { Name } from 'leaf-proto/components';
 import { env } from '$env/dynamic/public';
 import { usernames } from '$lib/usernames/index';
 import { base32Encode } from 'leaf-proto';
+import { billing } from '$lib/billing';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 	if (params.username?.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
@@ -41,11 +42,15 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 		)
 	).filter((x) => x) as { slug: string; name?: string }[];
 
+	const subscriptionInfo =
+		sessionInfo && (await billing.getWeirdNerdSubscriptionInfo(sessionInfo.user_id));
+
 	return {
 		profile,
 		profileMatchesUserSession,
 		pages,
 		username: fullUsername,
-		subspace: base32Encode(subspace)
+		subspace: base32Encode(subspace),
+		subscriptionInfo
 	};
 };

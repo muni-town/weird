@@ -10,6 +10,11 @@ export const reroute: Reroute = ({ url }) => {
 		return url.pathname;
 	}
 
+	// If this is a lemonsqueezy webhook.
+	if (url.host == env.PUBLIC_LEMONSQUEEZY_WEBHOOK_DOMAIN) {
+		return '/__internal__/lemonsqueezy-webhook';
+	}
+
 	// If the host is our traefik config host
 	if (url.host == env.PUBLIC_TRAEFIK_CONFIG_HOST) {
 		// If it is a request to the root

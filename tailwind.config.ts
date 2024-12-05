@@ -17,10 +17,10 @@ const config = {
 	],
 	theme: {
 		extend: {
-      fontFamily: {
-        uncut: ["Uncut Sans"]
-      }
-    }
+			fontFamily: {
+				uncut: ['Uncut Sans']
+			}
+		}
 	},
 	plugins: [
 		typography,

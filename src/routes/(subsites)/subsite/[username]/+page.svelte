@@ -3,7 +3,7 @@
 	import type { PageData } from './$types';
 	import Minimal from '$lib/themes/minimal.svelte';
 	import Retro from '$lib/themes/retro.svelte';
-  import Weird from '$lib/themes/weird.svelte';
+	import Weird from '$lib/themes/weird.svelte';
 	// import Panel from '$lib/components/subsite-admin/panel.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import { page } from '$app/stores';
@@ -64,7 +64,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="color-scheme" content="light dark" />
 	<link rel="stylesheet" href="pico.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/open-props"/>
+	<link rel="stylesheet" href="https://unpkg.com/open-props" />
 	<title>{display_name}</title>
 </svelte:head>
 
@@ -108,7 +108,15 @@
 {:else if theme === 'retro'}
 	<Retro {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} />
 {:else if theme === 'weird'}
-	<Weird {profile} token={undefined} is_author={false} {setUnsavedChanges} {avatar} {setAvatar} {footer} />
+	<Weird
+		{profile}
+		token={undefined}
+		is_author={false}
+		{setUnsavedChanges}
+		{avatar}
+		{setAvatar}
+		{footer}
+	/>
 {/if}
 
 {#if unsavedChanges}
@@ -118,18 +126,18 @@
 	</div>
 {/if}
 {#snippet footer()}
-  <footer>
-    Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
-  </footer>
+	<footer>
+		Site generated with <a href="https://weird.one" target="_blank">Weird.One</a>.
+	</footer>
 {/snippet}
 
 <style>
-  @import "https://unpkg.com/open-props";
+	@import 'https://unpkg.com/open-props';
 
 	footer {
 		width: 100%;
 		margin-bottom: 1rem;
-    text-align: center;
+		text-align: center;
 	}
 	.unsaved-changes {
 		padding: 0.75rem 1.25rem;

@@ -7,22 +7,22 @@
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import type { Snippet } from 'svelte';
 
-  type Props = {
-    avatar: string;
-    profile: Profile;
-    token: any;
-    is_author: boolean;
-    footer: Snippet;
-    setAvatar: (new_avatar: string) => void;
-    setUnsavedChanges: (value: boolean) => void;
-  }
+	type Props = {
+		avatar: string;
+		profile: Profile;
+		token: any;
+		is_author: boolean;
+		footer: Snippet;
+		setAvatar: (new_avatar: string) => void;
+		setUnsavedChanges: (value: boolean) => void;
+	};
 
-  let { avatar, profile, token, is_author, setAvatar, setUnsavedChanges, footer }: Props = $props();
+	let { avatar, profile, token, is_author, setAvatar, setUnsavedChanges, footer }: Props = $props();
 
 	let editingTags = $state(false);
 	let linkLabel = $state('');
 	let linkUrl = $state('');
-  let avatarInput = $state<HTMLInputElement>();
+	let avatarInput = $state<HTMLInputElement>();
 
 	let initialLoaded = true;
 	$effect(() => {
@@ -30,7 +30,7 @@
 			setUnsavedChanges(true);
 		}
 		initialLoaded = false;
-  });
+	});
 
 	let editingAvatar = $state('');
 	const ChangeAvatar = (e: any) => {
@@ -78,79 +78,90 @@
 		/>
 	{/if}
 
-	<main> 
-    <section>
-      <EditLinks label={linkLabel} url={linkUrl} open={editingTags} saveCallback={editLinkCallback} />
-      <input bind:this={avatarInput} type="file" onchange={ChangeAvatar} name="avatar" style="display: none;" />
-      {#if is_author}
-        <figure class="avatar-figure">
-          <img src={avatar} alt={`${profile.display_name} avatar`} />
-          <figcaption class="avatar-figcaption">
-            <label for="avatar">
-              <button onclick={() => avatarInput?.focus()}>
-                <!-- TODO: find png -->
-                <img src="/edit-avatar.png" alt={"edit-avatar"} />
-              </button>
-            </label>
-          </figcaption>
-        </figure>
-      {:else}
-        <figure class="avatar-figure">
-          <img src={avatar} alt={`${profile.display_name} avatar`} />
-        </figure>
-      {/if}
-      {#if is_author}
-        <h1
-          contenteditable="true"
-          bind:textContent={profile.display_name}
-          style="margin-top: 1em;"
-        ></h1>
-      {:else}
-        <h1>{profile.display_name}</h1>
-      {/if}
+	<main>
+		<section>
+			<EditLinks
+				label={linkLabel}
+				url={linkUrl}
+				open={editingTags}
+				saveCallback={editLinkCallback}
+			/>
+			<input
+				bind:this={avatarInput}
+				type="file"
+				onchange={ChangeAvatar}
+				name="avatar"
+				style="display: none;"
+			/>
+			{#if is_author}
+				<figure class="avatar-figure">
+					<img src={avatar} alt={`${profile.display_name} avatar`} />
+					<figcaption class="avatar-figcaption">
+						<label for="avatar">
+							<button onclick={() => avatarInput?.focus()}>
+								<!-- TODO: find png -->
+								<img src="/edit-avatar.png" alt={'edit-avatar'} />
+							</button>
+						</label>
+					</figcaption>
+				</figure>
+			{:else}
+				<figure class="avatar-figure">
+					<img src={avatar} alt={`${profile.display_name} avatar`} />
+				</figure>
+			{/if}
+			{#if is_author}
+				<h1
+					contenteditable="true"
+					bind:textContent={profile.display_name}
+					style="margin-top: 1em;"
+				></h1>
+			{:else}
+				<h1>{profile.display_name}</h1>
+			{/if}
 
-      {#if profile.bio}
-        {#if is_author}
-            <textarea
-              style="max-width: 800px; text-align:justify;"
-              bind:value={profile.bio}
-              contenteditable="true"
-            ></textarea>
-        {:else}
-          {@html renderMarkdownSanitized(profile.bio)}
-        {/if}
-      {/if}
+			{#if profile.bio}
+				{#if is_author}
+					<textarea
+						style="max-width: 800px; text-align:justify;"
+						bind:value={profile.bio}
+						contenteditable="true"
+					></textarea>
+				{:else}
+					{@html renderMarkdownSanitized(profile.bio)}
+				{/if}
+			{/if}
 
-      {#if profile.tags && profile.tags.length > 0}
-        <h1>Tags</h1>
-        <div class="tags">
-          {#each profile.tags as tag}
-            {#if is_author}
-              <span contenteditable="true" class="tag">
-                {tag}
-              </span>
-              <span
-                style="color: var(--pico-del-color); cursor: pointer; margin-right: 1rem;"
-                onclick={() => deleteTag(tag)}>&times;</span
-              >
-            {:else}
-              <a href={`${env.PUBLIC_URL}/people?q=${tag}`} target="_blank" class="tag"> 
-                {tag}
-              </a>
-            {/if}
-          {/each}
-          {#if is_author}
-            <span
-              onclick={addTags}
-              style="color: var(--pico-primary); cursor: pointer;"
-              title="Add tag"
-            >
-              +
-            </span>
-          {/if}
-        </div>
-      {/if}
-    </section>
+			{#if profile.tags && profile.tags.length > 0}
+				<h1>Tags</h1>
+				<div class="tags">
+					{#each profile.tags as tag}
+						{#if is_author}
+							<span contenteditable="true" class="tag">
+								{tag}
+							</span>
+							<span
+								style="color: var(--pico-del-color); cursor: pointer; margin-right: 1rem;"
+								onclick={() => deleteTag(tag)}>&times;</span
+							>
+						{:else}
+							<a href={`${env.PUBLIC_URL}/people?q=${tag}`} target="_blank" class="tag">
+								{tag}
+							</a>
+						{/if}
+					{/each}
+					{#if is_author}
+						<span
+							onclick={addTags}
+							style="color: var(--pico-primary); cursor: pointer;"
+							title="Add tag"
+						>
+							+
+						</span>
+					{/if}
+				</div>
+			{/if}
+		</section>
 
 		<section class="links">
 			<a href={`${env.PUBLIC_URL}/${$page.url.host}`} class="link">Weird</a>
@@ -189,83 +200,83 @@
 			{/if}
 		</section>
 
-    {@render footer()}
+		{@render footer()}
 	</main>
 {/if}
 
 <style>
-  @import "https://unpkg.com/open-props";
-  @import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+	@import 'https://unpkg.com/open-props';
+	@import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-  @font-face {
-    font-family: "Uncut Sans";
-    src: url("/UncutSans-Variable.woff2");
-  }
+	@font-face {
+		font-family: 'Uncut Sans';
+		src: url('/UncutSans-Variable.woff2');
+	}
 
-  main {
-    width: 100vw;
-    height: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    padding: var(--size-fluid-4);
-    font-weight: normal;
-    font-family: "Space Mono", monospace !important;
-    background: linear-gradient(180deg,#240940 40%,#8e4569 80%, #be185d);
-  }
+	main {
+		width: 100vw;
+		height: 100%;
+		min-height: 100vh;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		padding: var(--size-fluid-4);
+		font-weight: normal;
+		font-family: 'Space Mono', monospace !important;
+		background: linear-gradient(180deg, #240940 40%, #8e4569 80%, #be185d);
+	}
 
-  h1 {
-    font-family: "Rubik Mono One";
-  }
+	h1 {
+		font-family: 'Rubik Mono One';
+	}
 
-  section {
-    background-color: rgba(255,255,255,0.1);
-    padding: var(--size-fluid-5);
-    border: var(--border-size-2) solid black;
-    border-radius: var(--radius-3);
-    width: 100%;
-    margin: 0 auto;
-    max-width: var(--size-content-3);
-  }
+	section {
+		background-color: rgba(255, 255, 255, 0.1);
+		padding: var(--size-fluid-5);
+		border: var(--border-size-2) solid black;
+		border-radius: var(--radius-3);
+		width: 100%;
+		margin: 0 auto;
+		max-width: var(--size-content-3);
+	}
 
-  .avatar-figure img {
-    width: 200px;
-    margin-left: auto;
-    margin-right: auto;
-  }
+	.avatar-figure img {
+		width: 200px;
+		margin-left: auto;
+		margin-right: auto;
+	}
 
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    gap: 1.5rem;
-  }
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		gap: 1.5rem;
+	}
 
-  .tag {
-    color: black;
-    background-color: #A092E3;
-    padding: var(--size-fluid-1) var(--size-fluid-2);
-    border: var(--border-size-2) solid black;
-    border-radius: var(--radius-round);
-    text-decoration: none;
-  }
+	.tag {
+		color: black;
+		background-color: #a092e3;
+		padding: var(--size-fluid-1) var(--size-fluid-2);
+		border: var(--border-size-2) solid black;
+		border-radius: var(--radius-round);
+		text-decoration: none;
+	}
 
-  .links {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
+	.links {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
 
-  .link {
-    color: black;
-    font-family: "Rubik Mono One";
-    background-color: #A092E3;
-    padding: var(--size-fluid-1) var(--size-fluid-2);
-    border: var(--border-size-2) solid black;
-    border-radius: var(--radius-2);
-    box-shadow: 0.35rem 0.45rem black;
-    text-decoration: none;
-    text-align: center;
-  }
+	.link {
+		color: black;
+		font-family: 'Rubik Mono One';
+		background-color: #a092e3;
+		padding: var(--size-fluid-1) var(--size-fluid-2);
+		border: var(--border-size-2) solid black;
+		border-radius: var(--radius-2);
+		box-shadow: 0.35rem 0.45rem black;
+		text-decoration: none;
+		text-align: center;
+	}
 </style>

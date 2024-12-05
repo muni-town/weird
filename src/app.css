@@ -4,6 +4,6 @@
 @tailwind variants;
 
 @font-face {
-  font-family: Uncut Sans;
-  src: url("/UncutSans-Variable.woff2");
+	font-family: Uncut Sans;
+	src: url('/UncutSans-Variable.woff2');
 }

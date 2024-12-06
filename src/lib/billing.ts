@@ -124,7 +124,7 @@ class BillingEngine {
 		const subscriptions = await this.getWeirdNerdSubscriptionInfo(rauthyId);
 		const activeSubscriptions = subscriptions.filter((x) => x.attributes.status == 'active');
 		if (activeSubscriptions.length != 1) {
-			throw 'More than one active subscription, not sure how to cancel.';
+			throw 'Could not find exactly one subscription, not sure how to cancel.';
 		}
 		const resp = await lemon.cancelSubscription(activeSubscriptions[0].id);
 		if (resp.error) {

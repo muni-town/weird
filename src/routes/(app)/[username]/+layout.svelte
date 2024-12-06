@@ -6,6 +6,7 @@
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
 	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
+	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
 	import { env } from '$env/dynamic/public';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
@@ -29,6 +30,17 @@
 		type: 'component',
 		component: { ref: ManageSubscriptionModal },
 		subscriptionInfo: data.subscriptionInfo,
+		async response(r) {
+			if ('error' in r) {
+				error = r.error;
+			} else {
+				error = null;
+			}
+		}
+	});
+	const deleteProfileModal: ModalSettings = $derived({
+		type: 'component',
+		component: { ref: DeleteProfileModal },
 		async response(r) {
 			if ('error' in r) {
 				error = r.error;
@@ -78,6 +90,9 @@
 				{/if}
 				<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle
+				</button>
+				<button class="variant-ghost-error btn" onclick={() => modalStore.trigger(deleteProfileModal)}>
+					Delete Profile
 				</button>
 			</div>
 		</aside>

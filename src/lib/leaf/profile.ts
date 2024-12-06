@@ -309,6 +309,13 @@ export async function setProfileById(rauthyId: string, profile: Profile): Promis
 	await linkVerifier.verify();
 	await setProfile(link, profile);
 }
+export async function deleteAllProfileDataById(rauthyId: string) {
+	const subspace = await usernames.subspaceByRauthyId(rauthyId);
+	const ents = await leafClient.list_entities(subspace_link(subspace));
+	for (const ent of ents) {
+		await leafClient.del_entity(ent);
+	}
+}
 
 export async function getProfiles(): Promise<
 	{ link: ExactLink; profile: Profile; username?: string }[]

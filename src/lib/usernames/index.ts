@@ -152,10 +152,10 @@ async function unset(username: string) {
 	const multi = redis.multi();
 
 	multi.del(usernameKey);
-	if (user.subspace == (await redis.hGet(subspaceKey, 'username'))) {
+	if (username == (await redis.hGet(subspaceKey, 'username'))) {
 		multi.hDel(subspaceKey, 'username');
 	}
-	if (user.rauthyId == (await redis.hGet(rauthyIdKey, 'username'))) {
+	if (username == (await redis.hGet(rauthyIdKey, 'username'))) {
 		multi.hDel(rauthyIdKey, 'username');
 	}
 

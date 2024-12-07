@@ -23,6 +23,35 @@ export interface Profile {
 	pubpage_theme?: string;
 }
 
+export class VerifiedLinkDate extends Component {
+  value: number;
+
+  constructor(dateVerified: number) {
+    super();
+
+    this.value = dateVerified;
+  }
+
+  static componentName(): string {
+    return 'VerifiedLinkDate';
+  }
+
+  static borshSchema(): BorshSchema {
+    return BorshSchema.u64;
+  }
+
+  static specification(): Component[] {
+    return [
+      new CommonMark(`
+        Contains the date that a link was verified by Weird.
+        The username and link that has been verified should be in the last two
+        path segments of entities path:
+        "example-path-to-entity/username/https://github.com/username"
+      `)
+    ];
+  }
+}
+
 export class Tags extends Component {
 	value: string[] = [];
 	constructor(tags: string[]) {
@@ -306,7 +335,15 @@ export async function setProfileById(rauthyId: string, profile: Profile): Promis
 	const userName = await usernames.getByRauthyId(rauthyId);
 	if (!userName) throw `user has no username`;
 	const linkVerifier = new LinkVerifier(profile.links, userName);
-	await linkVerifier.verify();
+	const verifiedLinks = await linkVerifier.verify();
+
+	if (verifiedLinks.length) {
+		profile.links.filter((profileLink) => verifiedLinks.find((link) => profileLink.url.startsWith(link.url)))
+			.map((profileLink) => {
+				profileLink.verifiedLinkDate =
+			});
+	}
+
 	await setProfile(link, profile);
 }
 export async function deleteAllProfileDataById(rauthyId: string) {

@@ -57,7 +57,7 @@ export class LinkVerifier {
 			if (typeof linkVerificationStrategyFactory === 'function') {
 				const dom = await LinkVerifier.fetchHtml(webLink);
 				const strategy = linkVerificationStrategyFactory(dom);
-				const isVerified = await strategy.verify(this.userProfileLink());
+				const isVerified = await strategy.verify(this.userProfileLinks());
 
 				if (isVerified) {
 					verifiedLinks.push(webLink);
@@ -74,7 +74,10 @@ export class LinkVerifier {
 		return verifiedLinks;
 	}
 
-	private userProfileLink(): string {
-		return `https://a.weird.one/${this.userName}`;
+	private userProfileLinks(): string[] {
+		return [
+			`https://a.weird.one/${this.userName}`,
+			`https://${this.userName}.weird.one`,
+		];
 	}
 }

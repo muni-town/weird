@@ -5,21 +5,25 @@ export class GitHubLinkVerificationStrategy extends LinkVerificationStrategy {
 		super('GitHubLinkVerificationStrategy', dom);
 	}
 
-	async verify(userProfileLink: string): Promise<boolean> {
+	async verify(userProfileLinks: string[]): Promise<boolean> {
 		const document = this.dom.document;
 		const nodes = Array.from(document.querySelectorAll('a[rel="nofollow me"]'));
-		const element = nodes.find((node) => node.getAttribute('href')?.startsWith(userProfileLink));
+		const elements = nodes.filter((node) => !!node.getAttribute('href'));
 
-		if (!element) {
+		if (!elements.length) {
 			return false;
 		}
 
-		const href = element.getAttribute('href');
+		return userProfileLinks.some((link) => {
+			return !!elements.find((el) => {
+				const href = el.getAttribute('href');
 
-		if (!href) {
-			return false;
-		}
+				if (href) {
+					return href.startsWith(link);
+				}
 
-		return href.startsWith(userProfileLink);
+				return false;
+			});
+		});
 	}
 }

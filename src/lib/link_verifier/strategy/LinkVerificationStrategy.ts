@@ -1,6 +1,6 @@
 export interface ILinkVerificationStrategy {
 	name: string;
-	verify(userProfileLink: string): Promise<boolean>;
+	verify(userProfileLink: string[]): Promise<boolean>;
 }
 
 export type LinkVerificationStrategyFactory = (dom: Window) => ILinkVerificationStrategy;
@@ -18,7 +18,7 @@ export abstract class LinkVerificationStrategy implements ILinkVerificationStrat
 		return this.strategyName;
 	}
 
-	public async verify(userProfileLink: string): Promise<boolean> {
+	public async verify(userProfileLink: string[]): Promise<boolean> {
 		throw new Error('Not Implemented');
 	}
 }

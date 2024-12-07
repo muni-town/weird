@@ -15,7 +15,11 @@ export interface Profile {
 	display_name?: string;
 	tags: string[];
 	bio?: string;
-	links: { label?: string; url: string }[];
+	links: {
+		label?: string;
+		url: string;
+		verifiedLinkDate?: VerifiedLinkDate;
+	}[];
 	mastodon_profile?: {
 		username: string;
 		server: string;
@@ -338,9 +342,16 @@ export async function setProfileById(rauthyId: string, profile: Profile): Promis
 	const verifiedLinks = await linkVerifier.verify();
 
 	if (verifiedLinks.length) {
-		profile.links.filter((profileLink) => verifiedLinks.find((link) => profileLink.url.startsWith(link.url)))
+		profile.links = profile.links
 			.map((profileLink) => {
-				profileLink.verifiedLinkDate =
+				const isVerified = verifiedLinks.find((link) => profileLink.url.startsWith(link.url));
+
+				if (isVerified) {
+					const now = (+ new Date());
+					profileLink.verifiedLinkDate = new VerifiedLinkDate(now);
+				}
+
+				return profileLink;
 			});
 	}
 

@@ -15,12 +15,45 @@ export interface Profile {
 	display_name?: string;
 	tags: string[];
 	bio?: string;
-	links: { label?: string; url: string }[];
+	links: {
+		label?: string;
+		url: string;
+		verifiedLinkDate?: VerifiedLinkDate;
+	}[];
 	mastodon_profile?: {
 		username: string;
 		server: string;
 	};
 	pubpage_theme?: string;
+}
+
+export class VerifiedLinkDate extends Component {
+  value: number;
+
+  constructor(dateVerified: number) {
+    super();
+
+    this.value = dateVerified;
+  }
+
+  static componentName(): string {
+    return 'VerifiedLinkDate';
+  }
+
+  static borshSchema(): BorshSchema {
+    return BorshSchema.u64;
+  }
+
+  static specification(): Component[] {
+    return [
+      new CommonMark(`
+        Contains the date that a link was verified by Weird.
+        The username and link that has been verified should be in the last two
+        path segments of entities path:
+        "example-path-to-entity/username/https://github.com/username"
+      `)
+    ];
+  }
 }
 
 export class Tags extends Component {
@@ -306,7 +339,22 @@ export async function setProfileById(rauthyId: string, profile: Profile): Promis
 	const userName = await usernames.getByRauthyId(rauthyId);
 	if (!userName) throw `user has no username`;
 	const linkVerifier = new LinkVerifier(profile.links, userName);
-	await linkVerifier.verify();
+	const verifiedLinks = await linkVerifier.verify();
+
+	if (verifiedLinks.length) {
+		profile.links = profile.links
+			.map((profileLink) => {
+				const isVerified = verifiedLinks.find((link) => profileLink.url.startsWith(link.url));
+
+				if (isVerified) {
+					const now = (+ new Date());
+					profileLink.verifiedLinkDate = new VerifiedLinkDate(now);
+				}
+
+				return profileLink;
+			});
+	}
+
 	await setProfile(link, profile);
 }
 export async function deleteAllProfileDataById(rauthyId: string) {

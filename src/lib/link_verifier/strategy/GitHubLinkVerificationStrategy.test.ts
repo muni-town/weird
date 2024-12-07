@@ -68,7 +68,10 @@ const GITHUB_PROFILE_SNIPPET = `
 test('verifies an owned githubs link', async () => {
 	const dom = parseHTML(GITHUB_PROFILE_SNIPPET);
 	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
-	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/estebanborai');
+	const isOwner = await gitHubLinkVerificationStrategy.verify([
+		'https://a.weird.one/estebanborai',
+		'https://estebanborai.weird.one',
+	]);
 
 	expect(isOwner).toStrictEqual(true);
 });
@@ -76,7 +79,10 @@ test('verifies an owned githubs link', async () => {
 test('invalidates a non owners github link', async () => {
 	const dom = parseHTML(GITHUB_PROFILE_SNIPPET);
 	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
-	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/zicklag');
+	const isOwner = await gitHubLinkVerificationStrategy.verify([
+		'https://a.weird.one/zicklag',
+		'https://zicklag.weird.one',
+	]);
 
 	expect(isOwner).toStrictEqual(false);
 });

@@ -65,6 +65,10 @@
 	};
 </script>
 
+<svelte:head>
+	<link rel="stylesheet" href="pico.min.css" />
+</svelte:head>
+
 {#if profile}
 	{#if editingAvatar != ''}
 		<AvatarEditor
@@ -78,7 +82,7 @@
 		/>
 	{/if}
 
-	<main>
+	<main data-theme="dark">
 		<section>
 			<EditLinks
 				label={linkLabel}

@@ -79,7 +79,7 @@
 </script>
 
 <svelte:head>
-	<link rel="stylesheet" href="https://unpkg.com/pico.css/dist/pico.min.css" />
+	<link rel="stylesheet" href="pico.min.css" />
 </svelte:head>
 
 {#if profile}

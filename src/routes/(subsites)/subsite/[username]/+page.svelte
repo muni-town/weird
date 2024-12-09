@@ -62,8 +62,6 @@
 <svelte:head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<meta name="color-scheme" content="light dark" />
-	<link rel="stylesheet" href="pico.min.css" />
 	<link rel="stylesheet" href="https://unpkg.com/open-props" />
 	<title>{display_name}</title>
 </svelte:head>

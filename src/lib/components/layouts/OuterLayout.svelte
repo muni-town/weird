@@ -12,32 +12,32 @@
 	<title>{env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<AppBar>
-	<svelte:fragment slot="lead"
-		><img src="/favicon.png" alt="Weird Logo" width="40px" /></svelte:fragment
-	>
-	<svelte:fragment slot="default"
-		><h1 class="text-xl font-bold">
-			<a href="/">{env.PUBLIC_INSTANCE_NAME}</a>
-		</h1></svelte:fragment
-	>
-	<svelte:fragment slot="trail">
-		<div class="items-center gap-3 sm:flex">
+<AppBar background="bg-surface-100/10"i classes="blur-sm">
+	{#snippet lead()}
+		<img src="/favicon.png" alt="Weird Logo" width="40px" />
+	{/snippet}
+
+	<h1 class="text-xl font-bold font-rubik text-secondary-500">
+		<a href="/">WEIRD</a>
+	</h1>
+
+	{#snippet trail()}
+		<div class="items-center gap-3 sm:flex font-spacemono">
 			{#if sessionInfo?.groups?.includes('admin')}
-				<a data-sveltekit-reload href="/__internal__/admin" class="variant-outline-warning btn"
-					>Admin</a
-				>
+				<a data-sveltekit-reload href="/__internal__/admin" class="btn hover:bg-surface-100/5 hover:scale-105">
+					Admin
+				</a>
 			{/if}
 
-			<a href="/people" class="variant-ghost btn">People</a>
+			<a href="/people" class="btn hover:bg-surface-100/5 hover:scale-105">People</a>
 
 			{#if !sessionInfo}
-				<a href="/login" class="variant-ghost btn">Sign-in</a>
+				<a href="/login" class="btn hover:bg-surface-100/5 hover:scale-105">Sign-in</a>
 			{:else}
-				<a href="/my-profile" class="variant-ghost btn">Profile</a>
-				<a href="/logout" class="variant-ghost btn">Logout</a>
+				<a href="/my-profile" class="btn hover:bg-surface-100/5 hover:scale-105">Profile</a>
+				<a href="/logout" class="btn hover:bg-surface-100/5 hover:scale-105">Logout</a>
 			{/if}
-			<a href="/feedback" class="variant-ghost btn btn-icon" title="Leave Feedback">
+			<a href="/feedback" class="btn hover:bg-surface-100/5 hover:scale-105" title="Leave Feedback" aria-label="Feedback">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="16"
@@ -52,10 +52,10 @@
 				</svg>
 			</a>
 		</div>
-	</svelte:fragment>
+	{/snippet}
 </AppBar>
 
-<div class="flex min-h-screen flex-col">
+<div class="flex min-h-screen flex-col weird-container">
 	<div class="flex-grow">
 		{@render children()}
 	</div>
@@ -68,3 +68,16 @@
 		> style.
 	</footer>
 </div>
+
+<style>
+	@import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+	@font-face {
+		font-family: Uncut Sans;
+		src: url('/UncutSans-Variable.woff2');
+	}
+
+	.weird-container {
+		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #CB5873);
+	}
+</style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 
 	let {
@@ -15,11 +16,13 @@
 	};
 </script>
 
-<div class="input-group input-group-divider mt-8 max-w-80 grid-cols-[1fr_auto]">
+<div class="input-group w-full max-w-sm grid-cols-[auto_1fr_auto]">
+	<div class="input-group-cell">
+		<Icon icon="iconamoon:search-bold" />	
+	</div>
 	<input
 		bind:this={searchBox}
-		type="text"
-		class="input"
+		type="search"
 		placeholder="Search..."
 		bind:value={search}
 		{...textinputProps}

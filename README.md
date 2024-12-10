@@ -34,7 +34,8 @@ Weird Net 🌐 – An actually-social network of _shared purpose_ (dedicated pos
 
 ## Development
 
-See [Contributing](./CONTRIBUTING.md#development-setup).
+See [Contributing](./CONTRIBUTING.md#development-setup) for contribution info and guidelines and see
+the [Developer](./DEVELOPER.md) doc for local dev environment setup instructions.
 
 ### High level architecture
 

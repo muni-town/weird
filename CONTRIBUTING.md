@@ -80,17 +80,3 @@ You can do this by running `just comply` followed by `just check`.
 
 <!-- dprint-ignore -->
 [blue-oak]: https://writing.kemitchell.com/2019/03/09/Deprecation-Notice.html
-
-## Debugging Tools
-
-Users that have the `admin` role, as configured in Rauthy are able to access the Weird admin menu
-from the app nav toolbar or by going to
-[`http://localhost:9523/__internal__/admin`](http://localhost:9523/__internal__/admin).
-
-At the time of writing this includes:
-
-- A database dump / restore feature
-- A database data explorer
-- A utility to update the username domain for all users on the instance
-
-More utilities may be added in the future as we find time and deem necessary.

@@ -71,32 +71,34 @@
 	<title>{env.PUBLIC_MEMBERS_TITLE} | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<MainContent>
-	<h1 class="mt-8 text-4xl font-bold">{env.PUBLIC_MEMBERS_TITLE}</h1>
+<main class="flex flex-col gap-8 px-8 py-16 font-spacemono">
+	<div class="flex flex-col gap-3">
+		<h1 class="pl-1 text-4xl font-rubik">{env.PUBLIC_MEMBERS_TITLE}</h1>
+		<SearchInput bind:this={searchbox} bind:search autofocus />
+	</div>
 
-	<SearchInput bind:this={searchbox} bind:search autofocus />
-
-	<div class="mt-10 flex max-w-full flex-row flex-wrap justify-center gap-5 px-5">
+	<div class="flex flex-row flex-wrap justify-center gap-5">
 		{#each filtered_profiles as profile (profile.username)}
 			<div
-				class="w-120 card relative flex flex-col items-center rounded-lg !bg-surface-700 p-5 transition-transform duration-200 hover:scale-105"
+				class="card max-w-sm relative flex flex-col items-center rounded-lg !bg-surface-50/20 border-2 border-surface-400 px-5 py-8 transition-transform duration-200 hover:scale-105"
 			>
-				<div class="flex w-[15em] flex-col items-center text-center">
-					<div class="mb-3 flex flex-col flex-wrap items-center gap-7">
+				<div class="flex flex-col gap-6 items-center text-center">
+					<div class="flex flex-col flex-wrap items-center gap-7">
 						<Avatar width="w-[8em]" src={`/${profile.username}/avatar`} />
-						<h2 class="text-2xl font-semibold">
+						<h2 class="text-2xl font-uncut font-semibold">
 							<a href={`/${profile.username}`} class="card-link">
 								{profile.display_name || profile.username}
 							</a>
 						</h2>
 					</div>
 
-					<div class="flex max-w-full flex-col gap-4">
+					<div class="flex w-full flex-col gap-4">
 						{#if profile.tags && profile.tags.length > 0}
-							<div class="flex max-w-full flex-wrap items-center justify-center gap-2">
-								{#each profile.tags as tag}<button
+							<div class="flex w-full flex-wrap items-center justify-center gap-2">
+								{#each profile.tags as tag}
+									<button
 										type="button"
-										class="border-surface-500-400-token btn relative rounded-full border-[1px] bg-surface-900 p-1 px-3 text-surface-100 hover:bg-surface-700"
+										class="border-surface-500 btn relative rounded-full border-[1px] bg-surface-300 p-1 px-3 text-surface-900 hover:bg-surface-200"
 										onclick={(e) => {
 											e.preventDefault();
 											search = tag;
@@ -104,7 +106,8 @@
 										}}
 									>
 										{tag}
-									</button>{/each}
+									</button>
+								{/each}
 							</div>
 						{/if}
 					</div>
@@ -112,7 +115,7 @@
 			</div>
 		{/each}
 	</div>
-</MainContent>
+</main>
 
 <style>
 	.card-link::after {

@@ -91,7 +91,10 @@
 				<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle
 				</button>
-				<button class="variant-ghost-error btn" onclick={() => modalStore.trigger(deleteProfileModal)}>
+				<button
+					class="variant-ghost-error btn"
+					onclick={() => modalStore.trigger(deleteProfileModal)}
+				>
 					Delete Profile
 				</button>
 			</div>

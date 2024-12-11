@@ -1,20 +1,16 @@
 <script lang="ts">
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	import { page } from '$app/stores';
-	import type { SubscriptionInfo } from '$lib/billing';
 	import { format } from 'timeago.js';
+	import type { UserSubscriptionInfo } from '$lib/billing';
 
 	const modalStore = getModalStore();
 
-	let subscriptionInfo: SubscriptionInfo[] = $state([]);
+	let subscriptionInfo = $state(undefined) as UserSubscriptionInfo | undefined;
 
 	$effect(() => {
-		subscriptionInfo = ($modalStore[0] as any).subscriptionInfo;
+		subscriptionInfo = ($modalStore[0] as any).subscriptionInfo as UserSubscriptionInfo;
 	});
-
-	let hasNonExpired = $derived(
-		subscriptionInfo.filter((x) => x.attributes.status != 'expired').length > 0
-	);
 
 	async function purchaseSubscription() {
 		const checkoutUrl = await (
@@ -52,7 +48,18 @@
 			<header class="text-2xl font-bold">Manage Subscription</header>
 
 			<div class="p-2">
-				{#if !hasNonExpired}
+				{#if subscriptionInfo?.freeTrialExpirationDate}
+					<div class="card bg-surface-200-700-token mt-4 drop-shadow-lg">
+						<header class="card-header text-xl font-bold">Free Trial</header>
+						<section class="flex flex-col gap-3 p-4">
+							<p class="max-w-[27em]">You have access to memorable usernames or custom domains!</p>
+							<p>
+								<strong>Trial Expires:</strong>
+								{format(subscriptionInfo.freeTrialExpirationDate)}
+							</p>
+						</section>
+					</div>
+				{:else if !subscriptionInfo?.isSubscribed}
 					<div class="card bg-surface-200-700-token mt-4 drop-shadow-lg">
 						<header class="card-header text-xl font-bold">Weird Nerd</header>
 						<section class="p-4">Unlock memorable usernames or custom domains!</section>
@@ -63,12 +70,13 @@
 						</footer>
 					</div>
 				{:else}
-					{#each subscriptionInfo as subscription}
+					{#each subscriptionInfo?.subscriptions || [] as subscription}
 						<div class="card bg-surface-200-700-token mt-4 drop-shadow-lg">
 							<header class="card-header text-xl font-bold">
 								{subscription.attributes.product_name}
 							</header>
 							<section class="p-4">
+								<p class="py-3">✨ You have access to memorable usernames or custom domains! ✨</p>
 								<div>
 									<strong>Status:</strong>
 									{subscription.attributes.status_formatted}

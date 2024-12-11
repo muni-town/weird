@@ -331,6 +331,18 @@ export async function getProfiles(): Promise<
 }
 
 /**
+ * Apply any changes necessary to the user's data since they have been unsubscribed.
+ *
+ * This may include changing their handle because they are no longer allowed to use their custom
+ * domain or memorable username.
+ *
+ * @param rauthyId The user's rauthy ID
+ */
+export async function unsubscribeUser(rauthyId: string) {
+
+}
+
+/**
  * List the entities, one level deep, with a string path segment below the provided `link`.
  *
  * @param link The link to the entity/path to list the children of.

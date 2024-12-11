@@ -2,10 +2,10 @@ import { env } from '$env/dynamic/private';
 import { env as pubenv } from '$env/dynamic/public';
 import * as lemon from '@lemonsqueezy/lemonsqueezy.js';
 import { redis } from './redis';
-import { usernames } from './usernames';
+import { unsubscribeUser } from './leaf/profile';
 
-const REDIS_PREFIX = 'weird:billing:lemon:';
-const REDIS_SUBSCRIPTIONS_PREFIX = REDIS_PREFIX + 'subscriptions:';
+const REDIS_SUBSCRIPTIONS_PREFIX = 'weird:billing:lemon:subscriptions:';
+const REDIS_FREE_TRIALS_PREFIX = 'weird:billing:free_trials:';
 
 type WebhookEventKind =
 	| 'order_created'
@@ -52,6 +52,12 @@ export type SubscriptionInfo = {
 	id: string;
 	attributes: Omit<lemon.Subscription['data']['attributes'], 'urls'>;
 };
+export type UserSubscriptionInfo = {
+	rauthyId: string;
+	subscriptions: SubscriptionInfo[];
+	freeTrialExpirationDate?: number;
+	isSubscribed: boolean;
+};
 
 class BillingEngine {
 	constructor() {
@@ -89,7 +95,7 @@ class BillingEngine {
 		}
 	}
 
-	async getWeirdNerdSubscriptionInfo(rauthyId: string): Promise<SubscriptionInfo[]> {
+	async getSubscriptionInfo(rauthyId: string): Promise<UserSubscriptionInfo> {
 		const subscriptions: SubscriptionInfo[] = [];
 
 		const prefix = REDIS_SUBSCRIPTIONS_PREFIX + rauthyId + ':';
@@ -101,19 +107,41 @@ class BillingEngine {
 			subscriptions.push(JSON.parse(s));
 		}
 
-		return subscriptions;
+		const timestamp = await redis.get(REDIS_FREE_TRIALS_PREFIX + rauthyId);
+		let freeTrialExpirationDate = timestamp ? parseInt(timestamp) : undefined;
+
+		if (freeTrialExpirationDate && Date.now() > freeTrialExpirationDate) {
+			freeTrialExpirationDate = undefined;
+
+			if (!subscriptions.find((sub) => sub.attributes.status != 'expired')) {
+				await unsubscribeUser(rauthyId);
+				await redis.del(REDIS_FREE_TRIALS_PREFIX + rauthyId);
+			}
+		}
+
+		let info = {
+			subscriptions,
+			rauthyId,
+			freeTrialExpirationDate
+		};
+
+		let isSubscribed =
+			info &&
+			((info.freeTrialExpirationDate && info.freeTrialExpirationDate > Date.now()) ||
+				!!info.subscriptions.find((sub) => sub.attributes.status != 'expired'));
+
+		return { ...info, isSubscribed };
 	}
 
 	async getBillingMethodUpdateLink(rauthyId: string): Promise<string | undefined> {
 		// Check for subscriptions for this user
-		const subscriptions = await this.getWeirdNerdSubscriptionInfo(rauthyId);
-		if (subscriptions.length > 0) {
+		const info = await this.getSubscriptionInfo(rauthyId);
+		if (info.subscriptions.length > 0) {
 			// Get the subscription ID
-			let subscriptionId = subscriptions[0].id;
+			let subscriptionId = info.subscriptions[0].id;
 			// Get an up-to-date reference to the subscription, which will include a signed customer
 			// portal URL.
 			const upToDateSubscription = await lemon.getSubscription(subscriptionId);
-			console.log(JSON.stringify(upToDateSubscription, null, '  '));
 			if (upToDateSubscription.data) {
 				return upToDateSubscription.data.data.attributes.urls.update_payment_method;
 			}
@@ -121,8 +149,8 @@ class BillingEngine {
 	}
 
 	async cancelBillingSubscription(rauthyId: string) {
-		const subscriptions = await this.getWeirdNerdSubscriptionInfo(rauthyId);
-		const activeSubscriptions = subscriptions.filter((x) => x.attributes.status == 'active');
+		const info = await this.getSubscriptionInfo(rauthyId);
+		const activeSubscriptions = info.subscriptions.filter((x) => x.attributes.status == 'active');
 		if (activeSubscriptions.length != 1) {
 			throw 'Could not find exactly one subscription, not sure how to cancel.';
 		}
@@ -133,8 +161,10 @@ class BillingEngine {
 	}
 
 	async resumeBillingSubscription(rauthyId: string) {
-		const subscriptions = await this.getWeirdNerdSubscriptionInfo(rauthyId);
-		const cancelledSubscriptions = subscriptions.filter((x) => x.attributes.status == 'cancelled');
+		const info = await this.getSubscriptionInfo(rauthyId);
+		const cancelledSubscriptions = info.subscriptions.filter(
+			(x) => x.attributes.status == 'cancelled'
+		);
 		if (cancelledSubscriptions.length != 1) {
 			throw 'More than one cancelled subscription, not sure how to cancel.';
 		}
@@ -151,10 +181,20 @@ class BillingEngine {
 				attributes: { ...subscription.attributes, ...{ urls: undefined } }
 			};
 
-			await redis.set(
-				REDIS_SUBSCRIPTIONS_PREFIX + rauthyId + ':' + subscription.id,
-				JSON.stringify(info)
-			);
+			const subscriptionKey = REDIS_SUBSCRIPTIONS_PREFIX + rauthyId + ':' + subscription.id;
+
+			const previous = await redis.get(subscriptionKey);
+			await redis.set(subscriptionKey, JSON.stringify(info));
+
+			if (previous) {
+				const previousSubscriptionInfo: SubscriptionInfo = JSON.parse(previous);
+				if (
+					previousSubscriptionInfo.attributes.status != 'expired' &&
+					info.attributes.status == 'expired'
+				) {
+					await unsubscribeUser(rauthyId);
+				}
+			}
 		}
 	}
 

@@ -42,8 +42,7 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 		)
 	).filter((x) => x) as { slug: string; name?: string }[];
 
-	const subscriptionInfo =
-		sessionInfo && (await billing.getWeirdNerdSubscriptionInfo(sessionInfo.user_id));
+	const subscriptionInfo = sessionInfo && (await billing.getSubscriptionInfo(sessionInfo.user_id));
 
 	return {
 		profile,

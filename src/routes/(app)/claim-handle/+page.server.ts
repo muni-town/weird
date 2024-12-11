@@ -35,7 +35,7 @@ export const actions = {
 
 		try {
 			if (!subscriptionInfo.isSubscribed && !username.match(validUnsubscribedUsernameRegex)) {
-				return fail(400,{ error: '' });
+				return fail(400, { error: '' });
 			}
 
 			await usernames.claim({ username }, sessionInfo.user_id);

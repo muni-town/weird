@@ -5,7 +5,7 @@
 	import { getModalStore, ProgressRadial, Tab, TabGroup } from '@skeletonlabs/skeleton';
 	import { env } from '$env/dynamic/public';
 	import {
-	genRandomUsernameSuffix,
+		genRandomUsernameSuffix,
 		validDomainRegex,
 		validUsernameRegex
 	} from '$lib/usernames/client';

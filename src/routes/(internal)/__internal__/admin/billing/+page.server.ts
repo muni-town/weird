@@ -19,7 +19,13 @@ export const actions = {
 		const rauthyId = formData.get('rauthyId')?.toString();
 		if (!(expires && rauthyId)) return { error: 'You must fill in all fields' };
 
-		billing.grantFreeTrial(rauthyId, new Date(expires));
+		if (rauthyId == '___everyone___') {
+			for await (const user of usernames.list()) {
+				await billing.grantFreeTrial(user.rauthyId, new Date(expires));
+			}
+		} else {
+			await billing.grantFreeTrial(rauthyId, new Date(expires));
+		}
 
 		return { success: `Free trial set` };
 	},
@@ -28,7 +34,7 @@ export const actions = {
 		const rauthyId = formData.get('rauthyId')?.toString();
 		if (!rauthyId) return { error: 'You must fill in all fields' };
 
-		billing.cancelFreeTrial(rauthyId);
+		await billing.cancelFreeTrial(rauthyId);
 
 		return { success: `Free trial deleted.` };
 	}

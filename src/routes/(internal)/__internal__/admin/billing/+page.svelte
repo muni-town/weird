@@ -26,6 +26,8 @@
 
 <h2>Grant Free Trial</h2>
 
+<p>Set rauthy ID to <code>___everyone___</code> to give everybody with a username a free trial.</p>
+
 <form method="post" action="?/grantFreeTrial">
 	<!-- svelte-ignore a11y_no_redundant_roles -->
 	<fieldset role="group">

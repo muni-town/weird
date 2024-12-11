@@ -18,6 +18,7 @@
 		type: 'component',
 		component: { ref: SetHandleModal },
 		subspace: data.subspace,
+		subscriptionInfo: data.subscriptionInfo,
 		async response(r) {
 			if ('error' in r) {
 				error = r.error;

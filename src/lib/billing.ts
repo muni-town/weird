@@ -208,6 +208,18 @@ class BillingEngine {
 			await this.#updateSubscriptionInfo(rauthyId, data);
 		}
 	}
+
+	async grantFreeTrial(rauthyId: string, expires: Date) {
+		await redis.set(REDIS_FREE_TRIALS_PREFIX + rauthyId, expires.getTime().toString());
+	}
+
+	async cancelFreeTrial(rauthyId: string) {
+		await redis.del(REDIS_FREE_TRIALS_PREFIX + rauthyId);
+		const subscriptionInfo = this.getSubscriptionInfo(rauthyId);
+		if (!(await subscriptionInfo).isSubscribed) {
+			await unsubscribeUser(rauthyId);
+		}
+	}
 }
 
 export const billing = new BillingEngine();

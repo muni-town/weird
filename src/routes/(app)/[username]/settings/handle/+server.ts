@@ -1,3 +1,4 @@
+import { billing } from '$lib/billing';
 import { getSession } from '$lib/rauthy/server';
 import { usernames } from '$lib/usernames';
 import { type RequestHandler, json } from '@sveltejs/kit';
@@ -26,6 +27,18 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		return new Response(null, { status: 403 });
 	}
 	const oldUsername = await usernames.getByRauthyId(sessionInfo.user_id);
+
+	const subscriptionInfo = await billing.getSubscriptionInfo(sessionInfo.user_id);
+
+	if (!subscriptionInfo.isSubscribed) {
+		if ('domain' in parsed.data) {
+			return json({ error: 'Cannot set username to custom domain without a subscription.' });
+		} else if (!usernames.validUnsubscribedUsernameRegex.test(parsed.data.username)) {
+			return json({
+				error: 'Cannot claim username without a 4 digit suffix without a subscription'
+			});
+		}
+	}
 
 	try {
 		await usernames.claim(parsed.data, sessionInfo.user_id);

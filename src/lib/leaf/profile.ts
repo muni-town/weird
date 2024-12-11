@@ -8,6 +8,8 @@ import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 import { leafClient, subspace_link } from '.';
 
 import type { ExactLink, IntoPathSegment, Unit } from 'leaf-proto';
+import { env } from '$env/dynamic/public';
+import { genRandomUsernameSuffix, validUnsubscribedUsernameRegex } from '$lib/usernames/client';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
@@ -339,7 +341,28 @@ export async function getProfiles(): Promise<
  * @param rauthyId The user's rauthy ID
  */
 export async function unsubscribeUser(rauthyId: string) {
+	// When a user loses their subscription, we have to reset their username to a free one.
+	const currentUsername = await usernames.getByRauthyId(rauthyId);
+	if (!currentUsername) return;
 
+	if (currentUsername.endsWith(env.PUBLIC_USER_DOMAIN_PARENT)) {
+		const prefix = currentUsername.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+		if (prefix.match(validUnsubscribedUsernameRegex)) {
+			// Nothing to do if their username is already valid for an unsubscribed user.
+			return;
+		} else {
+			const newUsername = prefix + genRandomUsernameSuffix();
+			await usernames.claim({ username: newUsername }, rauthyId);
+		}
+	} else {
+		await usernames.unset(currentUsername);
+		const newUsername = currentUsername.replace(/[^a-zA-Z0-9]/g, '-') + genRandomUsernameSuffix();
+		try {
+			await usernames.claim({ username: newUsername }, rauthyId);
+		} catch (_e) {
+			// If this doesn't work, we'll just let the user claim a new name when they sign up.
+		}
+	}
 }
 
 /**

@@ -10,7 +10,7 @@
 		await fetch(`/${$page.params.username}/settings/deleteProfile`, {
 			method: 'post'
 		});
-		await goto('/claim-username', { invalidateAll: true, replaceState: true });
+		await goto('/claim-handle', { invalidateAll: true, replaceState: true });
 		modalStore.close();
 	}
 </script>

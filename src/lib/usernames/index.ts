@@ -4,7 +4,7 @@ import { leafClient } from '../leaf';
 import { env } from '$env/dynamic/public';
 import { resolveAuthoritative } from '../dns/resolve';
 import { APP_IPS } from '../dns/server';
-import { validDomainRegex, validUsernameRegex } from './client';
+import { validDomainRegex, validUsernameRegex, validUnsubscribedUsernameRegex } from './client';
 import { dev } from '$app/environment';
 
 const USER_NAMES_PREFIX = 'weird:users:names:';
@@ -21,6 +21,7 @@ async function claim(
 	input: { username: string } | { domain: string; skipDomainCheck?: boolean },
 	rauthyId: string
 ) {
+	const oldUsername = await getByRauthyId(rauthyId);
 	const rauthyIdKey = USER_RAUTHY_IDS_PREFIX + rauthyId;
 
 	const subspace = base32Encode(await subspaceByRauthyId(rauthyId));
@@ -126,6 +127,11 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 
 		try {
 			await multi.exec();
+
+			if (oldUsername) {
+				await unset(oldUsername);
+			}
+
 			return;
 		} catch (e) {
 			failures += 1;
@@ -214,6 +220,7 @@ async function getBySubspace(
 export const usernames = {
 	validDomainRegex,
 	validUsernameRegex,
+	validUnsubscribedUsernameRegex,
 	setSubspace,
 	claim,
 	unset,

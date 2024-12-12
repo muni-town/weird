@@ -207,7 +207,7 @@
 															<code class="font-mono">CNAME</code>
 														</td>
 														<td> <pre>@</pre> </td>
-														<td> <pre>a.weird.one</pre> </td>
+														<td> <pre>{env.PUBLIC_DOMAIN}</pre> </td>
 													</tr>
 													<tr>
 														<td>
@@ -235,7 +235,7 @@
 															<code class="font-mono">CNAME</code>
 														</td>
 														<td> <pre>{domain.split('.').slice(0, -2).join('.')}</pre> </td>
-														<td> <pre>a.weird.one</pre> </td>
+														<td> <pre>{env.PUBLIC_DOMAIN}</pre> </td>
 													</tr>
 													<tr>
 														<td>

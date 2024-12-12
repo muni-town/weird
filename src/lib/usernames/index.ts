@@ -4,7 +4,12 @@ import { leafClient } from '../leaf';
 import { env } from '$env/dynamic/public';
 import { resolveAuthoritative } from '../dns/resolve';
 import { APP_IPS } from '../dns/server';
-import { validDomainRegex, validUsernameRegex, validUnsubscribedUsernameRegex } from './client';
+import {
+	validDomainRegex,
+	validUsernameRegex,
+	validUnsubscribedUsernameRegex,
+	genRandomUsernameSuffix
+} from './client';
 import { dev } from '$app/environment';
 
 const USER_NAMES_PREFIX = 'weird:users:names:';
@@ -111,6 +116,28 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 	const TRIES = 3;
 	let failures = 0;
 	while (failures <= TRIES) {
+		let initialUsername: string = '';
+		let initialUsernameKey: undefined | string;
+		if ('username' in input) {
+			const existingInitialUsername = await redis.hGet(rauthyIdKey, 'initialUsername');
+			if (!existingInitialUsername) {
+				initialUsername = input.username;
+				if (!initialUsername.match(validUnsubscribedUsernameRegex)) {
+					initialUsername += genRandomUsernameSuffix();
+				}
+
+				initialUsername += '.' + env.PUBLIC_USER_DOMAIN_PARENT;
+
+				initialUsernameKey = USER_NAMES_PREFIX + initialUsername;
+				redis.watch([initialUsernameKey]);
+
+				if (await redis.exists(initialUsernameKey)) {
+					await redis.unwatch();
+					throw `Cannot claim initial username "${initialUsername}": username already claimed.`;
+				}
+			}
+		}
+
 		redis.watch([usernameKey, rauthyIdKey, subspaceKey]);
 
 		if (await redis.exists(usernameKey)) {
@@ -124,6 +151,12 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 		multi.hSet(usernameKey, 'rauthyId', rauthyId);
 		multi.hSet(rauthyIdKey, 'username', username);
 		multi.hSet(subspaceKey, 'username', username);
+
+		if (initialUsername && initialUsernameKey) {
+			multi.hSet(initialUsernameKey, 'subspace', subspace);
+			multi.hSet(initialUsernameKey, 'rauthyId', rauthyId);
+			multi.hSet(rauthyIdKey, 'initialUsername', initialUsername);
+		}
 
 		try {
 			await multi.exec();
@@ -151,6 +184,13 @@ async function unset(username: string) {
 
 	const user = await redis.hGetAll(usernameKey);
 
+	const initialUsername = await getInitialUsername(user.rauthyId);
+	if (initialUsername == username) {
+		await redis.unwatch();
+		// Initial usernames are never unset.
+		return;
+	}
+
 	const subspaceKey = USER_SUBSPACES_PREFIX + user.subspace;
 	const rauthyIdKey = USER_RAUTHY_IDS_PREFIX + user.rauthyId;
 	await redis.watch([subspaceKey, rauthyIdKey]);
@@ -170,6 +210,7 @@ async function unset(username: string) {
 
 async function* list(): AsyncGenerator<{
 	username?: string;
+	initialUsername?: string;
 	rauthyId: string;
 	subspace: Uint8Array;
 }> {
@@ -178,6 +219,7 @@ async function* list(): AsyncGenerator<{
 		const rauthyId = segments[segments.length - 1];
 		yield {
 			rauthyId,
+			initialUsername: await getInitialUsername(rauthyId),
 			username: await getByRauthyId(rauthyId),
 			subspace: await subspaceByRauthyId(rauthyId)
 		};
@@ -217,6 +259,59 @@ async function getBySubspace(
 	return { username, rauthyId };
 }
 
+async function getInitialUsername(rauthyId: string): Promise<string | undefined> {
+	return await redis.hGet(USER_RAUTHY_IDS_PREFIX + rauthyId, 'initialUsername');
+}
+
+/**
+ * Helper function to generate initial usernames for all users without them.
+ *
+ * This is just used by the admin interface as a way to handle the fact that we didn't originally
+ * have a concept of initial usernames and existing users will need one generated.
+ */
+async function generateInitialUsernamesForAllUsers() {
+	for await (const user of list()) {
+		if (!user.initialUsername && user.username) {
+			let initialUsername;
+			if (user.username.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
+				const shortName = user.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+				initialUsername = shortName + genRandomUsernameSuffix();
+			} else {
+				initialUsername = user.username.replace(/[^a-zA-Z0-9]/g, '-') + genRandomUsernameSuffix();
+			}
+			initialUsername += '.' + env.PUBLIC_USER_DOMAIN_PARENT;
+
+			const initialUsernameKey = USER_NAMES_PREFIX + initialUsername;
+			redis.watch([initialUsernameKey]);
+			if (await redis.exists(initialUsernameKey)) {
+				throw "Initial username already exists, try again. That's very unlucky! Try again.";
+			}
+
+			const multi = redis.multi();
+			multi.hSet(initialUsernameKey, 'rauthyId', user.rauthyId);
+			multi.hSet(initialUsernameKey, 'subspace', base32Encode(user.subspace));
+			multi.hSet(USER_RAUTHY_IDS_PREFIX + user.rauthyId, 'initialUsername', initialUsername);
+			await multi.exec();
+		}
+	}
+}
+
+/**
+ * Sets a user's username to their initial username, freeing whatever their current username is.
+ *
+ * If they do not have an initial username, their username will just be unset.
+ */
+async function setUsernameToInitialUsername(rauthyId: string) {
+	const initialUsername = await getInitialUsername(rauthyId);
+	const username = await getByRauthyId(rauthyId);
+	if (username) {
+		await unset(username);
+	}
+	if (initialUsername) {
+		await redis.hSet(USER_RAUTHY_IDS_PREFIX + rauthyId, 'username', initialUsername);
+	}
+}
+
 export const usernames = {
 	validDomainRegex,
 	validUsernameRegex,
@@ -229,5 +324,8 @@ export const usernames = {
 	subspaceByRauthyId,
 	getSubspace,
 	getRauthyId,
-	getBySubspace
+	getBySubspace,
+	getInitialUsername,
+	generateInitialUsernamesForAllUsers,
+	setUsernameToInitialUsername
 };

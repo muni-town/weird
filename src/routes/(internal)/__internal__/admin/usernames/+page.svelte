@@ -36,12 +36,19 @@
 	</fieldset>
 </form>
 
+<h2>Generate Initial Usernames for All Users</h2>
+
+<form method="post" action="?/generateInitialUsernames">
+	<button>Generate</button>
+</form>
+
 <h2>Users</h2>
 
 <table>
 	<thead>
 		<tr>
 			<td>Username</td>
+			<td>Initial Username</td>
 			<td>Rauthy ID</td>
 			<td>Subspace</td>
 		</tr>
@@ -54,6 +61,7 @@
 						{user.username || '[not set]'}
 					</a>
 				</td>
+				<td>{user.initialUsername}</td>
 				<td>{user.rauthyId}</td>
 				<td>{base32Encode(user.subspace)}</td>
 			</tr>

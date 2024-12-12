@@ -172,3 +172,15 @@ export async function getUserInfo(
 
 	return { userInfo };
 }
+
+export async function listRauthyUsers(
+	fetch: typeof window.fetch,
+	request: Request
+): Promise<{ email: string; id: string; created_at: number; last_login: number }[]> {
+	const resp = await fetch(`/auth/v1/users`, {
+		headers: cleanHeaders(request)
+	});
+	await checkResponse(resp);
+
+	return resp.json();
+}

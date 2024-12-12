@@ -5,5 +5,6 @@
 	<li><a href="/__internal__/admin/dns/resolve">DNS Resolver</a></li>
 	<li><a href="/__internal__/admin/usernames">Username Manager</a></li>
 	<li><a href="/__internal__/admin/billing">Billing Manager</a></li>
+	<li><a href="/__internal__/admin/send-emails">Send Emails</a></li>
 	<li><a href="/__internal__/admin/migration-508f757">Migration ( 508f757 )</a></li>
 </ul>

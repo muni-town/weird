@@ -29,6 +29,7 @@
 				>
 			{/if}
 
+			<a href="https://a.weird.one" class="variant-ghost btn">About</a>
 			<a href="/people" class="variant-ghost btn">People</a>
 
 			{#if !sessionInfo}

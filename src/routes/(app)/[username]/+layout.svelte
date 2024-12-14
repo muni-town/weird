@@ -7,7 +7,6 @@
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
 	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
 	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
-	import { env } from '$env/dynamic/public';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 

@@ -57,13 +57,30 @@
 				{#if subscriptionInfo?.freeTrialExpirationDate}
 					<div class="card bg-surface-200-700-token mt-4 drop-shadow-lg">
 						<header class="card-header text-xl font-bold">Free Trial</header>
-						<section class="flex flex-col gap-3 p-4">
-							<p class="max-w-[27em]">You have access to memorable usernames or custom domains!</p>
+						<section class="prose prose-invert p-4">
+							<p>You have access to the following benefits:</p>
+							<ul>
+								{#if subscriptionInfo.benefits.has('non_numbered_username')}
+									<li>Claim a handle that doesn't end in a number.</li>
+								{/if}
+								{#if subscriptionInfo.benefits.has('custom_domain')}
+									<li>Use a custom domain for your handle.</li>
+								{/if}
+							</ul>
 							<p>
 								<strong>Trial Expires:</strong>
 								{format(subscriptionInfo.freeTrialExpirationDate)}
 							</p>
 						</section>
+					</div>
+					<div class="mt-5 flex flex-col items-center gap-4">
+						<p class="max-w-[30em]">
+							You must purchase a subscription before the trial expires if you wish to keep your
+							custom domain or handle.
+						</p>
+						<button class="variant-ghost btn" onclick={purchaseSubscription}
+							>Purchase Subscription</button
+						>
 					</div>
 				{:else if !subscriptionInfo.benefits.size}
 					<div class="card bg-surface-200-700-token mt-4 drop-shadow-lg">

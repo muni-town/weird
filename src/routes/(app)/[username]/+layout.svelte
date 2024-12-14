@@ -51,7 +51,7 @@
 	});
 </script>
 
-<div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
+<div class="flex flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
 	{#if data.profileMatchesUserSession}
 		<aside
 			class="card sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col p-5 sm:h-[85vh] sm:w-auto"

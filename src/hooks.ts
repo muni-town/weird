@@ -10,8 +10,11 @@ export const reroute: Reroute = ({ url }) => {
 		return url.pathname;
 	}
 
-	// If this is a lemonsqueezy webhook.
-	if (url.host == env.PUBLIC_POLAR_WEBHOOK_DOMAIN) {
+	// If this is a polar webhook.
+	if (
+		url.host == env.PUBLIC_POLAR_WEBHOOK_DOMAIN &&
+		url.pathname == '/__internal__/polar-webhook'
+	) {
 		return '/__internal__/polar-webhook';
 	}
 

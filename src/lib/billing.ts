@@ -60,7 +60,7 @@ class BillingEngine {
 			},
 			allowDiscountCodes: true,
 			discountId: env.POLAR_AUTO_DISCOUNT_ID,
-			successUrl: pubenv.PUBLIC_URL + '/my-profile'
+			successUrl: pubenv.PUBLIC_URL + `/order-confirmation`
 		});
 
 		return checkout.url;
@@ -196,6 +196,19 @@ class BillingEngine {
 		await redis.del(REDIS_FREE_TRIALS_PREFIX + rauthyId);
 		const subscriptionInfo = await this.getSubscriptionInfo(rauthyId);
 		await updateUserSubscriptionBenefits(rauthyId, subscriptionInfo.benefits);
+	}
+
+	/** Checks whether or not the subscription associated to a checkout has been received over the
+	 * webhook. */
+	async checkoutSubscriptionIsReady(checkoutId: string): Promise<boolean> {
+		const checkout = await this.polar.checkouts.custom.get({ id: checkoutId });
+
+		const rauthyId = checkout.metadata.rauthyId;
+		if (typeof rauthyId != 'string') return false;
+
+		const info = await this.getSubscriptionInfo(rauthyId);
+
+		return !!info.subscriptions.find((s) => s.checkoutId == checkoutId);
 	}
 }
 

@@ -10,6 +10,7 @@ import { leafClient, subspace_link } from '.';
 import type { ExactLink, IntoPathSegment, Unit } from 'leaf-proto';
 import { env } from '$env/dynamic/public';
 import { validUnsubscribedUsernameRegex } from '$lib/usernames/client';
+import type { Benefit } from '$lib/billing';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
@@ -340,21 +341,28 @@ export async function getProfiles(): Promise<
  *
  * @param rauthyId The user's rauthy ID
  */
-export async function unsubscribeUser(rauthyId: string) {
+export async function applyProfileBenefits(rauthyId: string, benefits: Set<Benefit>) {
 	// When a user loses their subscription, we have to reset their username to a free one.
 	const currentUsername = await usernames.getByRauthyId(rauthyId);
 	if (!currentUsername) return;
 
 	if (currentUsername.endsWith(env.PUBLIC_USER_DOMAIN_PARENT)) {
-		const prefix = currentUsername.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
-		if (prefix.match(validUnsubscribedUsernameRegex)) {
-			// Nothing to do if their username is already valid for an unsubscribed user.
-			return;
+		if (!benefits.has('non_numbered_username')) {
+			const prefix = currentUsername.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+			if (prefix.match(validUnsubscribedUsernameRegex)) {
+				// Nothing to do if their username is already valid for an unsubscribed user.
+				return;
+			} else {
+				// Revert the user back to their initial username
+				await usernames.setUsernameToInitialUsername(rauthyId);
+			}
+		}
+	} else {
+		if (!benefits.has('custom_domain')) {
+			// Revert the user back to their initial username
+			await usernames.setUsernameToInitialUsername(rauthyId);
 		}
 	}
-
-	// Revert the user back to their initial username
-	await usernames.setUsernameToInitialUsername(rauthyId);
 }
 
 /**

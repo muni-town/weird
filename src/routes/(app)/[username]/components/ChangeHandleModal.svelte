@@ -19,7 +19,7 @@
 
 	const modalStore = getModalStore();
 
-	let subscriptionInfo = $state(undefined) as UserSubscriptionInfo | undefined;
+	let subscriptionInfo = $state({ rauthyId: '', benefits: new Set() }) as UserSubscriptionInfo;
 	$effect(() => {
 		subscriptionInfo = ($modalStore[0] as any).subscriptionInfo;
 	});
@@ -32,14 +32,16 @@
 	let valid = $derived(
 		selectedTab == 0
 			? !!handle.match(validUsernameRegex)
-			: !!domain.match(validDomainRegex) && subscriptionInfo?.isSubscribed == true
+			: !!domain.match(validDomainRegex) && subscriptionInfo.benefits.has('custom_domain')
 	);
 	let randomNumberSuffix = $state(genRandomUsernameSuffix());
 	let fullUsernameSuffix = $derived(
-		(subscriptionInfo?.isSubscribed ? '' : randomNumberSuffix) + '.' + env.PUBLIC_USER_DOMAIN_PARENT
+		(subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix) +
+			'.' +
+			env.PUBLIC_USER_DOMAIN_PARENT
 	);
 	let handleWithSuffix = $derived(
-		handle + (subscriptionInfo?.isSubscribed ? '' : randomNumberSuffix)
+		handle + (subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix)
 	);
 
 	// We've created a custom submit function to pass the response and close the modal.
@@ -122,7 +124,7 @@
 				<svelte:fragment slot="panel">
 					<div class="p-2">
 						{#if selectedTab === 0}
-							{#if !subscriptionInfo?.isSubscribed}
+							{#if !subscriptionInfo.benefits.has('non_numbered_username')}
 								<p class="text- flex items-center gap-3 pb-4 text-secondary-200">
 									<Icon icon="material-symbols:error-outline" font-size={40} /> Your handle will end
 									with a random 4 digit number. Having a Weird subscription allows you to choose a name
@@ -154,7 +156,7 @@
 								</p>
 							</div>
 						{:else if selectedTab === 1}
-							{#if !subscriptionInfo?.isSubscribed}
+							{#if !subscriptionInfo.benefits.has('custom_domain')}
 								<p class="flex items-center gap-3 pb-4 text-lg text-error-200">
 									<Icon icon="material-symbols:error-outline" font-size={40} />
 									Setting a custom domain as your handle requires a subscription.
@@ -167,7 +169,7 @@
 									class="input"
 									type="text"
 									bind:value={domain}
-									disabled={!subscriptionInfo?.isSubscribed}
+									disabled={!subscriptionInfo.benefits.has('custom_domain')}
 									placeholder="name.example.com"
 								/>
 							</label>

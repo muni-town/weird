@@ -30,14 +30,16 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 
 	const subscriptionInfo = await billing.getSubscriptionInfo(sessionInfo.user_id);
 
-	if (!subscriptionInfo.isSubscribed) {
-		if ('domain' in parsed.data) {
-			return json({ error: 'Cannot set username to custom domain without a subscription.' });
-		} else if (!usernames.validUnsubscribedUsernameRegex.test(parsed.data.username)) {
-			return json({
-				error: 'Cannot claim username without a 4 digit suffix without a subscription'
-			});
-		}
+	if (!subscriptionInfo.benefits.has('custom_domain') && 'domain' in parsed.data) {
+		return json({ error: 'Cannot set username to custom domain without a subscription.' });
+	} else if (
+		!subscriptionInfo.benefits.has('non_numbered_username') &&
+		'username' in parsed.data &&
+		!usernames.validUnsubscribedUsernameRegex.test(parsed.data.username)
+	) {
+		return json({
+			error: 'Cannot claim username without a 4 digit suffix without a subscription'
+		});
 	}
 
 	try {

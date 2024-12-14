@@ -81,14 +81,12 @@
 
 			<h2 class="mb-2 text-lg font-bold">Settings</h2>
 			<div class="flex flex-col gap-2">
-				{#if env.PUBLIC_ENABLE_EXPERIMENTS == 'true'}
-					<button
-						class="variant-ghost btn"
-						onclick={() => modalStore.trigger(manageSubscriptionModal)}
-					>
-						Manage Subscription
-					</button>
-				{/if}
+				<button
+					class="variant-ghost btn"
+					onclick={() => modalStore.trigger(manageSubscriptionModal)}
+				>
+					Manage Subscription
+				</button>
 				<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle
 				</button>

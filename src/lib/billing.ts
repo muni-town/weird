@@ -38,6 +38,7 @@ export type UserSubscriptionInfo = {
 	subscriptions: Subscription[];
 	benefits: Set<Benefit>;
 	freeTrialExpirationDate?: number;
+	isSubscribed: boolean;
 };
 
 class BillingEngine {
@@ -109,7 +110,13 @@ class BillingEngine {
 			benefits.add('non_numbered_username');
 		}
 
-		return { benefits, freeTrialExpirationDate, rauthyId, subscriptions };
+		return {
+			benefits,
+			freeTrialExpirationDate,
+			rauthyId,
+			subscriptions,
+			isSubscribed: !!subscriptions.find((s) => !s.endedAt)
+		};
 	}
 
 	// async getBillingMethodUpdateLink(rauthyId: string): Promise<string | undefined> {

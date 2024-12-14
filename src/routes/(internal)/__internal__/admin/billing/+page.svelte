@@ -4,11 +4,11 @@
 	import { format } from 'timeago.js';
 
 	function formatSubscriptionInfo(info: UserSubscriptionInfo): string {
+		let message = info.isSubscribed ? 'Subscribed' : 'Unsubscribed';
 		if (info.freeTrialExpirationDate) {
-			return `Free Trial expires ${format(info.freeTrialExpirationDate)}`;
+			message += `${message ? ' & ' : ''}Free Trial expires ${format(info.freeTrialExpirationDate)}`;
 		}
-
-		return info.isSubscribed ? 'Subscribed' : 'Unsubscribed';
+		return message;
 	}
 
 	const { form, data }: { form: ActionData; data: PageData } = $props();

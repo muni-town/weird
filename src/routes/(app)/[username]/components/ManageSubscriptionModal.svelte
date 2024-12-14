@@ -54,7 +54,7 @@
 			<header class="text-2xl font-bold">Manage Subscription</header>
 
 			<div class="p-2">
-				{#if subscriptionInfo?.freeTrialExpirationDate}
+				{#if subscriptionInfo?.freeTrialExpirationDate && !subscriptionInfo?.isSubscribed}
 					<div class="card bg-surface-200-700-token mt-4 drop-shadow-lg">
 						<header class="card-header text-xl font-bold">Free Trial</header>
 						<section class="prose prose-invert p-4">

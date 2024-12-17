@@ -55,7 +55,7 @@
 	{/snippet}
 </AppBar>
 
-<div class="flex min-h-screen flex-col weird-container">
+<div class="relative flex min-h-screen flex-col weird-container">
 	<div class="flex-grow">
 		{@render children()}
 	</div>

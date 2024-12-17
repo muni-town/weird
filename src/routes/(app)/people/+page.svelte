@@ -85,17 +85,21 @@
 				<div class="flex flex-col gap-6 items-center text-center">
 					<div class="flex flex-col flex-wrap items-center gap-7">
 						<Avatar width="w-[8em]" src={`/${profile.username}/avatar`} />
-						<h2 class="text-2xl font-uncut font-semibold">
-							<a href={`/${profile.username}`} class="card-link">
-								{profile.display_name || profile.username}
+							<a href={`/${profile.username}`} class="card-link flex flex-col gap-2">
+								<h2 class="text-2xl font-rubik font-semibold">
+									{profile.display_name}
+								</h2>
+								<h2 class="font-uncut font-semibold">
+									{profile.username}
+								</h2>
 							</a>
-						</h2>
 					</div>
 
 					<div class="flex w-full flex-col gap-4">
 						{#if profile.tags && profile.tags.length > 0}
 							<div class="flex w-full flex-wrap items-center justify-center gap-2">
-								{#each profile.tags as tag}
+								<!-- max 3 tags -->
+								{#each profile.tags.slice(0,3) as tag}
 									<button
 										type="button"
 										class="border-surface-500 btn relative rounded-full border-[1px] bg-surface-300 p-1 px-3 text-surface-900 hover:bg-surface-200"

@@ -18,7 +18,9 @@ const config = {
 	theme: {
 		extend: {
 			fontFamily: {
-				uncut: ['Uncut Sans']
+				uncut: ['Uncut Sans'],
+				rubik: ['Rubik Mono One'],
+				spacemono: ['Space Mono']
 			}
 		}
 	},

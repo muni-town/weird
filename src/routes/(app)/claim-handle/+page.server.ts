@@ -7,6 +7,8 @@ import { RawImage } from 'leaf-proto/components.js';
 
 import { createAvatar } from '@dicebear/core';
 import { glass } from '@dicebear/collection';
+import { billing } from '$lib/billing.js';
+import { validUnsubscribedUsernameRegex } from '$lib/usernames/client.js';
 
 export const load: PageServerLoad = async ({ fetch, request }) => {
 	const { sessionInfo } = await getSession(fetch, request);
@@ -14,11 +16,14 @@ export const load: PageServerLoad = async ({ fetch, request }) => {
 	const username = await usernames.getByRauthyId(sessionInfo.user_id);
 	if (username) {
 		return redirect(303, `/${username}`);
+	} else {
+		const subscriptionInfo = await billing.getSubscriptionInfo(sessionInfo.user_id);
+		return { subscriptionInfo };
 	}
 };
 
 export const actions = {
-	claimUsername: async ({ fetch, request }) => {
+	claimHandle: async ({ fetch, request }) => {
 		const { sessionInfo } = await getSession(fetch, request);
 		if (!sessionInfo) return fail(403, { error: 'Not logged in' });
 
@@ -26,7 +31,13 @@ export const actions = {
 		const username = formData.get('username') as string;
 		if (!username) return fail(400, { error: 'Username not provided ' });
 
+		const subscriptionInfo = await billing.getSubscriptionInfo(sessionInfo.user_id);
+
 		try {
+			if (!subscriptionInfo.isSubscribed && !username.match(validUnsubscribedUsernameRegex)) {
+				return fail(400, { error: '' });
+			}
+
 			await usernames.claim({ username }, sessionInfo.user_id);
 			const profileLink = await profileLinkById(sessionInfo.user_id);
 			const avatar = createAvatar(glass, { seed: sessionInfo.user_id, radius: 50 });

@@ -29,7 +29,8 @@
 				</a>
 			{/if}
 
-			<a href="/people" class="btn hover:bg-surface-100/5 hover:scale-105">People</a>
+			<a href="https://a.weird.one" class="btn hover:bg-surface-100/5 hover:scale-105">About</a>
+      <a href="/people" class="btn hover:bg-surface-100/5 hover:scale-105">People</a>
 
 			{#if !sessionInfo}
 				<a href="/login" class="btn hover:bg-surface-100/5 hover:scale-105">Sign-in</a>

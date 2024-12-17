@@ -3,6 +3,7 @@ import { GitHubLinkVerificationStrategy } from './strategy/GitHubLinkVerificatio
 
 import type { WebLink } from '$lib/leaf/profile';
 import type { LinkVerificationStrategyFactory } from './strategy/LinkVerificationStrategy';
+import { env } from '$env/dynamic/public';
 
 export const VERIFIABLE_ORIGIN_STRATEGY: Record<string, LinkVerificationStrategyFactory> = {
 	'https://github.com': (dom) => new GitHubLinkVerificationStrategy(dom)
@@ -75,6 +76,6 @@ export class LinkVerifier {
 	}
 
 	private userProfileLink(): string {
-		return `https://a.weird.one/${this.userName}`;
+		return `${env.PUBLIC_URL}/${this.userName}`;
 	}
 }

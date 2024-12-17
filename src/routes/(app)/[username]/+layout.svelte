@@ -7,7 +7,6 @@
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
 	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
 	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
-	import { env } from '$env/dynamic/public';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 
@@ -18,6 +17,7 @@
 		type: 'component',
 		component: { ref: SetHandleModal },
 		subspace: data.subspace,
+		subscriptionInfo: data.subscriptionInfo,
 		async response(r) {
 			if ('error' in r) {
 				error = r.error;
@@ -51,7 +51,7 @@
 	});
 </script>
 
-<div class="flex flex-row flex-wrap-reverse sm:flex-nowrap">
+<div class="flex flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
 	{#if data.profileMatchesUserSession}
 		<aside
 			class="card sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col p-5 sm:h-[85vh] sm:w-auto"
@@ -80,18 +80,19 @@
 
 			<h2 class="mb-2 text-lg font-bold">Settings</h2>
 			<div class="flex flex-col gap-2">
-				{#if env.PUBLIC_ENABLE_EXPERIMENTS == 'true'}
-					<button
-						class="variant-ghost btn"
-						onclick={() => modalStore.trigger(manageSubscriptionModal)}
-					>
-						Manage Subscription
-					</button>
-				{/if}
+				<button
+					class="variant-ghost btn"
+					onclick={() => modalStore.trigger(manageSubscriptionModal)}
+				>
+					Manage Subscription
+				</button>
 				<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle
 				</button>
-				<button class="variant-ghost-error btn" onclick={() => modalStore.trigger(deleteProfileModal)}>
+				<button
+					class="variant-ghost-error btn"
+					onclick={() => modalStore.trigger(deleteProfileModal)}
+				>
 					Delete Profile
 				</button>
 			</div>

@@ -35,5 +35,14 @@ export const actions = {
 		}
 
 		return { success: `Username ${username} deleted.` };
+	},
+	generateInitialUsernames: async () => {
+		try {
+			await usernames.generateInitialUsernamesForAllUsers();
+		} catch (e) {
+			return { error: `Error generating initial usernames: ${e}` };
+		}
+
+		return { success: `Initial usernames generated.` };
 	}
 } satisfies Actions;

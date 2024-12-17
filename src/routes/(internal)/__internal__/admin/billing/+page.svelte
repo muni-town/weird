@@ -1,6 +1,15 @@
 <script lang="ts">
-	import { base32Encode } from 'leaf-proto';
 	import type { ActionData, PageData } from './$types';
+	import type { UserSubscriptionInfo } from '$lib/billing';
+	import { format } from 'timeago.js';
+
+	function formatSubscriptionInfo(info: UserSubscriptionInfo): string {
+		let message = info.isSubscribed ? 'Subscribed' : 'Unsubscribed';
+		if (info.freeTrialExpirationDate) {
+			message += `${message ? ' & ' : ''}Free Trial expires ${format(info.freeTrialExpirationDate)}`;
+		}
+		return message;
+	}
 
 	const { form, data }: { form: ActionData; data: PageData } = $props();
 </script>
@@ -15,31 +24,27 @@
 	</article>
 {/if}
 
-<h2>Claim Username</h2>
+<h2>Grant Free Trial</h2>
 
-<form method="post" action="?/claimUsername">
+<p>Set rauthy ID to <code>___everyone___</code> to give everybody with a username a free trial.</p>
+
+<form method="post" action="?/grantFreeTrial">
 	<!-- svelte-ignore a11y_no_redundant_roles -->
 	<fieldset role="group">
-		<input name="username" placeholder="username" />
 		<input name="rauthyId" placeholder="rauthyId" />
-		<button>Claim</button>
+		<input type="datetime-local" name="expires" />
+		<button>Grant</button>
 	</fieldset>
 </form>
 
-<h2>Delete Username</h2>
+<h2>Cancel Free Trial</h2>
 
-<form method="post" action="?/deleteUsername">
+<form method="post" action="?/cancelFreeTrial">
 	<!-- svelte-ignore a11y_no_redundant_roles -->
 	<fieldset role="group">
-		<input name="username" placeholder="username" />
+		<input name="rauthyId" placeholder="rauthyId" />
 		<button>Delete</button>
 	</fieldset>
-</form>
-
-<h2>Generate Initial Usernames for All Users</h2>
-
-<form method="post" action="?/generateInitialUsernames">
-	<button>Generate</button>
 </form>
 
 <h2>Users</h2>
@@ -48,9 +53,8 @@
 	<thead>
 		<tr>
 			<td>Username</td>
-			<td>Initial Username</td>
 			<td>Rauthy ID</td>
-			<td>Subspace</td>
+			<td>Subscription</td>
 		</tr>
 	</thead>
 	<tbody>
@@ -61,9 +65,10 @@
 						{user.username || '[not set]'}
 					</a>
 				</td>
-				<td>{user.initialUsername}</td>
 				<td>{user.rauthyId}</td>
-				<td>{base32Encode(user.subspace)}</td>
+				<td>
+					{formatSubscriptionInfo(user.subscriptionInfo)}
+				</td>
 			</tr>
 		{/each}
 	</tbody>

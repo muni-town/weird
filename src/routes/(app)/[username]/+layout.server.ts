@@ -7,7 +7,7 @@ import { Name } from 'leaf-proto/components';
 import { env } from '$env/dynamic/public';
 import { usernames } from '$lib/usernames/index';
 import { base32Encode } from 'leaf-proto';
-import { billing } from '$lib/billing';
+import { billing, type UserSubscriptionInfo } from '$lib/billing';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 	if (params.username?.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
@@ -43,7 +43,11 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 	).filter((x) => x) as { slug: string; name?: string }[];
 
 	const subscriptionInfo =
-		sessionInfo && (await billing.getWeirdNerdSubscriptionInfo(sessionInfo.user_id));
+		(sessionInfo && (await billing.getSubscriptionInfo(sessionInfo.user_id))) ||
+		({
+			rauthyId: sessionInfo?.user_id,
+			benefits: new Set()
+		} as UserSubscriptionInfo);
 
 	return {
 		profile,

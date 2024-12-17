@@ -5,6 +5,6 @@ import { type RequestHandler, error } from '@sveltejs/kit';
 export const POST: RequestHandler = async ({ fetch, request }) => {
 	const { userInfo } = await getUserInfo(fetch, request);
 	if (!userInfo) return error(404, 'Unauthorized');
-	const checkoutUrl = await billing.getWeirdNerdCheckoutLink(userInfo.email, userInfo.id);
+	const checkoutUrl = await billing.getCheckoutLink(userInfo.email, userInfo.id);
 	return new Response(checkoutUrl);
 };

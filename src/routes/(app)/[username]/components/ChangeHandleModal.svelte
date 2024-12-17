@@ -4,8 +4,14 @@
 	// Stores
 	import { getModalStore, ProgressRadial, Tab, TabGroup } from '@skeletonlabs/skeleton';
 	import { env } from '$env/dynamic/public';
-	import { validDomainRegex, validUsernameRegex } from '$lib/usernames/client';
+	import {
+		genRandomUsernameSuffix,
+		validDomainRegex,
+		validUsernameRegex
+	} from '$lib/usernames/client';
 	import { goto } from '$app/navigation';
+	import type { UserSubscriptionInfo } from '$lib/billing';
+	import Icon from '@iconify/svelte';
 
 	// Props
 	/** Exposes parent props to this component. */
@@ -13,13 +19,29 @@
 
 	const modalStore = getModalStore();
 
+	let subscriptionInfo = $state({ rauthyId: '', benefits: new Set() }) as UserSubscriptionInfo;
+	$effect(() => {
+		subscriptionInfo = ($modalStore[0] as any).subscriptionInfo;
+	});
+
 	let selectedTab = $state(0);
 	let handle = $state('');
 	let domain = $state('');
 	let error = $state(null) as null | string;
 	let verifying = $state(false);
 	let valid = $derived(
-		selectedTab == 0 ? !!handle.match(validUsernameRegex) : !!domain.match(validDomainRegex)
+		selectedTab == 0
+			? !!handle.match(validUsernameRegex)
+			: !!domain.match(validDomainRegex) && subscriptionInfo.benefits.has('custom_domain')
+	);
+	let randomNumberSuffix = $state(genRandomUsernameSuffix());
+	let fullUsernameSuffix = $derived(
+		(subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix) +
+			'.' +
+			env.PUBLIC_USER_DOMAIN_PARENT
+	);
+	let handleWithSuffix = $derived(
+		handle + (subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix)
 	);
 
 	// We've created a custom submit function to pass the response and close the modal.
@@ -27,9 +49,10 @@
 		e.preventDefault();
 
 		if (selectedTab == 0) {
+			console.log(handleWithSuffix);
 			const resp = await fetch(`/${handle}/settings/handle`, {
 				method: 'post',
-				body: JSON.stringify({ username: handle }),
+				body: JSON.stringify({ username: handleWithSuffix }),
 				headers: [['content-type', 'application/json']]
 			});
 
@@ -101,18 +124,28 @@
 				<svelte:fragment slot="panel">
 					<div class="p-2">
 						{#if selectedTab === 0}
+							{#if !subscriptionInfo.benefits.has('non_numbered_username')}
+								<p class="text- flex items-center gap-3 pb-4 text-secondary-200">
+									<Icon icon="material-symbols:error-outline" font-size={40} /> Your handle will end
+									with a random 4 digit number. Having a Weird subscription allows you to choose a name
+									without the number.
+								</p>
+							{/if}
+
 							<label class="label">
 								<span>Handle</span>
 
 								<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 									<div class="input-group-shim">@</div>
 									<input type="text" bind:this={input} bind:value={handle} placeholder="name" />
-									<div class="input-group-shim">.{env.PUBLIC_USER_DOMAIN_PARENT}</div>
+									<div class="input-group-shim">
+										{fullUsernameSuffix}
+									</div>
 								</div>
 							</label>
 							<div class="prose-invert mb-3 mt-8">
 								<p>
-									Claim <code>@{handle ? handle : '[name]'}.{env.PUBLIC_USER_DOMAIN_PARENT}</code> instantly!
+									Claim <code>@{handle ? handle : '[name]'}{fullUsernameSuffix}</code> instantly!
 								</p>
 								<p class="mt-3">
 									If you have your own web domain, you can also <button
@@ -123,12 +156,20 @@
 								</p>
 							</div>
 						{:else if selectedTab === 1}
+							{#if !subscriptionInfo.benefits.has('custom_domain')}
+								<p class="flex items-center gap-3 pb-4 text-lg text-error-200">
+									<Icon icon="material-symbols:error-outline" font-size={40} />
+									Setting a custom domain as your handle requires a subscription.
+								</p>
+							{/if}
+
 							<label class="label">
 								<span>Web Domain</span>
 								<input
 									class="input"
 									type="text"
 									bind:value={domain}
+									disabled={!subscriptionInfo.benefits.has('custom_domain')}
 									placeholder="name.example.com"
 								/>
 							</label>
@@ -168,7 +209,7 @@
 															<code class="font-mono">CNAME</code>
 														</td>
 														<td> <pre>@</pre> </td>
-														<td> <pre>a.weird.one</pre> </td>
+														<td> <pre>{env.PUBLIC_DOMAIN}</pre> </td>
 													</tr>
 													<tr>
 														<td>
@@ -196,7 +237,7 @@
 															<code class="font-mono">CNAME</code>
 														</td>
 														<td> <pre>{domain.split('.').slice(0, -2).join('.')}</pre> </td>
-														<td> <pre>a.weird.one</pre> </td>
+														<td> <pre>{env.PUBLIC_DOMAIN}</pre> </td>
 													</tr>
 													<tr>
 														<td>

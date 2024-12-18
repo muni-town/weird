@@ -61,7 +61,7 @@ async function claim(
 						const ips = await resolveAuthoritative(domainWithoutPort, 'A');
 						let matches = 0;
 						for (const ip of ips) {
-							if (ip in APP_IPS || (dev && ip.startsWith('127.'))) {
+							if (APP_IPS.includes(ip) || (dev && ip.startsWith('127.'))) {
 								matches += 1;
 							} else {
 								throw `DNS validation failed: ${input.domain} resolves to \

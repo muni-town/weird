@@ -120,7 +120,7 @@
 
 	// Base Classes
 	const cBase = $derived(
-		`card p-4 shadow-xl space-y-4 min-h-[24em] flex flex-col justify-between ${selectedTab == 0 ? 'w-modal' : 'w-full'}`
+		`card p-4 shadow-xl space-y-4 min-h-[24em] flex flex-col justify-between w-modal`
 	);
 	const cHeader = 'text-2xl font-bold';
 

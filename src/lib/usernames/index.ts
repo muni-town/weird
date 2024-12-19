@@ -11,6 +11,7 @@ import {
 	genRandomUsernameSuffix
 } from './client';
 import { dev } from '$app/environment';
+import { CronJob } from 'cron';
 
 const USER_NAMES_PREFIX = 'weird:users:names:';
 const USER_RAUTHY_IDS_PREFIX = 'weird:users:rauthyIds:';
@@ -312,6 +313,53 @@ async function setUsernameToInitialUsername(rauthyId: string) {
 	}
 }
 
+const REDIS_DOMAIN_VALIDATION_JOB_PREFIX = 'weird:jobs:domain_validation:';
+
+async function getDomainVerificationJob(rauthyId: string): Promise<undefined | string> {
+	return (await redis.get(REDIS_DOMAIN_VALIDATION_JOB_PREFIX + rauthyId)) || undefined;
+}
+
+async function setDomainVerificationJob(rauthyId: string, domain: string) {
+	return await redis.set(REDIS_DOMAIN_VALIDATION_JOB_PREFIX + rauthyId, domain, {
+		EX: 48 * 60 * 60 /* expire job in 48 hours */
+	});
+}
+
+async function removeDomainVerificationJob(rauthyId: string) {
+	await redis.del(REDIS_DOMAIN_VALIDATION_JOB_PREFIX + rauthyId);
+}
+
+async function* listDomainVerificationJobs(): AsyncIterable<{ rauthyId: string; domain: string }> {
+	for await (const key of redis.scanIterator({
+		MATCH: REDIS_DOMAIN_VALIDATION_JOB_PREFIX + '*'
+	})) {
+		const segments = key.split(':');
+		const rauthyId = segments[segments.length - 1];
+		const domain = await redis.get(key);
+		if (!domain) continue;
+		yield { rauthyId, domain };
+	}
+}
+
+/**
+ * This returns a cron job that is used to finish verification of a user domain handle change that
+ * didn't pass DNS validation yet.
+ *
+ * The job will loop and retry to validate the domain until it succeeds or times out.
+ */
+function cronJob(): CronJob {
+	return new CronJob('*/5 * * * *', async () => {
+		const jobs = listDomainVerificationJobs();
+
+		for await (const job of jobs) {
+			try {
+				await claim({ domain: job.domain }, job.rauthyId);
+				removeDomainVerificationJob(job.rauthyId);
+			} catch (_) {}
+		}
+	});
+}
+
 export const usernames = {
 	validDomainRegex,
 	validUsernameRegex,
@@ -327,5 +375,9 @@ export const usernames = {
 	getBySubspace,
 	getInitialUsername,
 	generateInitialUsernamesForAllUsers,
-	setUsernameToInitialUsername
+	setUsernameToInitialUsername,
+	cronJob,
+	setDomainVerificationJob,
+	getDomainVerificationJob,
+	removeDomainVerificationJob,
 };

@@ -49,12 +49,18 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 			benefits: new Set()
 		} as UserSubscriptionInfo);
 
+	const pendingDomainVerification =
+		profileMatchesUserSession && sessionInfo
+			? await usernames.getDomainVerificationJob(sessionInfo.user_id)
+			: undefined;
+
 	return {
 		profile,
 		profileMatchesUserSession,
 		pages,
 		username: fullUsername,
 		subspace: base32Encode(subspace),
-		subscriptionInfo
+		subscriptionInfo,
+		pendingDomainVerification
 	};
 };

@@ -14,6 +14,7 @@ import { AUTHORITATIVE_ANSWER, type SoaAnswer } from 'dns-packet';
 import { z } from 'zod';
 import { RCode } from 'dinodns/common/core/utils';
 import { redis } from '$lib/redis';
+import { serverGlobals } from '$lib/server-globals';
 
 const REDIS_USER_PREFIX = 'weird:users:names:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -73,6 +74,11 @@ const makeNsAnswers = (name: string): SupportedAnswer[] => {
  * Start the Weird DNS server and return the `Redis` store with the mapping from username
  */
 export async function startDnsServer() {
+	if (dev && serverGlobals.dnsServer) {
+		serverGlobals.dnsServer.stop();
+		serverGlobals.dnsServer = undefined;
+	}
+
 	const makeSoaAnswer = async (name: string): Promise<SoaAnswer> => {
 		const serial = await redis.get('weird:dns:serial');
 		return {
@@ -93,7 +99,7 @@ export async function startDnsServer() {
 		};
 	};
 
-	const s = new server.DefaultServer({
+	serverGlobals.dnsServer = new server.DefaultServer({
 		networks: [
 			new network.DNSOverTCP('0.0.0.0', DNS_PORT),
 			new network.DNSOverUDP('0.0.0.0', DNS_PORT)
@@ -107,7 +113,7 @@ export async function startDnsServer() {
 	// https://serverfault.com/questions/309622/what-is-a-glue-record
 
 	// Set all answers to authoritative by default
-	s.use(async (_req, res, next) => {
+	serverGlobals.dnsServer.use(async (_req, res, next) => {
 		if (res.finished) return next();
 
 		res.packet.flags = res.packet.flags | AUTHORITATIVE_ANSWER;
@@ -115,14 +121,14 @@ export async function startDnsServer() {
 	});
 
 	if (DNS_LOG_VERBOSE) {
-		s.use(async (req, _res, next) => {
+		serverGlobals.dnsServer.use(async (req, _res, next) => {
 			console.log('DNS Request:', req.packet.questions);
 			next();
 		});
 	}
 
 	// Return a not-implemented error if there are more than one question in the request.
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 
 		if (req.packet.questions.length > 1) {
@@ -134,7 +140,7 @@ export async function startDnsServer() {
 	});
 
 	// Add an A record that will direct web traffic to the app
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 		const question = req.packet.questions[0];
 
@@ -153,7 +159,7 @@ export async function startDnsServer() {
 	});
 
 	// Reject queries that are not valid domain names
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 		const name = req.packet.questions[0].name;
 		if (!name.match(VALID_DOMAIN_REGEX)) {
@@ -163,7 +169,7 @@ export async function startDnsServer() {
 	});
 
 	// Reject queries for non-allowed domains ( when not in development )
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 		const name = req.packet.questions[0].name;
 		if (!dev) {
@@ -173,7 +179,7 @@ export async function startDnsServer() {
 	});
 
 	// Return SOA responses
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 
 		const question = req.packet.questions[0];
@@ -186,7 +192,7 @@ export async function startDnsServer() {
 	});
 
 	// Return NS responses
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 
 		const question = req.packet.questions[0];
@@ -200,7 +206,7 @@ export async function startDnsServer() {
 	});
 
 	// Resolve records stored in Redis
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 
 		const question = req.packet.questions[0];
@@ -303,7 +309,7 @@ export async function startDnsServer() {
 	});
 
 	// Resolve records for registered users
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 
 		const results = (await Promise.all(
@@ -379,7 +385,7 @@ export async function startDnsServer() {
 		dns.setServers([localServer]);
 
 		// Add middleware that will respond with forwarded requests
-		s.use(async (req, res, next) => {
+		serverGlobals.dnsServer.use(async (req, res, next) => {
 			// If there's already an answer, continue
 			if (res.finished) return next();
 
@@ -426,6 +432,7 @@ export async function startDnsServer() {
 									ttl: DNS_TTL
 								})) as unknown as SupportedAnswer[]
 							);
+							return next();
 						}
 					});
 					break;
@@ -441,12 +448,13 @@ export async function startDnsServer() {
 								ttl: DNS_TTL
 							}
 						]);
+						return next();
 					} else {
 						res.answer([]);
 						// Don't go to next so that our normal default NS response doesn't get created.
 						// We're trying to emulate the way that authoritative nameservers won't respond
 						// to NS queries on subdomains that don't have custom nameservers.
-						return;
+						return next();;
 					}
 			}
 
@@ -457,7 +465,7 @@ export async function startDnsServer() {
 	// Return noerror if nothing else has responded yet.
 	//
 	// An earlier middleware will reject the record with an NXDOMAIN error if the domain doesn't match.
-	s.use(async (req, res, next) => {
+	serverGlobals.dnsServer.use(async (req, res, next) => {
 		if (res.finished) return next();
 
 		const question = req.packet.questions[0];
@@ -481,7 +489,7 @@ export async function startDnsServer() {
 	});
 
 	if (DNS_LOG_VERBOSE) {
-		s.use(async (req, res, next) => {
+		serverGlobals.dnsServer.use(async (req, res, next) => {
 			const rcode = res.packet.flags & 0xf;
 			let rcodeStr = 'UNKNOWN';
 			switch (rcode) {
@@ -517,7 +525,7 @@ export async function startDnsServer() {
 	}
 
 	// Start the DNS server
-	s.start(() => {
+	serverGlobals.dnsServer.start(() => {
 		console.log('Started weird dns server');
 	});
 

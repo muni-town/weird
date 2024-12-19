@@ -10,7 +10,8 @@ const Req = z.union([
 	}),
 
 	z.object({
-		domain: z.string().regex(usernames.validDomainRegex)
+		domain: z.string().regex(usernames.validDomainRegex),
+		verifyInQueue: z.optional(z.boolean())
 	})
 ]);
 type Req = z.infer<typeof Req>;
@@ -49,6 +50,9 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		}
 		return json(parsed.data);
 	} catch (e) {
+		if ('domain' in parsed.data && parsed.data.verifyInQueue == true) {
+			await usernames.setDomainVerificationJob(sessionInfo.user_id, parsed.data.domain);
+		}
 		return json({ error: `${e}` });
 	}
 };

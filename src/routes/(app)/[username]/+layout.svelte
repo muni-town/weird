@@ -7,6 +7,7 @@
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
 	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
 	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
+	import { goto } from '$app/navigation';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 
@@ -49,6 +50,15 @@
 			}
 		}
 	});
+
+	async function cancelPendingDomainVerification() {
+		await fetch(`/${$page.params.username}/settings/cancelDomainVerification`, {
+			method: 'post',
+			headers: [['content-type', 'application/json']]
+		});
+		await goto(`/${$page.params.username}`, { invalidateAll: true });
+		modalStore.close();
+	}
 </script>
 
 <div class="flex flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
@@ -106,6 +116,25 @@
 			<aside class="alert variant-ghost-error relative mt-8 w-full">
 				<div class="alert-message">
 					<p>{error}</p>
+				</div>
+			</aside>
+		{/if}
+
+		{#if data.pendingDomainVerification}
+			<aside class="alert variant-ghost-primary relative mt-8 w-full">
+				<div class="alert-message">
+					<p>
+						<strong>Note:&nbsp;</strong>We are currently verifying your domain:
+						<code>{data.pendingDomainVerification}</code>
+					</p>
+					<p>We will automatically update your handle once verification succeeds.</p>
+					<div class="flex flex-row-reverse">
+						<button
+							type="button"
+							class="variant-ghost-tertiary btn text-sm"
+							onclick={cancelPendingDomainVerification}>Cancel Verification</button
+						>
+					</div>
 				</div>
 			</aside>
 		{/if}

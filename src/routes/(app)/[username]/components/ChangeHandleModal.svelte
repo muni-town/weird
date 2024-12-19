@@ -11,7 +11,9 @@
 	} from '$lib/usernames/client';
 	import { goto } from '$app/navigation';
 	import type { UserSubscriptionInfo } from '$lib/billing';
+	import { page } from '$app/stores';
 	import Icon from '@iconify/svelte';
+	import type { MouseEventHandler } from 'svelte/elements';
 
 	// Props
 	/** Exposes parent props to this component. */
@@ -50,7 +52,7 @@
 
 		if (selectedTab == 0) {
 			console.log(handleWithSuffix);
-			const resp = await fetch(`/${handle}/settings/handle`, {
+			const resp = await fetch(`/${$page.params.username}/settings/setHandle`, {
 				method: 'post',
 				body: JSON.stringify({ username: handleWithSuffix }),
 				headers: [['content-type', 'application/json']]
@@ -69,16 +71,17 @@
 		} else if (selectedTab == 1) {
 			verifying = true;
 
-			const resp = await fetch(`/${domain}/settings/handle`, {
+			const resp = await fetch(`/${$page.params.username}/settings/setHandle`, {
 				method: 'post',
-				body: JSON.stringify({ domain }),
+				body: JSON.stringify({ domain, verifyInQueue: true }),
 				headers: [['content-type', 'application/json']]
 			});
 
 			const respData: { domain: string } | { error: string } = await resp.json();
 
 			if ('error' in respData) {
-				error = respData.error;
+				await goto(`/${$page.params.username}`, { invalidateAll: true });
+				modalStore.close();
 			} else {
 				error = null;
 				if ($modalStore[0].response) $modalStore[0].response({ ok: true });
@@ -88,6 +91,31 @@
 
 			verifying = false;
 		}
+	}
+
+	async function verify(e: Parameters<MouseEventHandler<HTMLButtonElement>>[0]) {
+		e.preventDefault();
+
+		verifying = true;
+
+		const resp = await fetch(`/${$page.params.username}/settings/setHandle`, {
+			method: 'post',
+			body: JSON.stringify({ domain }),
+			headers: [['content-type', 'application/json']]
+		});
+
+		const respData: { domain: string } | { error: string } = await resp.json();
+
+		if ('error' in respData) {
+			error = respData.error;
+		} else {
+			error = null;
+			if ($modalStore[0].response) $modalStore[0].response({ ok: true });
+			await goto(`/${respData.domain}`);
+			modalStore.close();
+		}
+
+		verifying = false;
 	}
 
 	// Base Classes
@@ -165,13 +193,21 @@
 
 							<label class="label">
 								<span>Web Domain</span>
-								<input
-									class="input"
-									type="text"
-									bind:value={domain}
-									disabled={!subscriptionInfo.benefits.has('custom_domain')}
-									placeholder="name.example.com"
-								/>
+								<div class="flex gap-2">
+									<input
+										class="input"
+										type="text"
+										bind:value={domain}
+										disabled={!subscriptionInfo.benefits.has('custom_domain')}
+										placeholder="name.example.com"
+									/>
+									<button
+										type="button"
+										class="variant-ghost btn text-sm"
+										onclick={verify}
+										disabled={!valid || verifying}>Verify</button
+									>
+								</div>
 							</label>
 
 							<div class="prose-invert pt-4">

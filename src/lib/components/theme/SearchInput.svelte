@@ -18,7 +18,7 @@
 
 <div class="input-group w-full max-w-sm grid-cols-[auto_1fr_auto]">
 	<div class="input-group-cell">
-		<Icon icon="iconamoon:search-bold" />	
+		<Icon icon="iconamoon:search-bold" />
 	</div>
 	<input
 		bind:this={searchBox}

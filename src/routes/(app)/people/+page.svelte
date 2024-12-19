@@ -73,36 +73,36 @@
 
 <main class="flex flex-col gap-8 px-8 py-16 font-spacemono">
 	<div class="flex flex-col gap-3">
-		<h1 class="pl-1 text-4xl font-rubik">{env.PUBLIC_MEMBERS_TITLE}</h1>
+		<h1 class="pl-1 font-rubik text-4xl">{env.PUBLIC_MEMBERS_TITLE}</h1>
 		<SearchInput bind:this={searchbox} bind:search autofocus />
 	</div>
 
 	<div class="flex flex-row flex-wrap justify-center gap-5">
 		{#each filtered_profiles as profile (profile.username)}
 			<div
-				class="card max-w-sm relative flex flex-col items-center rounded-lg !bg-surface-50/20 border-2 border-surface-400 px-5 py-8 transition-transform duration-200 hover:scale-105"
+				class="card relative flex max-w-sm flex-col items-center rounded-lg border-2 border-surface-400 !bg-surface-50/20 px-5 py-8 transition-transform duration-200 hover:scale-105"
 			>
-				<div class="flex flex-col gap-6 items-center text-center">
+				<div class="flex flex-col items-center gap-6 text-center">
 					<div class="flex flex-col flex-wrap items-center gap-7">
 						<Avatar width="w-[8em]" src={`/${profile.username}/avatar`} />
-							<a href={`/${profile.username}`} class="card-link flex flex-col gap-2">
-								<h2 class="text-2xl font-rubik font-semibold">
-									{profile.display_name}
-								</h2>
-								<h2 class="font-uncut font-semibold">
-									{profile.username}
-								</h2>
-							</a>
+						<a href={`/${profile.username}`} class="card-link flex flex-col gap-2">
+							<h2 class="font-rubik text-2xl font-semibold">
+								{profile.display_name}
+							</h2>
+							<h2 class="font-uncut font-semibold">
+								{profile.username}
+							</h2>
+						</a>
 					</div>
 
 					<div class="flex w-full flex-col gap-4">
 						{#if profile.tags && profile.tags.length > 0}
 							<div class="flex w-full flex-wrap items-center justify-center gap-2">
 								<!-- max 3 tags -->
-								{#each profile.tags.slice(0,3) as tag}
+								{#each profile.tags.slice(0, 3) as tag}
 									<button
 										type="button"
-										class="border-surface-500 btn relative rounded-full border-[1px] bg-surface-300 p-1 px-3 text-surface-900 hover:bg-surface-200"
+										class="btn relative rounded-full border-[1px] border-surface-500 bg-surface-300 p-1 px-3 text-surface-900 hover:bg-surface-200"
 										onclick={(e) => {
 											e.preventDefault();
 											search = tag;

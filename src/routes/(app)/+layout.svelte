@@ -19,4 +19,3 @@
 <OuterLayout sessionInfo={data.sessionInfo}>
 	{@render children()}
 </OuterLayout>
-

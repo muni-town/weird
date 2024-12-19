@@ -12,33 +12,42 @@
 	<title>{env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<AppBar background="bg-surface-100/10"i classes="blur-sm">
+<AppBar background="bg-surface-100/10" i classes="blur-sm">
 	{#snippet lead()}
 		<img src="/favicon.png" alt="Weird Logo" width="40px" />
 	{/snippet}
 
-	<h1 class="text-xl font-bold font-rubik text-secondary-500">
+	<h1 class="font-rubik text-xl font-bold text-secondary-500">
 		<a href="/">WEIRD</a>
 	</h1>
 
 	{#snippet trail()}
-		<div class="items-center gap-3 sm:flex font-spacemono">
+		<div class="items-center gap-3 font-spacemono sm:flex">
 			{#if sessionInfo?.groups?.includes('admin')}
-				<a data-sveltekit-reload href="/__internal__/admin" class="btn hover:bg-surface-100/5 hover:scale-105">
+				<a
+					data-sveltekit-reload
+					href="/__internal__/admin"
+					class="btn hover:scale-105 hover:bg-surface-100/5"
+				>
 					Admin
 				</a>
 			{/if}
 
-			<a href="https://a.weird.one" class="btn hover:bg-surface-100/5 hover:scale-105">About</a>
-      <a href="/people" class="btn hover:bg-surface-100/5 hover:scale-105">People</a>
+			<a href="https://a.weird.one" class="btn hover:scale-105 hover:bg-surface-100/5">About</a>
+			<a href="/people" class="btn hover:scale-105 hover:bg-surface-100/5">People</a>
 
 			{#if !sessionInfo}
-				<a href="/login" class="btn hover:bg-surface-100/5 hover:scale-105">Sign-in</a>
+				<a href="/login" class="btn hover:scale-105 hover:bg-surface-100/5">Sign-in</a>
 			{:else}
-				<a href="/my-profile" class="btn hover:bg-surface-100/5 hover:scale-105">Profile</a>
-				<a href="/logout" class="btn hover:bg-surface-100/5 hover:scale-105">Logout</a>
+				<a href="/my-profile" class="btn hover:scale-105 hover:bg-surface-100/5">Profile</a>
+				<a href="/logout" class="btn hover:scale-105 hover:bg-surface-100/5">Logout</a>
 			{/if}
-			<a href="/feedback" class="btn hover:bg-surface-100/5 hover:scale-105" title="Leave Feedback" aria-label="Feedback">
+			<a
+				href="/feedback"
+				class="btn hover:scale-105 hover:bg-surface-100/5"
+				title="Leave Feedback"
+				aria-label="Feedback"
+			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					width="16"
@@ -56,7 +65,7 @@
 	{/snippet}
 </AppBar>
 
-<div class="relative flex min-h-screen flex-col weird-container">
+<div class="weird-container relative flex min-h-screen flex-col">
 	<div class="flex-grow">
 		{@render children()}
 	</div>
@@ -79,6 +88,6 @@
 	}
 
 	.weird-container {
-		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #CB5873);
+		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #cb5873);
 	}
 </style>

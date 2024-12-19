@@ -16,4 +16,4 @@ import type { DefaultServer } from 'dinodns/common/server';
  * don't change _this_ file, which is not a problem because it exists only for exporting this
  * variable that never needs to change during development.
  * */
-export const serverGlobals: { dnsServer?: DefaultServer; cronJobs?: CronJob[] } = { };
+export const serverGlobals: { dnsServer?: DefaultServer; cronJobs?: CronJob[] } = {};

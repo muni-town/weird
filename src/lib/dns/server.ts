@@ -454,7 +454,7 @@ export async function startDnsServer() {
 						// Don't go to next so that our normal default NS response doesn't get created.
 						// We're trying to emulate the way that authoritative nameservers won't respond
 						// to NS queries on subdomains that don't have custom nameservers.
-						return next();;
+						return next();
 					}
 			}
 

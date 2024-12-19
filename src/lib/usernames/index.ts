@@ -166,6 +166,9 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 				await unset(oldUsername);
 			}
 
+			// Be sure to kill any in-progress DNS verification jobs for this user.
+			await removeDomainVerificationJob(rauthyId);
+
 			return;
 		} catch (e) {
 			failures += 1;
@@ -379,5 +382,5 @@ export const usernames = {
 	cronJob,
 	setDomainVerificationJob,
 	getDomainVerificationJob,
-	removeDomainVerificationJob,
+	removeDomainVerificationJob
 };

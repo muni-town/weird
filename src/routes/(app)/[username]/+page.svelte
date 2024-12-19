@@ -19,11 +19,19 @@
 	import SocialMediaButton from '$lib/components/social-media/social-media-button.svelte';
 	import FeaturedSocialMediaButton from '$lib/components/social-media/featured-social-media-button.svelte';
 	import PostCard from './post-card.svelte';
+	import { getFeaturedSocialMediaDetails } from '$lib/utils/social-links';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	const modalStore = getModalStore();
 	const toastStore = getToastStore();
+
+	let normalProfileLinks = $derived(
+		data.profile.links.filter((x) => !getFeaturedSocialMediaDetails(x.url))
+	);
+	let featuredProfileLinks = $derived(
+		data.profile.links.filter((x) => getFeaturedSocialMediaDetails(x.url))
+	);
 
 	const githubImportModal: ModalSettings = {
 		type: 'prompt',
@@ -62,16 +70,6 @@
 	if (data.profileMatchesUserSession) {
 		editingState.profile = data.profile;
 	}
-
-	// Here we have to hack a unique ID in for each of the links so that it can be used by the
-	// LinksEditor component.
-	//
-	// It'd be good to find a better way to do this.
-	$effect(() => {
-		for (const link of editingState.profile.links) {
-			if (!(link as any).id) (link as any).id = Math.random().toString();
-		}
-	});
 
 	let profile = $derived(data.profile as Profile);
 	let pubpageHost = $derived(data.username);
@@ -199,7 +197,7 @@
 				>
 				{#if !editingState.editing}
 					<div class="mt-4 flex flex-wrap items-center gap-4">
-						{#each profile.links as link}
+						{#each featuredProfileLinks as link}
 							<FeaturedSocialMediaButton url={link.url} />
 						{/each}
 					</div>
@@ -274,13 +272,13 @@
 					/>
 				{/if}
 			</div>
-			{#if profile.links.length > 0 || editingState.editing}
+			{#if normalProfileLinks.length > 0 || editingState.editing}
 				<div>
 					<h2 class="mb-3 text-center text-2xl font-bold">Links</h2>
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-2">
-							{#each profile.links as link (link.url)}
-								<SocialMediaButton url={link.url} />
+							{#each normalProfileLinks as link (link.url)}
+								<SocialMediaButton url={link.url} label={link.label} />
 							{/each}
 						</ul>
 					{:else}

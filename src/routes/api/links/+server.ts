@@ -1,13 +1,17 @@
 import { error } from '@sveltejs/kit';
 
-export async function GET(event) {
-	const link = event.url.searchParams.get('url');
+export async function GET({ url, fetch }) {
+	const link = url.searchParams.get('url');
 	if (!link) error(400, { message: 'Link is missing' });
-
-	const url = new URL(link);
-
-	const response = await fetch(url);
-	const html = await response.text();
-
-	return new Response(JSON.stringify(html));
+	try {
+		const resp = await fetch(link);
+		console.log(resp);
+		if (resp.ok) {
+			const text = await resp.text();
+			return new Response(text);
+		}
+		return error(500, { message: 'Error fetching URL' });
+	} catch (e) {
+		return error(500, { message: 'Error fetching URL' });
+	}
 }

@@ -46,15 +46,15 @@ export const socialMediaConfig: Record<string, SocialMediaConfigEntry> = {
 	'soundcloud.com': { icon: 'mdi:soundcloud', class: 'button-soundcloud', name: 'SoundCloud' }
 };
 
-export function getDomain(url: string) {
+export function getDomain(url: string): string {
 	try {
 		return new URL(url).hostname.replace('www.', '');
 	} catch (error) {
-		return null; // Return null if the URL is invalid
+		return 'invalid.url'; // Return null if the URL is invalid
 	}
 }
 
-export function getSocialMediaDetails(url: string) {
+export function getSocialMediaDetails(url: string): SocialMediaConfigEntry {
 	const domain = getDomain(url);
 	const socialMedia = domain ? socialMediaConfig[domain] : null;
 
@@ -67,7 +67,7 @@ export function getSocialMediaDetails(url: string) {
 	);
 }
 
-export function getFeaturedSocialMediaDetails(url: string) {
+export function getFeaturedSocialMediaDetails(url: string): SocialMediaConfigEntry | null {
 	const domain = getDomain(url);
 	const socialMedia = domain ? featuredSocialMediaConfig[domain] : null;
 	return socialMedia;

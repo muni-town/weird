@@ -1,5 +1,5 @@
 import { setProfileById, setAvatarById, type Profile } from '$lib/leaf/profile';
-import { type Actions, redirect, fail, error } from '@sveltejs/kit';
+import { type Actions, redirect, fail } from '@sveltejs/kit';
 import { type CheckResponseError } from '$lib/utils/http';
 import { getSession } from '$lib/rauthy/server';
 import { RawImage } from 'leaf-proto/components';
@@ -29,6 +29,14 @@ export const actions = {
 		let links: { label?: string; url: string }[] = JSON.parse(
 			data.get('links')?.toString() || '{}'
 		);
+		for (const link of links) {
+			try {
+				new URL(link.url);
+			} catch (_) {
+				// If it isn't a valid URL, try just prepending `https://` to it.
+				link.url = 'https://' + link.url;
+			}
+		}
 		let bio = data.get('bio')?.toString() || undefined;
 		if (bio === '') {
 			bio = undefined;

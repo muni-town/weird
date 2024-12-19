@@ -82,17 +82,22 @@ class BillingEngine {
 
 		// Get benefits according to polar
 		for (const sub of subscriptions) {
-			if (!sub.endedAt)
-				for (const benefit of sub.product.benefits) {
-					switch (benefit.id) {
-						case env.POLAR_USERNAME_WITHOUT_NUMBER_ENDING_BENEFIT_ID:
-							benefits.add('non_numbered_username');
-							break;
-						case env.POLAR_CUSTOM_DOMAIN_BENEFIT_ID:
-							benefits.add('custom_domain');
-							break;
-					}
-				}
+			if (!sub.endedAt) {
+				benefits.add('non_numbered_username');
+				benefits.add('custom_domain');
+
+				// TODO: do something like this to read benefits from Polar API ( not working right now for some reason )
+				// for (const benefit of sub.product.benefits) {
+				// 	switch (benefit.id) {
+				// 		case env.POLAR_USERNAME_WITHOUT_NUMBER_ENDING_BENEFIT_ID:
+				// 			benefits.add('non_numbered_username');
+				// 			break;
+				// 		case env.POLAR_CUSTOM_DOMAIN_BENEFIT_ID:
+				// 			benefits.add('custom_domain');
+				// 			break;
+				// 	}
+				// }
+			}
 		}
 
 		// Get benefits from free trial

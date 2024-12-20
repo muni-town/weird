@@ -97,11 +97,11 @@
 		}}
 	>
 		<div class="flex flex-grow flex-col items-center justify-center gap-2">
-			<label class="flex flex-row items-center gap-2 w-full">
+			<label class="flex w-full flex-row items-center gap-2">
 				<span class="w-16">Url</span>
 				<input required class="input" placeholder="Url" bind:value={newLink.url} />
 			</label>
-			<label class="flex flex-row items-center gap-2 w-full">
+			<label class="flex w-full flex-row items-center gap-2">
 				<span class="w-16">Label</span>
 				<input
 					class="input"

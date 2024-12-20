@@ -1,7 +1,6 @@
 import { base32Encode, type ExactLink } from 'leaf-proto';
 import { leafClient } from './leaf';
 import { RawImage } from 'leaf-proto/components';
-import { env } from '$env/dynamic/public';
 
 /**
  * Formats an image response from the `RawImage` component of the provided entity link, optionally
@@ -15,15 +14,14 @@ import { env } from '$env/dynamic/public';
  * */
 export async function createImageResponse(
 	link: ExactLink,
-	fetch?: typeof globalThis.fetch,
-	fallbackAvatarSeed?: string
+	url?: URL,
+	fetch?: typeof globalThis.fetch
 ): Promise<Response> {
-	let fallbackAvatar = fallbackAvatarSeed
-		? `${env.PUBLIC_DICEBEAR_URL}/8.x/${env.PUBLIC_DICEBEAR_STYLE}/svg?seed=${fallbackAvatarSeed}`
-		: undefined;
+	const fallbackAvatar = url && new URL(url);
+	if (fallbackAvatar) fallbackAvatar.pathname = '/default-avatar.svg';
 	const ent = await leafClient.get_components(link, RawImage);
 	const image = ent?.get(RawImage)?.value;
-	if (!ent || !image) {
+	if (!image) {
 		if (fallbackAvatar && fetch) {
 			return fetch(fallbackAvatar);
 		} else {

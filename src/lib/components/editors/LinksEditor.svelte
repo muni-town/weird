@@ -11,6 +11,7 @@
 	import SocialMediaButton from '../social-media/social-media-button.svelte';
 	import { getFeaturedSocialMediaDetails } from '$lib/utils/social-links';
 	import FeaturedSocialMediaButton from '../social-media/featured-social-media-button.svelte';
+	import { debounce } from 'underscore';
 
 	let {
 		links = $bindable(),
@@ -37,7 +38,8 @@
 		links = clone;
 	}
 
-	const fetchURL = async () => {
+	let fetchingUrl = $state(false);
+	const fetchURL = debounce(async () => {
 		const url = new URL(newLink.url);
 		if (url) {
 			const resp = await fetch(`/api/links?url=${newLink.url}`);
@@ -52,10 +54,11 @@
 				newLink.label = title ?? '';
 			}
 		}
-	};
-
+		fetchingUrl = false;
+	}, 500);
 	$effect(() => {
 		if (newLink.url && !newLink.label) {
+			fetchingUrl = true;
 			fetchURL();
 		}
 	});
@@ -94,8 +97,18 @@
 		}}
 	>
 		<div class="flex flex-grow flex-col items-center justify-center gap-2">
-			<input class="input" placeholder="Label" bind:value={newLink.label} />
-			<input required class="input" placeholder="Url" bind:value={newLink.url} />
+			<label class="flex flex-row items-center gap-2 w-full">
+				<span class="w-16">Url</span>
+				<input required class="input" placeholder="Url" bind:value={newLink.url} />
+			</label>
+			<label class="flex flex-row items-center gap-2 w-full">
+				<span class="w-16">Label</span>
+				<input
+					class="input"
+					placeholder={fetchingUrl ? 'Label ( auto-filling )' : 'Label'}
+					bind:value={newLink.label}
+				/>
+			</label>
 		</div>
 
 		<div class="flex items-center">

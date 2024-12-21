@@ -6,6 +6,7 @@
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import { Avatar } from '@skeletonlabs/skeleton';
+	import { usernames } from '$lib/usernames/client';
 
 	// Use seeded random generator so that SSR has same result as CSR hydration.
 	//
@@ -47,7 +48,7 @@
 			})
 			.map((profile) => {
 				// Remove the domain for local usernames
-				const username = profile.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+				const username = usernames.shortNameOrDomain(profile.username);
 				return { ...profile, username };
 			})
 			.map((x) => ({ sort: rng(), ...x }));

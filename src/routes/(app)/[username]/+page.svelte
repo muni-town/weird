@@ -20,6 +20,7 @@
 	import FeaturedSocialMediaButton from '$lib/components/social-media/featured-social-media-button.svelte';
 	import PostCard from './post-card.svelte';
 	import { getFeaturedSocialMediaDetails } from '$lib/utils/social-links';
+	import { usernames } from '$lib/usernames/client';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -117,7 +118,7 @@
 			if (!editingState.profile.bio) editingState.profile.bio = '';
 			if (!editingState.profile.bio)
 				editingState.profile.display_name =
-					data.profile.display_name || data.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+					data.profile.display_name || usernames.shortNameOrDomain(data.username);
 
 			editingState.editing = true;
 			editingTagsState = data.profile.tags.join(', ');
@@ -176,7 +177,7 @@
 				<h1 class="relative grid text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
-							{profile.display_name || data.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}
+							{profile.display_name || usernames.shortNameOrDomain(data.username)}
 						</div>
 					{:else}
 						<div style="grid-area: 1 / 1;">

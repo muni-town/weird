@@ -10,13 +10,11 @@ import { dateToUnixTimestamp } from '$lib/utils/time';
 import { usernames } from '$lib/usernames/index';
 
 export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> => {
-	const username = params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+	const username = usernames.shortNameOrDomain(params.username);
 	if (username != params.username) {
 		return redirect(302, `/${username}/${params.slug}`);
 	}
-	const fullUsername = params.username!.includes('.')
-		? params.username!
-		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+	const fullUsername = usernames.fullDomain(username);
 
 	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);
@@ -48,9 +46,7 @@ export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> 
 
 export const actions = {
 	default: async ({ request, params, url, fetch }) => {
-		const fullUsername = params.username!.includes('.')
-			? params.username!
-			: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+		const fullUsername = usernames.fullDomain(params.username);
 		const subspace = await usernames.getSubspace(fullUsername);
 		if (!subspace) return error(404, `User not found: ${fullUsername}`);
 

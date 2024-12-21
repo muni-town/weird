@@ -8,8 +8,6 @@ import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 import { leafClient, subspace_link } from '.';
 
 import type { ExactLink, IntoPathSegment, Unit } from 'leaf-proto';
-import { env } from '$env/dynamic/public';
-import { validUnsubscribedUsernameRegex } from '$lib/usernames/client';
 import type { Benefit } from '$lib/billing';
 
 /** A "complete" profile loaded from multiple components. */
@@ -346,10 +344,10 @@ export async function applyProfileBenefits(rauthyId: string, benefits: Set<Benef
 	const currentUsername = await usernames.getByRauthyId(rauthyId);
 	if (!currentUsername) return;
 
-	if (currentUsername.endsWith(env.PUBLIC_USER_DOMAIN_PARENT)) {
+	const split = usernames.splitPublicSuffix(currentUsername);
+	if (split) {
 		if (!benefits.has('non_numbered_username')) {
-			const prefix = currentUsername.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
-			if (prefix.match(validUnsubscribedUsernameRegex)) {
+			if (split.prefix.match(usernames.validUnsubscribedUsernameRegex)) {
 				// Nothing to do if their username is already valid for an unsubscribed user.
 				return;
 			} else {

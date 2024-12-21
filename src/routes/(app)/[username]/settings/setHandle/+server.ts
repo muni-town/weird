@@ -6,7 +6,8 @@ import { z } from 'zod';
 
 const Req = z.union([
 	z.object({
-		username: z.string().regex(usernames.validUsernameRegex)
+		username: z.string().regex(usernames.validUsernameRegex),
+		suffix: z.string().default(usernames.defaultSuffix())
 	}),
 
 	z.object({
@@ -48,7 +49,12 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		if (oldUsername) {
 			await usernames.unset(oldUsername);
 		}
-		return json(parsed.data);
+		return json({
+			username:
+				'username' in parsed.data
+					? parsed.data.username + '.' + parsed.data.suffix
+					: parsed.data.domain
+		});
 	} catch (e) {
 		if ('domain' in parsed.data && parsed.data.verifyInQueue == true) {
 			await usernames.setDomainVerificationJob(sessionInfo.user_id, parsed.data.domain);

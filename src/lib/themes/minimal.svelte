@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
+	import { usernames } from '$lib/usernames/client';
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
 	import type { Profile } from '$lib/leaf/profile';
@@ -123,7 +124,7 @@
 			<h1 style="margin-top: 1em;">{profile.display_name}</h1>
 		{/if}
 		<span>
-			{$page.url.host.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}
+			{usernames.shortNameOrDomain($page.url.host)}
 		</span>
 
 		<div class="links">

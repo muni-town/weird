@@ -4,11 +4,7 @@
 	// Stores
 	import { getModalStore, ProgressRadial, Tab, TabGroup } from '@skeletonlabs/skeleton';
 	import { env } from '$env/dynamic/public';
-	import {
-		genRandomUsernameSuffix,
-		validDomainRegex,
-		validUsernameRegex
-	} from '$lib/usernames/client';
+	import { usernames } from '$lib/usernames/client';
 	import { goto } from '$app/navigation';
 	import type { UserSubscriptionInfo } from '$lib/billing';
 	import { page } from '$app/stores';
@@ -30,17 +26,18 @@
 	let handle = $state('');
 	let domain = $state('');
 	let error = $state(null) as null | string;
+	let publicSuffix = $state(usernames.defaultSuffix());
 	let verifying = $state(false);
 	let valid = $derived(
 		selectedTab == 0
-			? !!handle.match(validUsernameRegex)
-			: !!domain.match(validDomainRegex) && subscriptionInfo.benefits.has('custom_domain')
+			? !!handle.match(usernames.validUsernameRegex)
+			: !!domain.match(usernames.validDomainRegex) && subscriptionInfo.benefits.has('custom_domain')
 	);
-	let randomNumberSuffix = $state(genRandomUsernameSuffix());
+	let randomNumberSuffix = $state(usernames.genRandomUsernameSuffix());
 	let fullUsernameSuffix = $derived(
 		(subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix) +
 			'.' +
-			env.PUBLIC_USER_DOMAIN_PARENT
+			publicSuffix
 	);
 	let handleWithSuffix = $derived(
 		handle + (subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix)
@@ -51,10 +48,9 @@
 		e.preventDefault();
 
 		if (selectedTab == 0) {
-			console.log(handleWithSuffix);
 			const resp = await fetch(`/${$page.params.username}/settings/setHandle`, {
 				method: 'post',
-				body: JSON.stringify({ username: handleWithSuffix }),
+				body: JSON.stringify({ username: handleWithSuffix, suffix: publicSuffix }),
 				headers: [['content-type', 'application/json']]
 			});
 
@@ -163,11 +159,18 @@
 							<label class="label">
 								<span>Handle</span>
 
+								<!-- TODO: extract this into a component that can be shared with the new user handle
+								claim form. -->
 								<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 									<div class="input-group-shim">@</div>
 									<input type="text" bind:this={input} bind:value={handle} placeholder="name" />
 									<div class="input-group-shim">
-										{fullUsernameSuffix}
+										{randomNumberSuffix || ''}
+										<select bind:value={publicSuffix} class="pl-0">
+											{#each usernames.publicSuffixes() as suffix}
+												<option value={suffix}>.{suffix}</option>
+											{/each}
+										</select>
 									</div>
 								</div>
 							</label>

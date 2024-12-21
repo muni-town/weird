@@ -3,13 +3,8 @@ import { base32Decode, base32Encode, type SubspaceId } from 'leaf-proto';
 import { leafClient } from '../leaf';
 import { env } from '$env/dynamic/public';
 import { resolveAuthoritative } from '../dns/resolve';
+import { usernames as usernamesClient } from './client';
 import { APP_IPS } from '../dns/server';
-import {
-	validDomainRegex,
-	validUsernameRegex,
-	validUnsubscribedUsernameRegex,
-	genRandomUsernameSuffix
-} from './client';
 import { dev } from '$app/environment';
 import { CronJob } from 'cron';
 
@@ -24,7 +19,7 @@ async function setSubspace(rauthyId: string, subspace: SubspaceId) {
 }
 
 async function claim(
-	input: { username: string } | { domain: string; skipDomainCheck?: boolean },
+	input: { username: string; suffix: string } | { domain: string; skipDomainCheck?: boolean },
 	rauthyId: string
 ) {
 	const oldUsername = await getByRauthyId(rauthyId);
@@ -37,11 +32,14 @@ async function claim(
 	if ('username' in input) {
 		// Claiming a local username
 
-		if (!input.username.match(validUsernameRegex)) {
+		if (!input.username.match(usernamesClient.validUsernameRegex)) {
 			throw `Username does not pass valid username check: '${input.username}'`;
-		} else {
-			username = input.username + '.' + env.PUBLIC_USER_DOMAIN_PARENT;
 		}
+		if (!usernames.isPublicSuffix(input.suffix)) {
+			throw `Suffix ${input.suffix} not registered as a public suffix for the Weird server.`;
+		}
+
+		username = input.username + '.' + input.suffix;
 	} else {
 		// Claim a custom domain
 		const isApex = input.domain.split('.').length == 2;
@@ -123,11 +121,11 @@ with value "${expectedValue}". Found other values: ${txtRecords.map((v) => `"${v
 			const existingInitialUsername = await redis.hGet(rauthyIdKey, 'initialUsername');
 			if (!existingInitialUsername) {
 				initialUsername = input.username;
-				if (!initialUsername.match(validUnsubscribedUsernameRegex)) {
-					initialUsername += genRandomUsernameSuffix();
+				if (!initialUsername.match(usernamesClient.validUnsubscribedUsernameRegex)) {
+					initialUsername += usernames.genRandomUsernameSuffix();
 				}
 
-				initialUsername += '.' + env.PUBLIC_USER_DOMAIN_PARENT;
+				initialUsername += '.' + input.suffix;
 
 				initialUsernameKey = USER_NAMES_PREFIX + initialUsername;
 				redis.watch([initialUsernameKey]);
@@ -277,13 +275,14 @@ async function generateInitialUsernamesForAllUsers() {
 	for await (const user of list()) {
 		if (!user.initialUsername && user.username) {
 			let initialUsername;
-			if (user.username.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
-				const shortName = user.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
-				initialUsername = shortName + genRandomUsernameSuffix();
+			const split = usernamesClient.splitPublicSuffix(user.username);
+			if (split) {
+				initialUsername = split.prefix + usernamesClient.genRandomUsernameSuffix();
 			} else {
-				initialUsername = user.username.replace(/[^a-zA-Z0-9]/g, '-') + genRandomUsernameSuffix();
+				initialUsername =
+					user.username.replace(/[^a-zA-Z0-9]/g, '-') + usernamesClient.genRandomUsernameSuffix();
 			}
-			initialUsername += '.' + env.PUBLIC_USER_DOMAIN_PARENT;
+			initialUsername += '.' + usernamesClient.defaultSuffix();
 
 			const initialUsernameKey = USER_NAMES_PREFIX + initialUsername;
 			redis.watch([initialUsernameKey]);
@@ -364,9 +363,7 @@ function cronJob(): CronJob {
 }
 
 export const usernames = {
-	validDomainRegex,
-	validUsernameRegex,
-	validUnsubscribedUsernameRegex,
+	...usernamesClient,
 	setSubspace,
 	claim,
 	unset,

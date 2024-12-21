@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { RCode } from 'dinodns/common/core/utils';
 import { redis } from '$lib/redis';
 import { serverGlobals } from '$lib/server-globals';
+import { usernames } from '$lib/usernames';
 
 const REDIS_USER_PREFIX = 'weird:users:names:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -26,16 +27,6 @@ const redisDnsRecordSchema = z.array(
 	})
 );
 
-/** Helper function to escape a string so we can put it literally into a regex without some
- * of it's characters being interpreted as regex special characters. */
-const escapeStringForEmbeddingInRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const WEIRD_HOST_TXT_RECORD_REGEX = new RegExp(
-	`^_weird\\.([^\\.]*)\\.${escapeStringForEmbeddingInRegex(pubenv.PUBLIC_USER_DOMAIN_PARENT.split(':')[0])}$`
-);
-const WEIRD_HOST_A_RECORD_REGEX = new RegExp(
-	`^([^\\.]*)\\.${escapeStringForEmbeddingInRegex(pubenv.PUBLIC_USER_DOMAIN_PARENT.split(':')[0])}$`
-);
 const VALID_DOMAIN_REGEX =
 	/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/i;
 
@@ -320,10 +311,14 @@ export async function startDnsServer() {
 							res.packet.flags = res.packet.flags | AUTHORITATIVE_ANSWER;
 							ret(v);
 						};
-						const { type, name } = question;
+						let { type, name } = question;
+						name = name.toLowerCase();
+						const suffix = usernames.publicSuffix(name);
 						switch (type) {
 							case 'TXT':
-								const txtUsername = name.toLowerCase().match(WEIRD_HOST_TXT_RECORD_REGEX)?.[1];
+								if (!name.startsWith('_weird.')) return returnAnswers(null);
+								if (!suffix) return returnAnswers(null);
+								const txtUsername = name.split('_weird.')[1];
 								if (!txtUsername) return returnAnswers(null);
 								const pubkey = await redis.hGet(REDIS_USER_PREFIX + txtUsername, 'subspace');
 								if (!pubkey) return returnAnswers(null);
@@ -344,13 +339,7 @@ export async function startDnsServer() {
 								]);
 								break;
 							case 'A':
-								const aUsername = name.toLowerCase().match(WEIRD_HOST_A_RECORD_REGEX)?.[1];
-								if (!aUsername) return returnAnswers(null);
-
-								// TODO: eventually we only want to return records for users that exist
-								// const exists = await redis.exists(REDIS_USER_PREFIX + aUsername);
-								// if (!exists) return returnAnswers(null);
-
+								if (!suffix) return returnAnswers(null);
 								returnAnswers(
 									APP_IPS.map((ip) => ({
 										name,

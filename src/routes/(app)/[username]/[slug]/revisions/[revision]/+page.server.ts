@@ -1,14 +1,6 @@
-import type { Actions, PageServerLoad } from './$types';
-import {
-	WebLinks,
-	WeirdWikiPage,
-	WeirdWikiRevisionAuthor,
-	appendSubpath,
-	getProfileById,
-	profileLinkById,
-	profileLinkByUsername
-} from '$lib/leaf/profile';
-import { error, fail, redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import { WebLinks, WeirdWikiRevisionAuthor } from '$lib/leaf/profile';
+import { error, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { CommonMark, Name } from 'leaf-proto/components';
@@ -18,13 +10,11 @@ import { usernames } from '$lib/usernames/index';
 export const load: PageServerLoad = async ({
 	params
 }): Promise<{ page: Page; revisionAuthor: string }> => {
-	const username = params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0];
+	const username = usernames.shortNameOrDomain(params.username);
 	if (username != params.username) {
 		return redirect(302, `/${username}/${params.slug}`);
 	}
-	const fullUsername = params.username!.includes('.')
-		? params.username!
-		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+	const fullUsername = usernames.fullDomain(username);
 
 	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);

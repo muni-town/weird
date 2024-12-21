@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
 	import type { UserSubscriptionInfo } from '$lib/billing';
-	import { genRandomUsernameSuffix } from '$lib/usernames/client';
+	import { usernames } from '$lib/usernames/client';
 	import Icon from '@iconify/svelte';
 
 	const {
@@ -15,11 +14,12 @@
 	} = $props();
 
 	let handle = $state('');
-	let randomNumberSuffix = $state(genRandomUsernameSuffix());
+	let randomNumberSuffix = $state(usernames.genRandomUsernameSuffix());
+	let publicSuffix = $state(usernames.defaultSuffix());
 	let fullHandleSuffix = $derived(
-		(subscriptionInfo?.isSubscribed ? '' : randomNumberSuffix) + '.' + env.PUBLIC_USER_DOMAIN_PARENT
+		(subscriptionInfo?.isSubscribed ? '' : randomNumberSuffix) + '.' + publicSuffix
 	);
-	let handleWithSuffix = $derived(
+	let handleWithNumber = $derived(
 		subscriptionInfo?.isSubscribed ? handle : handle + randomNumberSuffix
 	);
 </script>
@@ -47,10 +47,17 @@
 	<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
 		<div class="input-group-shim">@</div>
 		<input placeholder="handle" bind:value={handle} />
-		<input type="hidden" name="username" value={handleWithSuffix} />
+		<input type="hidden" name="username" value={handleWithNumber} />
+		<input type="hidden" name="suffix" value={publicSuffix} />
 		<div class="input-group-shim">
-			{fullHandleSuffix}
+			{randomNumberSuffix || ''}
+			<select bind:value={publicSuffix} class="pl-0">
+				{#each usernames.publicSuffixes() as suffix}
+					<option value={suffix}>.{suffix}</option>
+				{/each}
+			</select>
 		</div>
 	</div>
+	<div class="py-1 text-center"><code>{handle || '[handle]'}{fullHandleSuffix}</code></div>
 	<button class="variant-ghost btn">Claim</button>
 </form>

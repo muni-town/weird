@@ -4,19 +4,17 @@ import type { LayoutServerLoad } from '../$types';
 import { getSession } from '$lib/rauthy/server';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { Name } from 'leaf-proto/components';
-import { env } from '$env/dynamic/public';
 import { usernames } from '$lib/usernames/index';
 import { base32Encode } from 'leaf-proto';
 import { billing, type UserSubscriptionInfo } from '$lib/billing';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
-	if (params.username?.endsWith('.' + env.PUBLIC_USER_DOMAIN_PARENT)) {
-		return redirect(302, `/${params.username.split('.' + env.PUBLIC_USER_DOMAIN_PARENT)[0]}`);
+	const username = usernames.shortNameOrDomain(params.username!);
+	if (username != params.username) {
+		return redirect(302, `/${username}`);
 	}
 
-	const fullUsername = params.username!.includes('.')
-		? params.username!
-		: `${params.username}.${env.PUBLIC_USER_DOMAIN_PARENT}`;
+	const fullUsername = usernames.fullDomain(params.username!);
 
 	let profileMatchesUserSession = false;
 

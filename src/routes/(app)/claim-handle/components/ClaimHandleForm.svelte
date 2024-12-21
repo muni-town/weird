@@ -17,7 +17,9 @@
 	let randomNumberSuffix = $state(usernames.genRandomUsernameSuffix());
 	let publicSuffix = $state(usernames.defaultSuffix());
 	let fullHandleSuffix = $derived(
-		(subscriptionInfo?.isSubscribed ? '' : randomNumberSuffix) + '.' + publicSuffix
+		(subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix) +
+			'.' +
+			publicSuffix
 	);
 	let handleWithNumber = $derived(
 		subscriptionInfo?.isSubscribed ? handle : handle + randomNumberSuffix
@@ -50,7 +52,7 @@
 		<input type="hidden" name="username" value={handleWithNumber} />
 		<input type="hidden" name="suffix" value={publicSuffix} />
 		<div class="input-group-shim">
-			{randomNumberSuffix || ''}
+			{subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix}
 			<select bind:value={publicSuffix} class="pl-0">
 				{#each usernames.publicSuffixes() as suffix}
 					<option value={suffix}>.{suffix}</option>

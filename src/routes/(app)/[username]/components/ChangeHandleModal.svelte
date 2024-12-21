@@ -165,7 +165,9 @@
 									<div class="input-group-shim">@</div>
 									<input type="text" bind:this={input} bind:value={handle} placeholder="name" />
 									<div class="input-group-shim">
-										{subscriptionInfo.benefits.has('non_numbered_username') ? '' : randomNumberSuffix}
+										{subscriptionInfo.benefits.has('non_numbered_username')
+											? ''
+											: randomNumberSuffix}
 										<select bind:value={publicSuffix} class="pl-0">
 											{#each usernames.publicSuffixes() as suffix}
 												<option value={suffix}>.{suffix}</option>

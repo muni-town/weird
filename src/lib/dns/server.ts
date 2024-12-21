@@ -37,17 +37,12 @@ const DNS_MASTER = env.DNS_SOA_MASTER;
 const soaSplit = env.DNS_SOA_EMAIL.split('@');
 const DNS_EMAIL = soaSplit[0].replace('.', '\\.') + '.' + soaSplit[1];
 const DNS_NAMESERVERS = env.DNS_NAMESERVERS.split(',');
-const ALLOWED_DOMAINS = env.DNS_ALLOWED_DOMAINS.toLowerCase().split(',');
 const DNS_TTL = parseInt(env.DNS_TTL || '300');
 const DNS_LOG_VERBOSE =
 	!!env.DNS_LOG_VERBOSE && env.DNS_LOG_VERBOSE != '0' && env.DNS_LOG_VERBOSE != 'false';
 const matchesAllowedDomains = (name: string): boolean => {
 	const n = name.toLowerCase();
-	for (const domain of ALLOWED_DOMAINS) {
-		if (n == domain || n.endsWith(`.${domain}`)) return true;
-	}
-
-	return false;
+	return !!usernames.publicSuffix(n);
 };
 const makeNsAnswers = (name: string): SupportedAnswer[] => {
 	return DNS_NAMESERVERS.map(

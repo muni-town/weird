@@ -7,6 +7,7 @@ import { Name } from 'leaf-proto/components';
 import { usernames } from '$lib/usernames/index';
 import { base32Encode } from 'leaf-proto';
 import { billing, type UserSubscriptionInfo } from '$lib/billing';
+import { verifiedLinks } from '$lib/verifiedLinks';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 	const username = usernames.shortNameOrDomain(params.username!);
@@ -54,6 +55,7 @@ export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
 
 	return {
 		profile,
+		verifiedLinks: await verifiedLinks.get(fullUsername),
 		profileMatchesUserSession,
 		pages,
 		username: fullUsername,

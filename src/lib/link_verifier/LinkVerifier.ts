@@ -1,36 +1,26 @@
 import { parseHTML } from 'linkedom';
-import { GitHubLinkVerificationStrategy } from './strategy/GitHubLinkVerificationStrategy';
 
-import type { WebLink } from '$lib/leaf/profile';
 import type { LinkVerificationStrategyFactory } from './strategy/LinkVerificationStrategy';
-import { env } from '$env/dynamic/public';
+import { DefaultLinkVerificationStrategy } from './strategy/DefaultLinkVerificationStrategy';
 
 export const VERIFIABLE_ORIGIN_STRATEGY: Record<string, LinkVerificationStrategyFactory> = {
-	'https://github.com': (dom) => new GitHubLinkVerificationStrategy(dom)
+	// Put custom link verifiers for specific domains here once we have them.
+	// 'https://github.com': GitHubLinkVerificationStrategy
 };
 
 export const VERIFIABLE_ORIGINS: string[] = Object.keys(VERIFIABLE_ORIGIN_STRATEGY);
 
-export function verifiableOriginFilter(webLink: WebLink): boolean {
-	return (
-		VERIFIABLE_ORIGINS.findIndex((url) => new URL(webLink.url).origin === new URL(url).origin) !==
-		-1
-	);
-}
-
-export type LinkArray = { label?: string; url: string }[];
-
 export class LinkVerifier {
-	private webLinks: LinkArray;
+	private webLinks: string[];
 	private userName: string;
 
-	constructor(links: LinkArray, userName: string) {
-		this.webLinks = links.filter(verifiableOriginFilter);
-		this.userName = userName;
+	constructor(links: string[], username: string) {
+		this.webLinks = links;
+		this.userName = username;
 	}
 
-	private static async fetchHtml(webLink: WebLink): Promise<Window> {
-		const res = await fetch(webLink.url);
+	private static async fetchHtml(webLink: string): Promise<Window> {
+		const res = await fetch(webLink);
 
 		if (res.status === 200) {
 			const resText = await res.text();
@@ -38,44 +28,39 @@ export class LinkVerifier {
 		}
 
 		throw new Error(
-			`Failed to fetch "${webLink.url}", expected a 200 HTTP Response, got "${res.status}" instead.`
+			`Failed to fetch "${webLink}", expected a 200 HTTP Response, got "${res.status}" instead.`
 		);
 	}
 
-	get links(): WebLink[] {
+	get links(): string[] {
 		return [...this.webLinks];
 	}
 
-	async verify(): Promise<WebLink[]> {
-		const verifiedLinks: WebLink[] = [];
+	async verify(): Promise<string[]> {
+		const verifiedLinks: string[] = [];
 
-		for (const webLink of this.webLinks) {
-			const origin = new URL(webLink.url).origin;
-			const linkVerificationStrategyFactory = VERIFIABLE_ORIGIN_STRATEGY[
-				origin
-			] as LinkVerificationStrategyFactory | null;
+		await Promise.all(
+			this.webLinks.map(async (webLink) => {
+				const origin = new URL(webLink).origin;
+				const linkVerificationStrategyFactory =
+					(VERIFIABLE_ORIGIN_STRATEGY[origin] as LinkVerificationStrategyFactory) ||
+					DefaultLinkVerificationStrategy;
 
-			if (typeof linkVerificationStrategyFactory === 'function') {
-				const dom = await LinkVerifier.fetchHtml(webLink);
-				const strategy = linkVerificationStrategyFactory(dom);
-				const isVerified = await strategy.verify(this.userProfileLink());
+				let dom;
+				try {
+					dom = await LinkVerifier.fetchHtml(webLink);
+				} catch (_) {
+					return;
+				}
+				const strategy = new linkVerificationStrategyFactory(dom);
+				const isVerified = await strategy.verify(this.userName);
 
 				if (isVerified) {
 					verifiedLinks.push(webLink);
 				}
-
-				continue;
-			}
-
-			// This should not happen, but if we got here somehow its likely we got a false positive
-			// in the origins map.
-			throw new Error(`The WebLink with URL "${webLink.url}" is not supported by any strategy.`);
-		}
+			})
+		);
 
 		return verifiedLinks;
-	}
-
-	private userProfileLink(): string {
-		return `${env.PUBLIC_URL}/${this.userName}`;
 	}
 }

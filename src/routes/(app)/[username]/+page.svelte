@@ -199,7 +199,10 @@
 				{#if !editingState.editing}
 					<div class="mt-4 flex flex-wrap items-center gap-4">
 						{#each featuredProfileLinks as link}
-							<FeaturedSocialMediaButton url={link.url} />
+							<FeaturedSocialMediaButton
+								url={link.url}
+								verified={data.verifiedLinks.includes(link.url)}
+							/>
 						{/each}
 					</div>
 				{/if}
@@ -279,7 +282,11 @@
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-2">
 							{#each normalProfileLinks as link (link.url)}
-								<SocialMediaButton url={link.url} label={link.label} />
+								<SocialMediaButton
+									url={link.url}
+									label={link.label}
+									verified={data.verifiedLinks.includes(link.url)}
+								/>
 							{/each}
 						</ul>
 					{:else}

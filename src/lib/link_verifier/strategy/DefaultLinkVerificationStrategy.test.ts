@@ -1,9 +1,10 @@
 import { parseHTML } from 'linkedom';
 import { expect, test } from 'vitest';
 
-import { GitHubLinkVerificationStrategy } from './GitHubLinkVerificationStrategy';
+import { DefaultLinkVerificationStrategy } from './DefaultLinkVerificationStrategy';
+import { env } from '$env/dynamic/public';
 
-const GITHUB_PROFILE_SNIPPET = `
+const makeGithubProfileSnippet = (weirdUrl: string) => `
   <ul class="vcard-details">
     <li class="vcard-detail pt-1 hide-sm hide-md" itemprop="worksFor" show_title="false" aria-label="Organization: @InfinyOn">
       <svg class="octicon octicon-organization" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
@@ -61,22 +62,39 @@ const GITHUB_PROFILE_SNIPPET = `
       <svg title="Social account" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-link">
         <path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Zm-4.69 9.64a1.998 1.998 0 0 0 2.83 0l1.25-1.25a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-1.25 1.25a3.5 3.5 0 1 1-4.95-4.95l2.5-2.5a3.5 3.5 0 0 1 4.95 0 .751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018 1.998 1.998 0 0 0-2.83 0l-2.5 2.5a1.998 1.998 0 0 0 0 2.83Z"></path>
       </svg>
-      <a rel="nofollow me" class="Link--primary" style="overflow-wrap: anywhere" href="https://a.weird.one/estebanborai">https://a.weird.one/estebanborai</a>
+      <a rel="nofollow me" class="Link--primary" style="overflow-wrap: anywhere" href="${weirdUrl}">${weirdUrl}</a>
     </li>
   </ul>`;
 
-test('verifies an owned githubs link', async () => {
-	const dom = parseHTML(GITHUB_PROFILE_SNIPPET);
-	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
-	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/estebanborai');
+test('verifies an owned githubs link to pubpage', async () => {
+	const dom = parseHTML(makeGithubProfileSnippet('http://estebanborai.user.localhost:9523'));
+	const gitHubLinkVerificationStrategy = new DefaultLinkVerificationStrategy(dom);
+	const isOwner = await gitHubLinkVerificationStrategy.verify('estebanborai.user.localhost:9523');
+
+	expect(isOwner).toStrictEqual(true);
+});
+
+test('verifies an owned githubs link to weird app page ( short )', async () => {
+	const dom = parseHTML(makeGithubProfileSnippet(env.PUBLIC_URL + '/estebanborai'));
+	const gitHubLinkVerificationStrategy = new DefaultLinkVerificationStrategy(dom);
+	const isOwner = await gitHubLinkVerificationStrategy.verify('estebanborai.user.localhost:9523');
+
+	expect(isOwner).toStrictEqual(true);
+});
+test('verifies an owned githubs link to weird app page ( long )', async () => {
+	const dom = parseHTML(
+		makeGithubProfileSnippet(env.PUBLIC_URL + '/estebanborai.user.localhost:9523')
+	);
+	const gitHubLinkVerificationStrategy = new DefaultLinkVerificationStrategy(dom);
+	const isOwner = await gitHubLinkVerificationStrategy.verify('estebanborai.user.localhost:9523');
 
 	expect(isOwner).toStrictEqual(true);
 });
 
 test('invalidates a non owners github link', async () => {
-	const dom = parseHTML(GITHUB_PROFILE_SNIPPET);
-	const gitHubLinkVerificationStrategy = new GitHubLinkVerificationStrategy(dom);
-	const isOwner = await gitHubLinkVerificationStrategy.verify('https://a.weird.one/zicklag');
+	const dom = parseHTML(makeGithubProfileSnippet('http://estebanborai.user.localhost:9523'));
+	const gitHubLinkVerificationStrategy = new DefaultLinkVerificationStrategy(dom);
+	const isOwner = await gitHubLinkVerificationStrategy.verify('zicklag.weird.one');
 
 	expect(isOwner).toStrictEqual(false);
 });

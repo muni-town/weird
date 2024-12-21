@@ -3,7 +3,7 @@ export interface ILinkVerificationStrategy {
 	verify(userProfileLink: string): Promise<boolean>;
 }
 
-export type LinkVerificationStrategyFactory = (dom: Window) => ILinkVerificationStrategy;
+export type LinkVerificationStrategyFactory = new (dom: Window) => ILinkVerificationStrategy;
 
 export abstract class LinkVerificationStrategy implements ILinkVerificationStrategy {
 	protected dom: Window;

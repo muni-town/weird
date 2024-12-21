@@ -3,12 +3,12 @@ import { CommonMark, Description, RawImage, Name } from 'leaf-proto/components';
 import _ from 'underscore';
 
 import { usernames } from '$lib/usernames/index';
-import { LinkVerifier } from '$lib/link_verifier/LinkVerifier';
 import { resolveUserSubspaceFromDNS } from '$lib/dns/resolve';
 import { leafClient, subspace_link } from '.';
 
 import type { ExactLink, IntoPathSegment, Unit } from 'leaf-proto';
 import type { Benefit } from '$lib/billing';
+import { verifiedLinks } from '$lib/verifiedLinks';
 
 /** A "complete" profile loaded from multiple components. */
 export interface Profile {
@@ -235,7 +235,10 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 	);
 }
 
-export async function setProfile(link: ExactLink, profile: Profile) {
+/**
+ * Sets the profile data. Usually you want to call `setProfileById` instead, since it will also
+ * update the profile's verified links. */
+export async function setRawProfile(link: ExactLink, profile: Profile) {
 	await leafClient.update_components(link, [
 		profile.display_name ? new Name(profile.display_name) : Name,
 		profile.bio ? new Description(profile.bio) : Description,
@@ -304,11 +307,17 @@ export async function getProfileByDomain(domain: string): Promise<Profile | unde
 export async function setProfileById(rauthyId: string, profile: Profile): Promise<void> {
 	let link = await profileLinkById(rauthyId);
 	if (!link) throw `user has not yet claimed a username.`;
-	const userName = await usernames.getByRauthyId(rauthyId);
-	if (!userName) throw `user has no username`;
-	const linkVerifier = new LinkVerifier(profile.links, userName);
-	await linkVerifier.verify();
-	await setProfile(link, profile);
+
+	// Update the user's verified links
+	const username = await usernames.getByRauthyId(rauthyId);
+	if (username) {
+		await verifiedLinks.verify(
+			username,
+			profile.links.map((x) => x.url)
+		);
+	}
+
+	await setRawProfile(link, profile);
 }
 export async function deleteAllProfileDataById(rauthyId: string) {
 	const subspace = await usernames.subspaceByRauthyId(rauthyId);

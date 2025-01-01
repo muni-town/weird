@@ -71,11 +71,11 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center">
+<main class="mx-4 flex w-full flex-col items-center font-spacemono">
 	<div
-		class="card relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 p-8 text-xl"
+		class="bg-white/5 border-2 border-black rounded-md relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 p-8 text-xl"
 	>
-		<h1 class="relative mt-2 max-w-72 self-center text-center text-4xl">
+		<h1 class="relative mt-2 max-w-72 self-center text-center text-4xl font-rubik">
 			{#if !editingState.editing}
 				{data.page.display_name}
 			{:else}
@@ -88,8 +88,8 @@
 
 		<div class="text-center">
 			By <a href={`/${$page.params.username}`} class="text-blue-300 underline underline-offset-4">
-				{data.profile.display_name}.
-			</a>
+				{data.profile.display_name}
+			</a>.
 			{#if data.page.wiki}
 				Wiki Page.
 			{/if}
@@ -177,7 +177,7 @@
 		</div>
 
 		<div class="flex flex-col gap-8">
-			<div class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
+			<div class="prose prose-a:text-blue-400 relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(data.page.markdown)}
 				{:else}

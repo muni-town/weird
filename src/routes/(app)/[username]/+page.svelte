@@ -21,6 +21,7 @@
 	import PostCard from './post-card.svelte';
 	import { getFeaturedSocialMediaDetails } from '$lib/utils/social-links';
 	import { usernames } from '$lib/usernames/client';
+	import Weird from '$lib/themes/weird.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -152,8 +153,10 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center">
-	<div class="card m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
+<main class="mx-4 flex w-full flex-col items-center font-spacemono">
+	<div
+		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl border-2 border-black bg-white/5 p-8 text-xl"
+	>
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
 				<Avatar src={`/${data.username}/avatar`} />
@@ -174,7 +177,7 @@
 				</figure>
 			{/if}
 			<div class="flex flex-col">
-				<h1 class="relative grid text-4xl">
+				<h1 class="relative grid font-rubik text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
 							{profile.display_name || usernames.shortNameOrDomain(data.username)}
@@ -193,9 +196,11 @@
 					{/if}
 				</h1>
 				<a
+					href={pubpageUrl}
 					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
-					href={pubpageUrl}>{pubpageHost}</a
 				>
+					{pubpageHost}
+				</a>
 				{#if !editingState.editing}
 					<div class="mt-4 flex flex-wrap items-center gap-4">
 						{#each featuredProfileLinks as link}
@@ -278,9 +283,9 @@
 			</div>
 			{#if normalProfileLinks.length > 0 || editingState.editing}
 				<div>
-					<h2 class="mb-3 text-center text-2xl font-bold">Links</h2>
+					<h2 class="mb-3 text-center font-rubik text-2xl font-bold">Links</h2>
 					{#if !editingState.editing}
-						<ul class="flex flex-col items-center gap-2">
+						<ul class="flex flex-col items-center gap-4">
 							{#each normalProfileLinks as link (link.url)}
 								<SocialMediaButton
 									url={link.url}
@@ -296,11 +301,11 @@
 			{/if}
 			{#if data.pages.length > 0}
 				<div>
-					<h2 class="mb-3 text-center text-2xl font-bold">Pages</h2>
+					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
 					<ul class="flex flex-col items-center gap-2">
 						{#each data.pages as p}
 							<li>
-								<a class="variant-ghost btn" href={`/${$page.params.username}/${p.slug}`}>
+								<a class="link" href={`/${$page.params.username}/${p.slug}`}>
 									{p.name || p.slug}
 								</a>
 							</li>
@@ -310,7 +315,7 @@
 			{/if}
 			{#if profile.tags.length > 0 || editingState.editing}
 				<div class="mt-4 flex flex-wrap items-baseline gap-2">
-					<strong>Tags: </strong>
+					<h1 class="font-rubik">Tags</h1>
 					{#if editingState.editing}
 						<span class="text-sm"> Separate multiple tags with commas.</span>
 						<div class="basis-full">
@@ -320,8 +325,8 @@
 					<span class="flex flex-wrap gap-2 text-base">
 						{#each editingState.editing ? editingState.profile.tags : profile.tags as tag}
 							<a
-								class="text-surface-900-50-token btn rounded-md bg-surface-200 p-1 hover:bg-surface-400 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
 								href={`/people?q=${tag}`}
+								class="rounded-full border-2 border-black bg-[#a092e3] px-4 py-2 text-black"
 							>
 								{tag}
 							</a>
@@ -355,3 +360,17 @@
 		</div>
 	</div>
 </main>
+
+<style>
+	.link {
+		color: black;
+		font-family: 'Rubik Mono One';
+		background-color: #a092e3;
+		padding: var(--size-fluid-1) var(--size-fluid-2);
+		border: var(--border-size-2) solid black;
+		border-radius: var(--radius-2);
+		box-shadow: 0.35rem 0.45rem black;
+		text-decoration: none;
+		text-align: center;
+	}
+</style>

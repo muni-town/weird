@@ -73,9 +73,9 @@
 
 <main class="mx-4 flex w-full flex-col items-center font-spacemono">
 	<div
-		class="bg-white/5 border-2 border-black rounded-md relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 p-8 text-xl"
+		class="relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 rounded-md border-2 border-black bg-white/5 p-8 text-xl"
 	>
-		<h1 class="relative mt-2 max-w-72 self-center text-center text-4xl font-rubik">
+		<h1 class="relative mt-2 max-w-72 self-center text-center font-rubik text-4xl">
 			{#if !editingState.editing}
 				{data.page.display_name}
 			{:else}
@@ -177,7 +177,9 @@
 		</div>
 
 		<div class="flex flex-col gap-8">
-			<div class="prose prose-a:text-blue-400 relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
+			<div
+				class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert prose-a:text-blue-400"
+			>
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(data.page.markdown)}
 				{:else}

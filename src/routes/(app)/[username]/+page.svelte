@@ -154,7 +154,9 @@
 </svelte:head>
 
 <main class="mx-4 flex w-full flex-col items-center font-spacemono">
-	<div class="bg-white/5 m-4 border-2 border-black rounded-xl mt-12 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
+	<div
+		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl border-2 border-black bg-white/5 p-8 text-xl"
+	>
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
 				<Avatar src={`/${data.username}/avatar`} />
@@ -175,7 +177,7 @@
 				</figure>
 			{/if}
 			<div class="flex flex-col">
-				<h1 class="relative grid text-4xl font-rubik">
+				<h1 class="relative grid font-rubik text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
 							{profile.display_name || usernames.shortNameOrDomain(data.username)}
@@ -281,7 +283,7 @@
 			</div>
 			{#if normalProfileLinks.length > 0 || editingState.editing}
 				<div>
-					<h2 class="mb-3 text-center text-2xl font-bold font-rubik">Links</h2>
+					<h2 class="mb-3 text-center font-rubik text-2xl font-bold">Links</h2>
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-4">
 							{#each normalProfileLinks as link (link.url)}
@@ -299,7 +301,7 @@
 			{/if}
 			{#if data.pages.length > 0}
 				<div>
-					<h2 class="mb-4 text-center text-2xl font-bold font-rubik">Pages</h2>
+					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
 					<ul class="flex flex-col items-center gap-2">
 						{#each data.pages as p}
 							<li>
@@ -324,7 +326,7 @@
 						{#each editingState.editing ? editingState.profile.tags : profile.tags as tag}
 							<a
 								href={`/people?q=${tag}`}
-								class="text-black border-2 border-black rounded-full bg-[#a092e3] px-4 py-2"
+								class="rounded-full border-2 border-black bg-[#a092e3] px-4 py-2 text-black"
 							>
 								{tag}
 							</a>

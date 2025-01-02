@@ -302,7 +302,7 @@
 			{#if data.pages.length > 0}
 				<div>
 					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
-					<ul class="flex flex-col items-center gap-2">
+					<ul class="flex flex-col items-center gap-8">
 						{#each data.pages as p}
 							<li>
 								<a class="link" href={`/${$page.params.username}/${p.slug}`}>

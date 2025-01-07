@@ -69,6 +69,8 @@
 	<link rel="stylesheet" href="pico.min.css" />
 </svelte:head>
 
+<div class="stars"></div>
+
 {#if profile}
 	{#if editingAvatar != ''}
 		<AvatarEditor
@@ -227,6 +229,28 @@
 		font-weight: normal;
 		font-family: 'Space Mono', monospace !important;
 		background: linear-gradient(180deg, #240940 40%, #8e4569 80%, #be185d);
+	}
+
+	:global(body) {
+		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #cb5873);
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+
+	.stars {
+		background: url('/stars.avif');
+		pointer-events: none;
+		/* extend a bit more than the viewport */
+		height: 100vh;
+		width: 100%;
+		background-position: center;
+		background-size: 1500px;
+		background-repeat: repeat;
+		position: absolute;
+		left: 0;
+		top: 0;
+		overflow: hidden;
+		opacity: 0.25;
 	}
 
 	h1 {

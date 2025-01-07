@@ -102,8 +102,8 @@
 		height: 100vh;
 		width: 100%;
 		background-position: center;
-		background-size: 100%;
-		background-blend-mode: darken;
+		background-size: 1500px;
+		background-repeat: repeat;
 		position: absolute;
 		left: 0;
 		top: 0;

@@ -90,11 +90,10 @@
 	}
 
 	:global(body) {
-    /* background: linear-gradient(180deg, #250941 20%, #de7287 40%); */
 		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #cb5873);
-    background-repeat: no-repeat;
-    background-size: cover;
-  }
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
 
 	.stars {
 		background: url('/stars.avif');

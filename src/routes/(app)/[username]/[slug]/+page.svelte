@@ -73,7 +73,7 @@
 
 <main class="mx-4 flex w-full flex-col items-center font-spacemono">
 	<div
-		class="relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 border-[1px] border-black rounded-xl bg-pink-300/10 p-8 text-xl"
+		class="relative m-4 mt-12 flex w-full max-w-[700px] flex-col justify-center gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
 	>
 		<h1 class="relative mt-2 max-w-72 self-center text-center font-rubik text-4xl">
 			{#if !editingState.editing}

@@ -3,10 +3,20 @@
 @tailwind utilities;
 @tailwind variants;
 
-.input {
-    @apply !border-white !bg-purple-950/10 !text-white;
+.input,
+textarea,
+.input-group {
+	@apply !border-white !bg-purple-950/10 !text-white;
 }
 
 input::placeholder {
-    @apply !text-white/70;
+	@apply !text-white/70;
+}
+
+.card {
+	@apply !rounded-xl !border-[1px] !border-black !bg-pink-300/10;
+}
+
+.modal.contents .card {
+	@apply !bg-purple-950;
 }

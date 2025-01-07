@@ -186,7 +186,7 @@
 					<CompositeMarkdownEditor bind:content={editingState.page.markdown} />
 				{/if}
 			</div>
-			{#if data.page.links.length > 0 || editingState.editing}
+			<!-- {#if data.page.links.length > 0 || editingState.editing}
 				<hr />
 				<div>
 					<h2 class="mb-3 text-center text-2xl font-bold">Links</h2>
@@ -204,7 +204,7 @@
 						<LinksEditor bind:links={editingState.page.links} />
 					{/if}
 				</div>
-			{/if}
+			{/if} -->
 		</div>
 	</div>
 </main>

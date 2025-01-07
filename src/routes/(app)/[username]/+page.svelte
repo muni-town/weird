@@ -283,7 +283,7 @@
 			</div>
 			{#if normalProfileLinks.length > 0 || editingState.editing}
 				<div>
-					<h2 class="mb-3 text-center font-rubik text-2xl font-bold">Links</h2>
+					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Links</h2>
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-4">
 							{#each normalProfileLinks as link (link.url)}
@@ -302,7 +302,7 @@
 			{#if data.pages.length > 0}
 				<div>
 					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
-					<ul class="flex flex-col items-center gap-8">
+					<ul class="mt-6 flex flex-col items-center gap-10">
 						{#each data.pages as p}
 							<li>
 								<a class="link" href={`/${$page.params.username}/${p.slug}`}>

@@ -93,9 +93,8 @@
 			<CompositeMarkdownEditor bind:content={page.markdown} />
 		</div>
 
-		<h2 class="text-2xl font-bold">Links</h2>
-
-		<LinksEditor bind:links={page.links} />
+		<!-- <h2 class="text-2xl font-bold">Links</h2>
+		<LinksEditor bind:links={page.links} /> -->
 
 		<form class="flex justify-end" method="post" onsubmit={handleSubmit}>
 			<input type="hidden" name="data" bind:value={pageFormData.value} />

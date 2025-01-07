@@ -93,13 +93,14 @@
 		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #cb5873);
 		background-repeat: no-repeat;
 		background-size: cover;
+		position: relative;
 	}
 
 	.stars {
 		background: url('/stars.avif');
 		pointer-events: none;
 		/* extend a bit more than the viewport */
-		height: 100vh;
+		height: 100%;
 		width: 100%;
 		background-position: center;
 		background-size: 1500px;

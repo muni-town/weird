@@ -58,7 +58,7 @@
 </svelte:head>
 
 <main class="mx-4 mt-4 flex w-full flex-col items-center">
-	<div class="card m-4 mt-8 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
+	<div class="border-[1px] border-black rounded-xl bg-pink-300/10 m-4 mt-8 flex w-full max-w-[700px] flex-col gap-4 p-8 text-xl">
 		<h1 class="relative my-3 text-center text-4xl">
 			<div>
 				<InlineTextEditor bind:this={displayNameEditorEl} bind:content={page.display_name} />

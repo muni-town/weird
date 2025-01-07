@@ -2,3 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 @tailwind variants;
+
+.input {
+    @apply !border-white !bg-purple-950/10 !text-white;
+}
+
+input::placeholder {
+    @apply !text-white/70;
+}

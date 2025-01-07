@@ -64,7 +64,7 @@
 <div class="flex flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
 	{#if data.profileMatchesUserSession}
 		<aside
-			class="card sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col p-5 sm:h-[85vh] sm:w-auto"
+			class="sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col border-[1px] border-black rounded-xl bg-pink-300/10 p-5 sm:h-[85vh] sm:w-auto"
 		>
 			<div class="mb-3 flex flex-row items-start justify-between">
 				<h1 class="mb-2 text-xl font-bold">Pages</h1>
@@ -91,16 +91,16 @@
 			<h2 class="mb-2 text-lg font-bold">Settings</h2>
 			<div class="flex flex-col gap-2">
 				<button
-					class="variant-ghost btn"
+					class="variant-outline btn"
 					onclick={() => modalStore.trigger(manageSubscriptionModal)}
 				>
 					Manage Subscription
 				</button>
-				<button class="variant-ghost btn" onclick={() => modalStore.trigger(setHandleModal)}>
+				<button class="variant-outline btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle
 				</button>
 				<button
-					class="variant-ghost-error btn"
+					class="variant-outline btn"
 					onclick={() => modalStore.trigger(deleteProfileModal)}
 				>
 					Delete Profile

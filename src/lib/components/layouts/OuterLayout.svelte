@@ -12,7 +12,9 @@
 	<title>{env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<AppBar background="bg-surface-100/10" i classes="blur-sm">
+<div class="stars"></div>
+
+<AppBar background="bg-pink-300/20">
 	{#snippet lead()}
 		<img src="/favicon.png" alt="Weird Logo" width="40px" />
 	{/snippet}
@@ -87,7 +89,26 @@
 		src: url('/UncutSans-Variable.woff2');
 	}
 
-	.weird-container {
+	:global(body) {
+    /* background: linear-gradient(180deg, #250941 20%, #de7287 40%); */
 		background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #cb5873);
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+	.stars {
+		background: url('/stars.avif');
+		pointer-events: none;
+		/* extend a bit more than the viewport */
+		height: 100vh;
+		width: 100%;
+		background-position: center;
+		background-size: 100%;
+		background-blend-mode: darken;
+		position: absolute;
+		left: 0;
+		top: 0;
+		overflow: hidden;
+		opacity: 0.25;
 	}
 </style>

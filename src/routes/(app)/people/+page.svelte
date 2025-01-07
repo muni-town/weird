@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
-	import MainContent from '$lib/components/theme/MainContent.svelte';
 	import SearchInput from '$lib/components/theme/SearchInput.svelte';
 	import type { SvelteComponent } from 'svelte';
 	import type { PageData } from './$types';

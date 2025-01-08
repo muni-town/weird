@@ -272,6 +272,7 @@
 		width: 200px;
 		margin-left: auto;
 		margin-right: auto;
+		border-radius: 100%;
 	}
 
 	.tags {

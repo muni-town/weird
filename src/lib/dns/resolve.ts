@@ -1,39 +1,24 @@
 import { base32Decode, type SubspaceId } from 'leaf-proto';
-import dns, {
-	type AnyRecord,
-	type MxRecord,
-	type NaptrRecord,
-	type SoaRecord,
-	type SrvRecord
-} from 'node:dns';
+import nodeDns from 'node:dns';
 import { isIP } from 'node:net';
+import dns2 from 'dns2';
 
-export type ResolveResponse =
-	| string[]
-	| MxRecord[]
-	| NaptrRecord[]
-	| SoaRecord
-	| SrvRecord[]
-	| string[][]
-	| AnyRecord[];
-
-export async function resolveAuthoritative(hostname: string, type: 'TXT' | 'A'): Promise<string[]>;
-export async function resolveAuthoritative(hostname: string, type: 'A'): Promise<string[]>;
-export async function resolveAuthoritative(hostname: string, type: 'CNAME'): Promise<string[]>;
-export async function resolveAuthoritative(hostname: string, type = 'A'): Promise<ResolveResponse> {
-	const resolver = new dns.Resolver();
-	resolver.setServers(dns.getServers());
+export async function resolveAuthoritative(
+	hostname: string,
+	type: dns2.PacketQuestion
+): Promise<dns2.DnsAnswer[]> {
+	console.log('resolving', hostname);
+	let resolver = new dns2({
+		nameServers: nodeDns.getServers(),
+		recursive: false
+	});
 	const ns: string[] = await new Promise(async (res, rej) => {
 		// Climb the subdomains up to find the nameserver responsible for it.
 		let h = hostname;
 		while (true) {
 			try {
-				const records = await new Promise((res, rej) =>
-					resolver.resolveNs(h, (err, addrs) => {
-						err ? rej(err) : res(addrs);
-					})
-				);
-				return res(records as string[]);
+				const records = await resolver.resolve(h, 'NS');
+				return res(records.answers.filter((x) => x.name == h).map((x) => x.address!));
 			} catch (e) {
 				if (h.split('.').length <= 2) {
 					return rej(e);
@@ -48,19 +33,14 @@ export async function resolveAuthoritative(hostname: string, type = 'A'): Promis
 			if (isIP(host) || isIP(host.split(':')[0])) {
 				return [host];
 			} else {
-				return await new Promise((res, rej) => {
-					resolver.resolve(host.split(':')[0], (err, addrs) => (err ? rej(err) : res(addrs)));
-				});
+				return (await resolver.resolve(host.split(':')[0])).answers.map((x) => x.address!);
 			}
 		})
 	);
-	resolver.setServers(nsIps.flat());
-	const result: ResolveResponse = await new Promise((res, rej) =>
-		resolver.resolve(hostname, type, (err, addrs) => {
-			console.log(err);
-			err ? rej(err) : res(addrs);
-		})
-	);
+	resolver = new dns2({
+		nameServers: nsIps.flat()
+	});
+	const result = (await resolver.resolve(hostname, type)).answers;
 	return result;
 }
 
@@ -72,7 +52,7 @@ export async function resolveUserSubspaceFromDNS(
 ): Promise<ResolvedUser | undefined> {
 	const txtRecords = await resolveAuthoritative('_weird.' + domain, 'TXT');
 	// TODO: Resolve Iroh ticket / NodeID along with subspace
-	for (const record of txtRecords) {
+	for (const record of txtRecords.map((x) => x.data || '')) {
 		const [key, value] = record.split('=');
 
 		if (key == 'subspace') {

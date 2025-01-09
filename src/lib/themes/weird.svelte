@@ -10,6 +10,7 @@
 	type Props = {
 		avatar: string;
 		profile: Profile;
+		pages: { name?: string; slug: string }[];
 		token: any;
 		is_author: boolean;
 		footer: Snippet;
@@ -17,7 +18,8 @@
 		setUnsavedChanges: (value: boolean) => void;
 	};
 
-	let { avatar, profile, token, is_author, setAvatar, setUnsavedChanges, footer }: Props = $props();
+	let { avatar, profile, token, pages, is_author, setAvatar, setUnsavedChanges, footer }: Props =
+		$props();
 
 	let editingTags = $state(false);
 	let linkLabel = $state('');
@@ -169,9 +171,10 @@
 			{/if}
 		</section>
 
-		<section class="links">
-			<a href={`${env.PUBLIC_URL}/${$page.url.host}`} class="link">Weird</a>
-			{#if profile.links}
+		{#if profile.links}
+			<section class="links">
+				<h2>Links</h2>
+				<a href={`${env.PUBLIC_URL}/${$page.url.host}`} class="link">Weird</a>
 				{#each profile.links as link}
 					{#if is_author}
 						<a
@@ -193,18 +196,19 @@
 						</a>
 					{/if}
 				{/each}
-			{/if}
-			{#if is_author}
-				<span
-					class="link"
-					style="color: var(--pico-primary); cursor: pointer;"
-					onclick={() => ((editingTags = true), (linkLabel = ''), (linkUrl = ''))}
-					title="Add link"
-				>
-					+
-				</span>
-			{/if}
-		</section>
+			</section>
+		{/if}
+
+		{#if pages?.length > 0}
+			<section class="links">
+				<h2>Pages</h2>
+				{#each pages as link}
+					<a href={`${env.PUBLIC_URL}/${$page.params.username}/${link.slug}`} target="_blank" class="link">
+						{link.name || `${env.PUBLIC_URL}/${$page.params.username}/${link.slug}`}
+					</a>
+				{/each}
+			</section>
+		{/if}
 
 		{@render footer()}
 	</main>
@@ -295,6 +299,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
+
+		h2 {
+			text-align: center;
+		}
 	}
 
 	.link {

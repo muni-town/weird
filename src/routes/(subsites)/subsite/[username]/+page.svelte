@@ -9,6 +9,7 @@
 	import { page } from '$app/stores';
 	const { data }: { data: PageData } = $props();
 	const profile: Profile = data.profile!;
+	const pages = data.pages;
 	// const token = data.token!;
 	// const is_author = data.is_author!;
 
@@ -108,6 +109,7 @@
 {:else if theme === 'weird'}
 	<Weird
 		{profile}
+		{pages}
 		token={undefined}
 		is_author={false}
 		{setUnsavedChanges}

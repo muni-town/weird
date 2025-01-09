@@ -4,6 +4,7 @@ import type { Actions } from './$types';
 import { marked } from 'marked';
 import { emailer } from '$lib/email';
 import { listRauthyUsers } from '$lib/rauthy/server';
+import { env } from '$env/dynamic/private';
 
 export const load: ServerLoad = async ({}) => {};
 
@@ -37,6 +38,7 @@ export const actions = {
 		for (const recipient of recipients) {
 			await emailer.sendMail({
 				to: recipient,
+				from: env.SMTP_FROM,
 				subject,
 				text: bodyMarkdown,
 				html: bodyHtml

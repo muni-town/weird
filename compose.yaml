@@ -48,7 +48,7 @@ services:
       SMTP_DANGER_INSECURE_PORT: 25
       SMTP_USERNAME: dummy
       SMTP_PASSWORD: dummy
-      SMTP_FROM: rauthy@localhost.de
+      SMTP_FROM: Weird One <rauthy@localhost.de>
       SMTP_DANGER_INSECURE: true
       EMAIL_SUB_PREFIX: Weird.One
       LOG_LEVEL_ACCESS: Verbose

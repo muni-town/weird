@@ -176,7 +176,7 @@
 					</figcaption>
 				</figure>
 			{/if}
-			<div class="max-w-ful flex flex-shrink flex-col overflow-hidden">
+			<div class="flex flex-shrink flex-col overflow-hidden">
 				<h1 class="relative grid overflow-hidden text-ellipsis font-rubik text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">

@@ -106,7 +106,7 @@
 
 	<div class="hidden flex-grow sm:block"></div>
 
-	<div class="flex max-w-full flex-col items-center">
+	<div class="flex max-w-full grow flex-col items-center">
 		{#if error}
 			<aside class="alert variant-ghost-error relative mt-8 w-full">
 				<div class="alert-message">

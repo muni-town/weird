@@ -20,3 +20,11 @@ input::placeholder {
 .modal.contents .card {
 	@apply !bg-purple-950;
 }
+
+.slide-toggle-track {
+	@apply !bg-white/20;
+}
+
+[aria-checked='true'] .slide-toggle-track {
+	@apply !bg-success-500/75;
+}

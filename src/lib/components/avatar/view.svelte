@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	let { src, width }: { src?: string; width?: string } = $props();
+	let { src, width, ...rest }: { src?: string; width?: string; } & any = $props();
 </script>
 
 <Avatar
@@ -9,4 +9,5 @@
 	src={src || '/default-avatar.svg'}
 	rounded="rounded-full"
 	width={width || 'w-32'}
+	{...rest}
 />

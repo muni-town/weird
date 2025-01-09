@@ -153,13 +153,13 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center font-spacemono">
+<main class="mx-4 flex w-full flex-col items-center font-spacemono max-w-full px-2">
 	<div
 		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
 	>
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
-				<Avatar src={`/${data.username}/avatar`} />
+				<Avatar src={`/${data.username}/avatar`} class="min-w-[40px]" />
 			{:else}
 				<figure class="relative">
 					<Avatar src={avatarSrcOverride || `/${data.username}/avatar`} />
@@ -176,8 +176,8 @@
 					</figcaption>
 				</figure>
 			{/if}
-			<div class="flex flex-col">
-				<h1 class="relative grid font-rubik text-4xl">
+			<div class="flex flex-col flex-shrink max-w-ful overflow-hidden">
+				<h1 class="relative grid font-rubik text-4xl overflow-hidden text-ellipsis">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
 							{profile.display_name || usernames.shortNameOrDomain(data.username)}
@@ -197,7 +197,7 @@
 				</h1>
 				<a
 					href={pubpageUrl}
-					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
+					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4 overflow-hidden text-ellipsis"
 				>
 					{pubpageHost}
 				</a>

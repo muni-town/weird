@@ -61,10 +61,10 @@
 	}
 </script>
 
-<div class="flex flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
+<div class="flex flex-row flex-wrap-reverse justify-center sm:flex-nowrap max-w-full">
 	{#if data.profileMatchesUserSession}
 		<aside
-			class="sticky top-8 mx-4 my-8 flex w-full min-w-[15em] flex-col rounded-xl border-[1px] border-black bg-pink-300/10 p-5 sm:h-[85vh] sm:w-auto"
+			class="sidebar"
 		>
 			<div class="mb-3 flex flex-row items-start justify-between">
 				<h1 class="mb-2 text-xl font-bold">Pages</h1>
@@ -108,7 +108,7 @@
 
 	<div class="hidden flex-grow sm:block"></div>
 
-	<div class="flex flex-col items-center">
+	<div class="flex flex-col items-center max-w-full">
 		{#if error}
 			<aside class="alert variant-ghost-error relative mt-8 w-full">
 				<div class="alert-message">
@@ -140,3 +140,12 @@
 
 	<div class="hidden flex-grow sm:block"></div>
 </div>
+
+<style>
+	.sidebar {
+		@apply sticky top-8 mx-4 my-8 flex w-full sm:w-auto flex-col rounded-xl border-[1px] border-black bg-pink-300/10 p-5 sm:h-[85vh] flex-shrink;
+		.btn {
+			text-wrap: wrap;
+		}
+	}
+</style>

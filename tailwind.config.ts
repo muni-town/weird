@@ -16,13 +16,16 @@ const config = {
 		join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')
 	],
 	theme: {
+		screens: {
+			'sm': '800px'
+		},
 		extend: {
 			fontFamily: {
 				uncut: ['Uncut Sans'],
 				rubik: ['Rubik Mono One'],
 				spacemono: ['Space Mono']
 			}
-		}
+		},
 	},
 	plugins: [
 		typography,

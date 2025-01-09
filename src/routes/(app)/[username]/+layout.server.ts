@@ -9,10 +9,10 @@ import { base32Encode } from 'leaf-proto';
 import { billing, type UserSubscriptionInfo } from '$lib/billing';
 import { verifiedLinks } from '$lib/verifiedLinks';
 
-export const load: LayoutServerLoad = async ({ fetch, params, request }) => {
+export const load: LayoutServerLoad = async ({ fetch, params, request, url }) => {
 	const username = usernames.shortNameOrDomain(params.username!);
 	if (username != params.username) {
-		return redirect(302, `/${username}`);
+		return redirect(302, `/${username}/${url.pathname.split('/').slice(2).join('/')}`);
 	}
 
 	const fullUsername = usernames.fullDomain(params.username!);

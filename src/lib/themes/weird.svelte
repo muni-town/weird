@@ -4,6 +4,7 @@
 	import AvatarEditor from '$lib/components/avatar/editor.svelte';
 	import EditLinks from '$lib/components/pubpage-admin/edit-links.svelte';
 	import type { Profile } from '$lib/leaf/profile';
+	import { usernames } from '$lib/usernames/client';
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import type { Snippet } from 'svelte';
 
@@ -203,8 +204,13 @@
 			<section class="links">
 				<h2>Pages</h2>
 				{#each pages as link}
-					<a href={`${env.PUBLIC_URL}/${$page.params.username}/${link.slug}`} target="_blank" class="link">
-						{link.name || `${env.PUBLIC_URL}/${$page.params.username}/${link.slug}`}
+					<a
+						href={`${env.PUBLIC_URL}/${usernames.shortNameOrDomain($page.params.username)}/${link.slug}`}
+						target="_blank"
+						class="link"
+					>
+						{link.name ||
+							`${env.PUBLIC_URL}/${usernames.shortNameOrDomain($page.params.username)}/${link.slug}`}
 					</a>
 				{/each}
 			</section>

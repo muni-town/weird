@@ -83,9 +83,6 @@ importers:
       '@types/dns-packet':
         specifier: ^5.6.5
         version: 5.6.5
-      '@types/dns2':
-        specifier: ^2.0.9
-        version: 2.0.9
       '@types/eslint':
         specifier: ^8.56.12
         version: 8.56.12
@@ -140,9 +137,6 @@ importers:
       dns-packet:
         specifier: ^5.6.1
         version: 5.6.1
-      dns2:
-        specifier: ^2.1.0
-        version: 2.1.0
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -1279,9 +1273,6 @@ packages:
   '@types/dns-packet@5.6.5':
     resolution: {integrity: sha512-qXOC7XLOEe43ehtWJCMnQXvgcIpv6rPmQ1jXT98Ad8A3TB1Ue50jsCbSSSyuazScEuZ/Q026vHbrOTVkmwA+7Q==}
 
-  '@types/dns2@2.0.9':
-    resolution: {integrity: sha512-+eiPSuo/KfvaaW7DiMf/vrt9mhxbZCCgxoCa/c2qMVSuZQus4BzBuKRh8XBwcUXWAtvI8QuZOp13UODJNq9DXg==}
-
   '@types/eslint@8.56.12':
     resolution: {integrity: sha512-03ruubjWyOHlmljCVoxSuNDdmfZDzsrrz0P2LeJsOXr+ZwFQ+0yQIwNCwt/GYhV7Z31fgtXJTAEs+FYlEL851g==}
 
@@ -1778,9 +1769,6 @@ packages:
   dns-packet@5.6.1:
     resolution: {integrity: sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==}
     engines: {node: '>=6'}
-
-  dns2@2.1.0:
-    resolution: {integrity: sha512-m27K11aQalRbmUs7RLaz6aPyceLjAoqjPRNTdE7qUouQpl+PC8Bi67O+i9SuJUPbQC8dxFrczAxfmTPuTKHNkw==}
 
   doctrine@3.0.0:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
@@ -4240,10 +4228,6 @@ snapshots:
     dependencies:
       '@types/node': 20.17.8
 
-  '@types/dns2@2.0.9':
-    dependencies:
-      '@types/node': 20.17.8
-
   '@types/eslint@8.56.12':
     dependencies:
       '@types/estree': 1.0.6
@@ -4777,8 +4761,6 @@ snapshots:
   dns-packet@5.6.1:
     dependencies:
       '@leichtgewicht/ip-codec': 2.0.5
-
-  dns2@2.1.0: {}
 
   doctrine@3.0.0:
     dependencies:

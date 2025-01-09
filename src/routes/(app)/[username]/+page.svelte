@@ -153,7 +153,7 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center font-spacemono max-w-full px-2">
+<main class="mx-4 flex w-full max-w-full flex-col items-center px-2 font-spacemono">
 	<div
 		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
 	>
@@ -176,8 +176,8 @@
 					</figcaption>
 				</figure>
 			{/if}
-			<div class="flex flex-col flex-shrink max-w-ful overflow-hidden">
-				<h1 class="relative grid font-rubik text-4xl overflow-hidden text-ellipsis">
+			<div class="max-w-ful flex flex-shrink flex-col overflow-hidden">
+				<h1 class="relative grid overflow-hidden text-ellipsis font-rubik text-4xl">
 					{#if !editingState.editing}
 						<div style="grid-area: 1 / 1;">
 							{profile.display_name || usernames.shortNameOrDomain(data.username)}
@@ -197,7 +197,7 @@
 				</h1>
 				<a
 					href={pubpageUrl}
-					class="text-center text-sm text-surface-100 underline decoration-1 underline-offset-4 overflow-hidden text-ellipsis"
+					class="overflow-hidden text-ellipsis text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
 				>
 					{pubpageHost}
 				</a>

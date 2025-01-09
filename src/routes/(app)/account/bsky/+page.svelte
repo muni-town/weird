@@ -12,7 +12,7 @@
 		</aside>
 	{/if}
 	<form method="post" class="mt-6">
-		<div class=" flex flex-col items-center gap-4 md:flex-row">
+		<div class=" md:flex-row flex flex-col items-center gap-4">
 			<input required type="text" class="input" name="username" placeholder="Enter bsky username" />
 			<button type="submit" class="variant-filled btn">Continue</button>
 		</div>

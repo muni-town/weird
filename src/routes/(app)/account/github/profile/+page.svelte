@@ -11,7 +11,7 @@
 	const user = data.user;
 </script>
 
-<div class="container mx-auto flex flex-col gap-8 px-4 py-8 md:px-0">
+<div class="md:px-0 container mx-auto flex flex-col gap-8 px-4 py-8">
 	<section>
 		<div>
 			<img src={user.avatar_url} alt={user.name} class={`aspect-square h-64 w-64 rounded-full`} />
@@ -81,7 +81,7 @@
 
 	<section>
 		<h3 class="text-xl font-medium">Repositories</h3>
-		<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+		<div class="md:grid-cols-2 xl:grid-cols-3 mt-4 grid grid-cols-1 gap-4">
 			{#each data.repos as repo}
 				<Repository {repo} />
 			{/each}

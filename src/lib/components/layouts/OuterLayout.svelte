@@ -68,7 +68,7 @@
 </AppBar>
 
 <div class="weird-container relative flex h-full min-h-screen max-w-full flex-col">
-	<div class="flex-grow max-w-full">
+	<div class="max-w-full flex-grow">
 		{@render children()}
 	</div>
 

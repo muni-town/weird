@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Avatar } from '@skeletonlabs/skeleton';
 
-	let { src, width, ...rest }: { src?: string; width?: string; } & any = $props();
+	let { src, width, ...rest }: { src?: string; width?: string } & any = $props();
 </script>
 
 <Avatar

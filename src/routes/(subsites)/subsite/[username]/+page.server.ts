@@ -30,6 +30,5 @@ export const load: PageServerLoad = async ({
 		)
 	).filter((x) => x) as { slug: string; name?: string }[];
 
-
 	return { profile, pages, params: { ...params } };
 };

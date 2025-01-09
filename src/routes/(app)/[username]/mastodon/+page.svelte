@@ -97,21 +97,21 @@
 					<img
 						src={mastodon_profile.avatar}
 						alt="Profile Picture"
-						class="h-24 w-24 rounded-full md:h-32 md:w-32"
+						class="md:h-32 md:w-32 h-24 w-24 rounded-full"
 					/>
 				</div>
 				<!-- Profile Info -->
-				<div class="ml-4 flex-grow text-sm md:ml-8 md:text-lg">
+				<div class="md:ml-8 md:text-lg ml-4 flex-grow text-sm">
 					<h2 class="text-2xl font-bold">{mastodon_profile.display_name}</h2>
 					<a href={mastodon_profile.uri} class="text-gray-600 no-underline hover:underline"
 						>@{mastodon_profile.username}@{mastodon_profile.mastodon_server}</a
 					>
 					<div class="mt-4">
 						<div class="flex items-center">
-							<p class="mr-2 text-center md:mr-2">
+							<p class="md:mr-2 mr-2 text-center">
 								<span class="font-bold">{mastodon_profile.statuses_count}</span> Posts
 							</p>
-							<p class="mr-2 text-center md:mr-2">
+							<p class="md:mr-2 mr-2 text-center">
 								<span class="font-bold">{mastodon_profile.followers_count}</span> Followers
 							</p>
 							<p class="text-center">
@@ -121,14 +121,14 @@
 					</div>
 				</div>
 			</div>
-			<span class="mastodon block p-6 text-sm md:text-base lg:text-lg"
+			<span class="mastodon md:text-base lg:text-lg block p-6 text-sm"
 				>{@html sanitize(mastodon_profile.description)}</span
 			>
-			<div class="justify-start md:flex md:flex-wrap md:items-center">
+			<div class="md:flex md:flex-wrap md:items-center justify-start">
 				{#each mastodon_profile.fields as field}
 					<a
 						href={parseLink(field.value)}
-						class="y-2 mx-3 my-2 block rounded bg-white px-3 py-1 shadow hover:bg-gray-50 dark:bg-slate-800 md:mx-1 md:my-1 md:rounded-xl"
+						class="y-2 md:mx-1 md:my-1 md:rounded-xl mx-3 my-2 block rounded bg-white px-3 py-1 shadow hover:bg-gray-50 dark:bg-slate-800"
 						target="_blank"
 						rel="noopener noreferrer"
 					>
@@ -154,7 +154,7 @@
 				bind:value={search}
 			/>
 		</div>
-		<div class="columns-1 md:columns-2 lg:columns-3 xl:columns-4">
+		<div class="md:columns-2 lg:columns-3 xl:columns-4 columns-1">
 			{#each statuses as status}
 				<div
 					class="w-full p-2 no-underline"

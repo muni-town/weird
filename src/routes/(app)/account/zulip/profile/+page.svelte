@@ -9,7 +9,7 @@
 </script>
 
 <div class="container mx-auto py-12">
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+	<div class="md:grid-cols-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
 		{#each subscriptions as s (s.stream_id)}
 			<article class="card">
 				<h4 class="card-header font-bold">{s.name}</h4>

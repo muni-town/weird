@@ -17,7 +17,7 @@ const config = {
 	],
 	theme: {
 		screens: {
-			'sm': '800px'
+			sm: '800px'
 		},
 		extend: {
 			fontFamily: {
@@ -25,7 +25,7 @@ const config = {
 				rubik: ['Rubik Mono One'],
 				spacemono: ['Space Mono']
 			}
-		},
+		}
 	},
 	plugins: [
 		typography,

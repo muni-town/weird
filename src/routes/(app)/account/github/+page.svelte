@@ -7,7 +7,7 @@
 	const githubAuthUrl = `${GH_OAUTH_URI}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 </script>
 
-<div class="flex justify-center px-4 py-10 md:px-0">
+<div class="md:px-0 flex justify-center px-4 py-10">
 	<a href={githubAuthUrl} class="rounded-md bg-gray-700 px-4 py-3 text-white hover:bg-gray-800"
 		>Connect with Github</a
 	>

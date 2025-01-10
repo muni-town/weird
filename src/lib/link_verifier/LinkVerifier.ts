@@ -2,6 +2,7 @@ import { parseHTML } from 'linkedom';
 
 import type { LinkVerificationStrategyFactory } from './strategy/LinkVerificationStrategy';
 import { DefaultLinkVerificationStrategy } from './strategy/DefaultLinkVerificationStrategy';
+import { limitedFetch } from '$lib/limited-fetch';
 
 export const VERIFIABLE_ORIGIN_STRATEGY: Record<string, LinkVerificationStrategyFactory> = {
 	// Put custom link verifiers for specific domains here once we have them.
@@ -20,7 +21,7 @@ export class LinkVerifier {
 	}
 
 	private static async fetchHtml(webLink: string): Promise<Window> {
-		const res = await fetch(webLink);
+		const res = await limitedFetch({ timeout: 3 * 1000, maxSize: 1 * 1024 * 1024 }, webLink);
 
 		if (res.status === 200) {
 			const resText = await res.text();

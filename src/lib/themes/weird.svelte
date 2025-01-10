@@ -66,10 +66,15 @@
 	const deleteTag = (tag: string) => {
 		profile.tags = profile.tags.filter((t) => t !== tag);
 	};
+
+	const canonicalUrl = new URL($page.url);
+	canonicalUrl.search = '';
+	canonicalUrl.hash = '';
 </script>
 
 <svelte:head>
 	<link rel="stylesheet" href="pico.min.css" />
+	<link rel="canonical" href={canonicalUrl.href} />
 </svelte:head>
 
 <div class="stars"></div>
@@ -175,27 +180,11 @@
 		{#if profile.links}
 			<section class="links">
 				<h2>Links</h2>
-				<a href={`${env.PUBLIC_URL}/${$page.url.host}`} class="link">Weird</a>
+				<a href={`${env.PUBLIC_URL}/${$page.url.host}`} rel="me alternate" class="link">Weird</a>
 				{#each profile.links as link}
-					{#if is_author}
-						<a
-							href={link.url}
-							target="_blank"
-							onclick={(e) => (
-								e.preventDefault(),
-								(editingTags = true),
-								(linkLabel = link.label!),
-								(linkUrl = link.url!)
-							)}
-							class="link"
-						>
-							{link.label}
-						</a>blackblack
-					{:else}
-						<a href={link.url} target="_blank" class="link">
-							{link.label || link.url}
-						</a>
-					{/if}
+					<a rel="me" href={link.url} target="_blank" class="link">
+						{link.label || link.url}
+					</a>
 				{/each}
 			</section>
 		{/if}

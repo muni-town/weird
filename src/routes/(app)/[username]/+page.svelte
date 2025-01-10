@@ -197,6 +197,7 @@
 				</h1>
 				<a
 					href={pubpageUrl}
+					rel="me canonical"
 					class="overflow-hidden text-ellipsis text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
 				>
 					{pubpageHost}
@@ -291,6 +292,7 @@
 									url={link.url}
 									label={link.label}
 									verified={data.verifiedLinks.includes(link.url)}
+									rel="me"
 								/>
 							{/each}
 						</ul>

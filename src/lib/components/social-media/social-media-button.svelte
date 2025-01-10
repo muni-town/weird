@@ -1,10 +1,13 @@
-<script>
+<script lang="ts">
 	import { getSocialMediaDetails } from '$lib/utils/social-links';
 	import Icon from '@iconify/svelte';
 
-	export let label = '';
-	export let url;
-	export let verified = false;
+	let {
+		label = '',
+		url,
+		verified = false,
+		rel
+	}: { label?: string; url: string; verified?: boolean; rel?: string } = $props();
 	const socialMedia = getSocialMediaDetails(url);
 </script>
 
@@ -15,7 +18,7 @@
 		</span>
 	{/if}
 
-	<a href={url} target="_blank" class="link">
+	<a href={url} target="_blank" class="link" {rel}>
 		{#if socialMedia?.icon}
 			<span>
 				<Icon icon={socialMedia.icon} class="h-6 w-6" />

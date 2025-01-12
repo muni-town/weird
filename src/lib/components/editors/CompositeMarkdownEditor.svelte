@@ -8,6 +8,7 @@
 	import { convertSyncStepsToNodes } from './editor-history';
 	import './CollaborativeEditor.css';
 	import type { ViewDagNode } from './DagView.svelte';
+	import { toByteArray } from 'base64-js';
 
 	let {
 		content = $bindable(''),
@@ -29,14 +30,27 @@
 	let loroDoc = new LoroDoc();
 	let idA = loroDoc.peerIdStr;
 	let awareness = new CursorAwareness(idA);
+	const savedState = localStorage.getItem('loro-editor-state');
+	if (savedState) {
+		try {
+			const blob = toByteArray(savedState);
+			loroDoc.import(blob);
+			console.log("imported saved state")
+			console.log(loroDoc.toJSON())
+			dagInfo = convertSyncStepsToNodes(loroDoc);
+		} catch (e) {
+			console.error('Failed to load saved state:', e);
+		}
+	}
+
 
 	// 初始化时开启时间戳记录
 	loroDoc.setRecordTimestamp(true);
+	loroDoc.setChangeMergeInterval(10);
 
 	// 监听变化更新历史信息
 	loroDoc.subscribe((event) => {
 		if (event.by === "local") {
-			loroDoc.commit();
 			dagInfo = convertSyncStepsToNodes(loroDoc);
 		}
 	});

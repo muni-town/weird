@@ -40,9 +40,6 @@
 		initialized= true;
 		console.log("initLoroDoc")
 		const savedState = localStorage.getItem('loro-editor-state');
-		const sessionId = Math.floor(Math.random() * 1000000).toString(16);
-		loroDoc.setNextCommitMessage(`sessionId: ${sessionId}`);
-		
 		if (savedState) {
 			try {
 				const blob = toByteArray(savedState);
@@ -57,6 +54,7 @@
 		// 监听文档变化并保存
 		unsubscribe = loroDoc.subscribe(() => {
 			console.log("currentDoc",loroDoc.toJSON())
+			console.log("currenthistory",loroDoc.exportJsonUpdates(undefined, undefined, false))
 			if (saveTimeout) {
 				clearTimeout(saveTimeout);
 			}
@@ -65,7 +63,6 @@
 				localStorage.setItem('loro-editor-state', fromByteArray(state));
 				saveTimeout = undefined;
 			}, 1000) as unknown as number;
-			loroDoc.setNextCommitMessage(`sessionId: ${sessionId}`);
 		});
 
 		// 初始化文档内容

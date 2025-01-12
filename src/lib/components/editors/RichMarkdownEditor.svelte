@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
-
 	import {
 		schema as markdownSchema,
 		defaultMarkdownParser,
@@ -12,7 +11,7 @@
 	import { undo, redo, history } from 'prosemirror-history';
 	import { keymap } from 'prosemirror-keymap';
 	import { baseKeymap } from 'prosemirror-commands';
-	import { LoroDoc, type Container } from 'loro-crdt';
+	import { LoroDoc } from 'loro-crdt';
 	import {
 		CursorAwareness,
 		LoroCursorPlugin,
@@ -23,19 +22,26 @@
 
 	import 'prosemirror-view/style/prosemirror.css';
 
-	let { content = $bindable(), ...attrs }: { content: string } & HTMLAttributes<HTMLSpanElement> =
-		$props();
+	interface Props extends HTMLAttributes<HTMLSpanElement> {
+		content: string;
+		loro: LoroDoc;
+		awareness: CursorAwareness;
+		containerId: string;
+	}
 
+	let { content = $bindable(''), loro: loroDoc, awareness: cursorAwareness, containerId, ...attrs }: Props = $props();
+	let initialized = false;
 	let editor: EditorView = $state() as any;
-	let loroDoc: LoroDoc = $state() as any;
-	let awareness: CursorAwareness = $state() as any;
 	let saveTimeout: number | undefined = $state();
 	let unsubscribe: (() => void) | undefined = $state();
 
 	// 初始化或从localStorage加载LoroDoc
 	function initLoroDoc() {
+		initialized= true;
+		console.log("initLoroDoc")
 		const savedState = localStorage.getItem('loro-editor-state');
-		loroDoc = new LoroDoc();
+		const sessionId = Math.floor(Math.random() * 1000000).toString(16);
+		loroDoc.setNextCommitMessage(`sessionId: ${sessionId}`);
 		
 		if (savedState) {
 			try {
@@ -46,10 +52,11 @@
 			}
 		}
 
-		awareness = new CursorAwareness(loroDoc.peerIdStr);
+		cursorAwareness = new CursorAwareness(loroDoc.peerIdStr);
 		
 		// 监听文档变化并保存
 		unsubscribe = loroDoc.subscribe(() => {
+			console.log("currentDoc",loroDoc.toJSON())
 			if (saveTimeout) {
 				clearTimeout(saveTimeout);
 			}
@@ -58,6 +65,7 @@
 				localStorage.setItem('loro-editor-state', fromByteArray(state));
 				saveTimeout = undefined;
 			}, 1000) as unknown as number;
+			loroDoc.setNextCommitMessage(`sessionId: ${sessionId}`);
 		});
 
 		// 初始化文档内容
@@ -80,7 +88,7 @@
 	});
 
 	function editorPlugin(el: HTMLElement) {
-		if (!loroDoc) {
+		if (!initialized) {
 			initLoroDoc();
 		}
 
@@ -95,7 +103,7 @@
 				keymap(baseKeymap),
 				LoroSyncPlugin({ doc: loroDoc as any }),
 				LoroUndoPlugin({ doc: loroDoc as any }),
-				LoroCursorPlugin(awareness, {})
+				LoroCursorPlugin(cursorAwareness, {})
 			]
 		});
 

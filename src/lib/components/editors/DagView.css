@@ -1,0 +1,39 @@
+.dag-view-message:hover {
+    color: #777;
+    cursor: pointer;
+}
+
+.dag-view-message {
+    color: #333;
+}
+
+.dag-view-message .author {
+    color: #777;
+    margin-left: 0.8em;
+}
+
+.dag-view-message:hover .author {
+    color: #aaa;
+    margin-left: 0.8em;
+}
+
+.dag-view-message .operationType {
+    color: #777;
+    margin-left: 0.8em;
+}
+
+.dag-view-message:hover .operationType {
+    color: #aaa;
+    margin-left: 0.8em;
+}
+
+.dag-view-message .timestamp {
+    color: #777;
+    margin-left: 0.8em;
+}
+
+.dag-view-message:hover .timestamp {
+    color: #aaa;
+    margin-left: 0.8em;
+}
+

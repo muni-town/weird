@@ -2,7 +2,12 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import RichMarkdownEditor from './RichMarkdownEditor.svelte';
 	import MarkdownEditor from './MarkdownEditor.svelte';
-	import type { SvelteComponent } from 'svelte';
+	import DagView from './DagView.svelte';
+	import { LoroDoc } from 'loro-crdt';
+	import { CursorAwareness } from 'loro-prosemirror';
+	import { convertSyncStepsToNodes } from './editor-history';
+	import './CollaborativeEditor.css';
+	import type { ViewDagNode } from './DagView.svelte';
 
 	let {
 		content = $bindable(''),
@@ -14,6 +19,31 @@
 		maxLength?: number;
 		markdownMode?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
+
+	let showHistory = $state(false);
+	let dagInfo: { nodes: ViewDagNode[]; frontiers: string[] } = $state({
+		nodes: [],
+		frontiers: []
+	});
+
+	let loroDoc = new LoroDoc();
+	let idA = loroDoc.peerIdStr;
+	let awareness = new CursorAwareness(idA);
+
+	// 初始化时开启时间戳记录
+	loroDoc.setRecordTimestamp(true);
+
+	// 监听变化更新历史信息
+	loroDoc.subscribe((event) => {
+		if (event.by === "local") {
+			loroDoc.commit();
+			dagInfo = convertSyncStepsToNodes(loroDoc);
+		}
+	});
+
+	function toggleHistory() {
+		showHistory = !showHistory;
+	}
 
 	let shouldWiggle = $state(false);
 
@@ -34,33 +64,51 @@
 			}
 		}
 	};
-
-	// svelte-ignore non_reactive_update
-	let richEditorEl: SvelteComponent;
 </script>
 
-<div {...attrs} class="relative">
-	<div class="absolute -left-4 -top-4 z-10 flex w-full flex-row gap-1">
-		{#if maxLength != undefined}
-			<div
-				class="variant-filled badge transition-transform"
-				class:too-long-content-badge={shouldWiggle}
-				onanimationend={() => (shouldWiggle = false)}
-			>
-				Length: {content.length} / {maxLength}
+<div class="container">
+	<div class="editors-container">
+		<div class="editor-card">
+			<div class="editor-header">
+				<h3 class="editor-title">Editor</h3>
+				<div class="flex gap-2">
+					{#if maxLength != undefined}
+						<div
+							class="variant-filled badge transition-transform"
+							class:too-long-content-badge={shouldWiggle}
+							onanimationend={() => (shouldWiggle = false)}
+						>
+							Length: {content.length} / {maxLength}
+						</div>
+					{/if}
+					<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}>
+						{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}
+					</button>
+					<button class="status-button" onclick={toggleHistory}>
+						{showHistory ? '隐藏历史' : '显示历史'}
+					</button>
+				</div>
 			</div>
-		{/if}
-
-		<div class="flex-grow"></div>
-
-		<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}
-			>{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}</button
-		>
+			<div class="editor-content">
+				{#if !markdownMode}
+					<RichMarkdownEditor
+						loro={loroDoc}
+						awareness={awareness}
+						containerId={loroDoc.getMap("doc").id}
+						bind:content={contentProxy.value}
+					/>
+				{:else}
+					<MarkdownEditor bind:content={contentProxy.value} />
+				{/if}
+			</div>
+		</div>
 	</div>
-	{#if !markdownMode}
-		<RichMarkdownEditor bind:this={richEditorEl} bind:content={contentProxy.value} />
-	{:else}
-		<MarkdownEditor bind:content={contentProxy.value} />
+
+	{#if showHistory}
+		<div class="history-card">
+			<h3 class="history-title">Operation History</h3>
+			<DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
+		</div>
 	{/if}
 </div>
 
@@ -82,7 +130,7 @@
 			transform: rotate(10deg);
 		}
 		100% {
-			transform: rotate(0deb);
+			transform: rotate(0deg);
 		}
 	}
 
@@ -90,5 +138,13 @@
 		@apply variant-filled-error;
 		animation: wiggle;
 		animation-duration: 1s;
+	}
+
+	.flex {
+		display: flex;
+	}
+
+	.gap-2 {
+		gap: 0.5rem;
 	}
 </style>

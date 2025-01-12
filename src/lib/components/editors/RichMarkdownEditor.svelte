@@ -12,6 +12,14 @@
 	import { undo, redo, history } from 'prosemirror-history';
 	import { keymap } from 'prosemirror-keymap';
 	import { baseKeymap } from 'prosemirror-commands';
+	import { LoroDoc, type Container } from 'loro-crdt';
+	import {
+		CursorAwareness,
+		LoroCursorPlugin,
+		LoroSyncPlugin,
+		LoroUndoPlugin
+	} from 'loro-prosemirror';
+	import { fromByteArray, toByteArray } from 'base64-js';
 
 	import 'prosemirror-view/style/prosemirror.css';
 
@@ -19,6 +27,45 @@
 		$props();
 
 	let editor: EditorView = $state() as any;
+	let loroDoc: LoroDoc = $state() as any;
+	let awareness: CursorAwareness = $state() as any;
+	let saveTimeout: number | undefined = $state();
+	let unsubscribe: (() => void) | undefined = $state();
+
+	// 初始化或从localStorage加载LoroDoc
+	function initLoroDoc() {
+		const savedState = localStorage.getItem('loro-editor-state');
+		loroDoc = new LoroDoc();
+		
+		if (savedState) {
+			try {
+				const blob = toByteArray(savedState);
+				loroDoc.import(blob);
+			} catch (e) {
+				console.error('Failed to load saved state:', e);
+			}
+		}
+
+		awareness = new CursorAwareness(loroDoc.peerIdStr);
+		
+		// 监听文档变化并保存
+		unsubscribe = loroDoc.subscribe(() => {
+			if (saveTimeout) {
+				clearTimeout(saveTimeout);
+			}
+			saveTimeout = setTimeout(() => {
+				const state = loroDoc.export({ mode: 'snapshot' });
+				localStorage.setItem('loro-editor-state', fromByteArray(state));
+				saveTimeout = undefined;
+			}, 1000) as unknown as number;
+		});
+
+		// 初始化文档内容
+		const text = loroDoc.getText('content');
+		if (text.length === 0 && content) {
+			text.insert(0, content);
+		}
+	}
 
 	let internalContent = $state('');
 	$effect(() => {
@@ -33,6 +80,10 @@
 	});
 
 	function editorPlugin(el: HTMLElement) {
+		if (!loroDoc) {
+			initLoroDoc();
+		}
+
 		let s = EditorState.create({
 			schema: markdownSchema,
 			doc: defaultMarkdownParser.parse(content),
@@ -41,10 +92,13 @@
 				history(),
 				keymap({ 'Mod-z': undo, 'Mod-Shift-z': redo, 'Mod-y': redo }),
 				keymap(buildKeymap(markdownSchema)),
-				keymap(baseKeymap)
+				keymap(baseKeymap),
+				LoroSyncPlugin({ doc: loroDoc as any }),
+				LoroUndoPlugin({ doc: loroDoc as any }),
+				LoroCursorPlugin(awareness, {})
 			]
 		});
-		s = s.apply(s.tr.insertText(content));
+
 		editor = new EditorView(el, {
 			state: s,
 			dispatchTransaction(transaction) {
@@ -59,6 +113,22 @@
 	export function focus() {
 		editor.focus();
 	}
+
+	// 组件卸载时保存状态和清理订阅
+	$effect.root(() => {
+		return () => {
+			if (loroDoc) {
+				if (saveTimeout) {
+					clearTimeout(saveTimeout);
+				}
+				if (unsubscribe) {
+					unsubscribe();
+				}
+				const state = loroDoc.export({ mode: 'snapshot' });
+				localStorage.setItem('loro-editor-state', fromByteArray(state));
+			}
+		};
+	});
 </script>
 
 <div use:editorPlugin {...attrs}></div>

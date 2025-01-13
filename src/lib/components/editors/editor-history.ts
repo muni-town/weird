@@ -30,7 +30,7 @@ export function convertSyncStepsToNodes(
                 deps,
                 lamport: change.lamport,
                 message: `Change at ${change.counter} (length: ${change.length})`,
-                author: change.peer || '',
+                // author: change.peer || '',
                 timestamp: change.timestamp ? change.timestamp * 1000 : Date.now()
             });
 

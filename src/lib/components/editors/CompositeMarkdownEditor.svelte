@@ -99,7 +99,7 @@
 						{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}
 					</button>
 					<button class="status-button" onclick={toggleHistory}>
-						{showHistory ? '隐藏历史' : '显示历史'}
+						{showHistory ? 'Hide History' : 'Show History'}
 					</button>
 				</div>
 			</div>

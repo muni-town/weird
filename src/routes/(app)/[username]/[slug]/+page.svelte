@@ -71,7 +71,7 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full max-w-[800px] flex-col items-center px-2 font-spacemono">
+<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
 	<div
 		class="relative m-4 mt-12 flex w-full flex-col justify-center gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
 	>
@@ -141,7 +141,7 @@
 			</form>
 		{/if}
 
-		<div class="absolute right-8 top-8 z-10 flex gap-2">
+		<div class="absolute right-8 top-8 z-10 flex gap-z">
 			{#if data.profileMatchesUserSession || data.page.wiki}
 				{#if !editingState.editing}
 					<button
@@ -178,7 +178,7 @@
 
 		<div class="flex flex-col gap-8">
 			<div
-				class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert prose-a:text-blue-400"
+				class="prose relative mx-auto w-full max-w-[1000px] pt-4 dark:prose-invert prose-a:text-blue-400"
 			>
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(data.page.markdown)}

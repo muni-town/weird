@@ -1,39 +1,40 @@
 .dag-view-message:hover {
-    color: #777;
+    background-color: rgba(139, 92, 246, 0.2);
     cursor: pointer;
+    border-radius: 8px;
+    padding: 4px 8px;
 }
 
 .dag-view-message {
-    color: #333;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 4px 8px;
+    transition: all 0.2s ease;
 }
 
 .dag-view-message .author {
-    color: #777;
+    color: rgba(255, 255, 255, 0.6);
     margin-left: 0.8em;
 }
 
 .dag-view-message:hover .author {
-    color: #aaa;
-    margin-left: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .dag-view-message .operationType {
-    color: #777;
+    color: rgba(255, 255, 255, 0.6);
     margin-left: 0.8em;
 }
 
 .dag-view-message:hover .operationType {
-    color: #aaa;
-    margin-left: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .dag-view-message .timestamp {
-    color: #777;
+    color: rgba(255, 255, 255, 0.6);
     margin-left: 0.8em;
 }
 
 .dag-view-message:hover .timestamp {
-    color: #aaa;
-    margin-left: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
 }
 

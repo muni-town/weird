@@ -17,4 +17,5 @@ COPY --from=build /build /project
 RUN adduser -D weird
 RUN chown -R weird:weird /project
 USER weird
-CMD ["node", "/project"]
+WORKDIR /project
+CMD ["node", "."]

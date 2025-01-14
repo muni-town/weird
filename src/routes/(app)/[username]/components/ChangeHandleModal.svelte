@@ -292,10 +292,13 @@
 										</div>
 									{/if}
 								{:else}
-								<div class="flex flex-col gap-2">
-									<p>You can use your own domain as your Weird handle by configuring your DNS records.</p>
-									<p>Enter your domain for specific instructions.</p>
-								</div>
+									<div class="flex flex-col gap-2">
+										<p>
+											You can use your own domain as your Weird handle by configuring your DNS
+											records.
+										</p>
+										<p>Enter your domain for specific instructions.</p>
+									</div>
 								{/if}
 							</div>
 						{/if}

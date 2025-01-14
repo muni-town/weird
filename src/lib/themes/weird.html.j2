@@ -3008,7 +3008,9 @@
 
             <h1>{{display_name}}</h1>
 
+            {% if bio %}
             {{bio | markdown}}
+            {% endif %}
 
             {% if tags %}
             <h1>Tags</h1>

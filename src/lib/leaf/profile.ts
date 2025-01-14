@@ -67,6 +67,27 @@ should be editable by everybody.`)
 	}
 }
 
+export class WeirdTheme extends Component {
+	value: {
+		data: Uint8Array;
+	};
+	constructor(data: Uint8Array) {
+		super();
+		this.value = { data: data };
+	}
+	static componentName(): string {
+		return 'WeirdTheme';
+	}
+	static borshSchema(): BorshSchema {
+		return BorshSchema.Struct({
+			data: BorshSchema.Vec(BorshSchema.u8)
+		});
+	}
+	static specification(): Component[] {
+		return [new CommonMark(`The weird theme to render a user's site with.`)];
+	}
+}
+
 export class WeirdWikiRevisionAuthor extends Component {
 	value: string;
 	constructor(userId: string) {
@@ -271,6 +292,16 @@ export async function setAvatar(link: ExactLink, avatar: RawImage): Promise<void
 export async function getAvatar(link: ExactLink): Promise<RawImage | undefined> {
 	const ent = await leafClient.get_components(link, RawImage);
 	return ent?.get(RawImage);
+}
+export async function setTheme(link: ExactLink, theme: { data: Uint8Array } | undefined) {
+	await leafClient.update_components(link, [theme ? new WeirdTheme(theme.data) : WeirdTheme]);
+}
+export async function getTheme(link: ExactLink): Promise<{ data: Uint8Array } | undefined> {
+	const ent = await leafClient.get_components(link, WeirdTheme);
+	const comp = ent?.get(WeirdTheme);
+	if (comp) {
+		return { data: new Uint8Array(comp.value.data) };
+	}
 }
 
 export async function getAvatarById(rauthyId: string): Promise<RawImage | undefined> {

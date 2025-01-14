@@ -23,6 +23,9 @@ importers:
       '@atproto/api':
         specifier: ^0.13.18
         version: 0.13.18
+      '@codemirror/lang-html':
+        specifier: ^6.4.9
+        version: 6.4.9
       '@codemirror/lang-markdown':
         specifier: ^6.3.1
         version: 6.3.1

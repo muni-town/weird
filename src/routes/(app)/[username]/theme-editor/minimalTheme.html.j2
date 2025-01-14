@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="canonical" href="{{handle}}" />
+
+    <style>
+        body {
+            background-color: lightgray
+        }
+
+        img {
+            width: 5em;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <section>
+            <figure class="avatar-figure">
+                <img src="/avatar" alt="{{display_name}} avatar" />
+            </figure>
+
+            <h1>{{display_name}}</h1>
+
+
+            {% if bio %}
+            {{bio | markdown}}
+            {% endif %}
+
+            {% if tags %}
+            <h1>Tags</h1>
+            <ul class="tags">
+                {% for tag in tags %}
+                <li>
+                    <a href="{{instance_info.url}}/people#{{tag}}" target="_blank" class="tag">
+                        {{tag}}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </section>
+
+        <section class="links">
+            <h1>Links</h1>
+            <ul>
+                <li>
+                    <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link">
+                        Weird
+                    </a>
+                </li>
+                {% for link in links %}
+                <li>
+                    <a rel="me" href="{{link.url}}" target="_blank" class="link">
+                        {{link.label or link.url}}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+
+        {% if pages %}
+        <section class="links">
+            <h1>Pages</h1>
+            <ul>
+                {% for page in pages %}
+                <li>
+                    <a href="{{instance_info.url}}/{{handle}}/{{page.slug}}" target="_blank" class="link">
+                        {{page.name or page.slug}}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+    </main>
+</body>
+
+</html>

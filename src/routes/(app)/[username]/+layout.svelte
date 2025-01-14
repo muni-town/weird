@@ -97,6 +97,9 @@
 				<button class="variant-outline btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle
 				</button>
+				<a class="variant-outline btn" href={`/${$page.params.username}/theme-editor`}>
+					Theme Editor
+				</a>
 				<button class="variant-outline btn" onclick={() => modalStore.trigger(deleteProfileModal)}>
 					Delete Profile
 				</button>
@@ -104,44 +107,47 @@
 		</aside>
 	{/if}
 
-	<div class="hidden flex-grow sm:block"></div>
+	<div class="relative w-full">
+		<div class="hidden flex-grow sm:block"></div>
 
-	<div class="flex max-w-full grow flex-col items-center">
-		{#if error}
-			<aside class="alert variant-ghost-error relative mt-8 w-full">
-				<div class="alert-message">
-					<p>{error}</p>
-				</div>
-			</aside>
-		{/if}
-
-		{#if data.pendingDomainVerification}
-			<aside class="alert variant-ghost-primary relative mt-8 w-full">
-				<div class="alert-message">
-					<p>
-						<strong>Note:&nbsp;</strong>We are currently verifying your domain:
-						<code>{data.pendingDomainVerification}</code>
-					</p>
-					<p>We will automatically update your handle once verification succeeds.</p>
-					<div class="flex flex-row-reverse">
-						<button
-							type="button"
-							class="variant-ghost-tertiary btn text-sm"
-							onclick={cancelPendingDomainVerification}>Cancel Verification</button
-						>
+		<div class="flex max-w-full grow flex-col items-center">
+			{#if error}
+				<aside class="alert variant-ghost-error relative mt-8 w-full">
+					<div class="alert-message">
+						<p>{error}</p>
 					</div>
-				</div>
-			</aside>
-		{/if}
-		{@render children()}
-	</div>
+				</aside>
+			{/if}
 
-	<div class="hidden flex-grow sm:block"></div>
+			{#if data.pendingDomainVerification}
+				<aside class="alert variant-ghost-primary relative mt-8 w-full">
+					<div class="alert-message">
+						<p>
+							<strong>Note:&nbsp;</strong>We are currently verifying your domain:
+							<code>{data.pendingDomainVerification}</code>
+						</p>
+						<p>We will automatically update your handle once verification succeeds.</p>
+						<div class="flex flex-row-reverse">
+							<button
+								type="button"
+								class="variant-ghost-tertiary btn text-sm"
+								onclick={cancelPendingDomainVerification}>Cancel Verification</button
+							>
+						</div>
+					</div>
+				</aside>
+			{/if}
+			{@render children()}
+		</div>
+
+		<div class="hidden flex-grow sm:block"></div>
+	</div>
 </div>
 
 <style>
 	.sidebar {
 		@apply sticky top-8 mx-4 my-8 flex w-full flex-shrink flex-col rounded-xl border-[1px] border-black bg-pink-300/10 p-5 sm:h-[85vh] sm:w-auto;
+		flex-basis: 18em;
 		.btn {
 			text-wrap: wrap;
 		}

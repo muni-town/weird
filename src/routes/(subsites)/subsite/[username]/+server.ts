@@ -28,18 +28,27 @@ export const GET: RequestHandler = async ({ params }) => {
 	).filter((x) => x) as { slug: string; name?: string }[];
 
 	const theme = await getTheme(profileLink);
+	const profileInfo = {
+		handle: params.username!,
+		bio: profile.bio,
+		display_name: profile.display_name,
+		tags: profile.tags,
+		links: profile.links,
+		pages
+	};
 
-	const output = render(
-		{
-			handle: params.username!,
-			bio: profile.bio,
-			display_name: profile.display_name,
-			tags: profile.tags,
-			links: profile.links,
-			pages
-		},
-		theme ? theme.data : new TextEncoder().encode(weirdTheme)
-	);
+	let output: string;
+	if (theme) {
+		try {
+			// Try to render the user's theme
+			output = render(profileInfo, theme.data);
+		} catch (_) {
+			// If rendering the user's theme fails, then render with the default theme
+			output = render(profileInfo, new TextEncoder().encode(weirdTheme));
+		}
+	} else {
+		output = render(profileInfo, new TextEncoder().encode(weirdTheme));
+	}
 
 	return new Response(output, { headers: [['content-type', 'text/html']] });
 };

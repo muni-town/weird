@@ -16,7 +16,7 @@
 
 <AppBar background="bg-pink-300/20">
 	{#snippet lead()}
-		<img src="/favicon.png" alt="Weird Logo" width="40px" />
+		<img src="/logo.webp" alt="Weird Logo" width="40px" />
 	{/snippet}
 
 	<h1 class="font-rubik text-xl font-bold text-secondary-500">

@@ -1,6 +1,6 @@
 import { error, type RequestHandler } from '@sveltejs/kit';
-import { render } from '$lib/renderer';
-import weirdTheme from '$lib/themes/weird.html.j2?raw';
+import { renderProfile } from '$lib/renderer';
+import weirdTheme from '$lib/themes/weird/profile.html.j2?raw';
 import { usernames } from '$lib/usernames';
 import { getProfile, getTheme, listChildren, profileLinkByUsername } from '$lib/leaf/profile';
 import { leafClient, subspace_link } from '$lib/leaf';
@@ -42,13 +42,13 @@ export const GET: RequestHandler = async ({ params }) => {
 	if (theme) {
 		try {
 			// Try to render the user's theme
-			output = await render(profileInfo, theme.data);
+			output = await renderProfile(profileInfo, theme.data);
 		} catch (_) {
 			// If rendering the user's theme fails, then render with the default theme
-			output = await render(profileInfo, new TextEncoder().encode(weirdTheme));
+			output = await renderProfile(profileInfo, new TextEncoder().encode(weirdTheme));
 		}
 	} else {
-		output = await render(profileInfo, new TextEncoder().encode(weirdTheme));
+		output = await renderProfile(profileInfo, new TextEncoder().encode(weirdTheme));
 	}
 
 	return new Response(output, { headers: [['content-type', 'text/html']] });

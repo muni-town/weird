@@ -244,7 +244,7 @@
 
 		{#if editingState.editing}
 			<h3 class="ml-3 text-center">Social Links</h3>
-			<div class="px-5 flex flex-col gap-2">
+			<div class="flex flex-col gap-2 px-5">
 				<SocialLinksEditor bind:links={editingState.profile.social_links} />
 			</div>
 		{/if}

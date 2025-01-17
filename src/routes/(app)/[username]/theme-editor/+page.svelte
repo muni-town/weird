@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { render as renderProfile } from '$lib/renderer/index';
+	import { renderProfile as renderProfile } from '$lib/renderer/index';
 	import TemplateEditor from '$lib/components/editors/TemplateEditor.svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
 	import minimalTheme from './minimalTheme.html.j2?raw';
-	import weirdTheme from '$lib/themes/weird.html.j2?raw';
+	import weirdTheme from '$lib/themes/weird/profile.html.j2?raw';
 	import { onMount } from 'svelte';
 
 	let { data }: { data: PageData } = $props();

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="canonical" href="{{handle}}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+    <style>
+        @import 'https://unpkg.com/open-props';
+        /* TODO: Don't use Google Fonts from Google CDN to prvent tracking. */
+        @import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+        @font-face {
+            font-family: 'Uncut Sans';
+            src: url('/UncutSans-Variable.woff2');
+        }
+
+        main {
+            height: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            padding: var(--size-fluid-4);
+            font-weight: normal;
+            font-family: 'Space Mono', monospace !important;
+            background: linear-gradient(180deg, #240940 40%, #8e4569 80%, #be185d);
+        }
+
+        body {
+            background: linear-gradient(180deg, #240940 20%, #8e4569 60%, #cb5873);
+            background-repeat: no-repeat;
+            background-size: cover;
+            position: relative;
+            margin: 0;
+            color: white;
+        }
+
+        .stars {
+            background: url('/stars.avif');
+            pointer-events: none;
+            /* extend a bit more than the viewport */
+            height: 100%;
+            width: 100%;
+            background-position: center;
+            background-size: 1500px;
+            background-repeat: repeat;
+            position: absolute;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            opacity: 0.25;
+        }
+
+        h1 {
+            font-family: 'Rubik Mono One';
+        }
+
+        section {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: var(--size-fluid-5);
+            border: var(--border-size-2) solid black;
+            border-radius: var(--radius-3);
+            width: 100%;
+            margin: 0 auto;
+            max-width: var(--size-content-3);
+        }
+
+        .avatar-figure img {
+            width: 200px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 100%;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+            gap: 1.5rem;
+        }
+
+        .tag {
+            color: black;
+            background-color: #a092e3;
+            padding: var(--size-fluid-1) var(--size-fluid-2);
+            border: var(--border-size-2) solid black;
+            border-radius: var(--radius-round);
+            text-decoration: none;
+        }
+
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+
+            h2 {
+                text-align: center;
+            }
+        }
+
+        .link {
+            color: black;
+            font-family: 'Rubik Mono One';
+            background-color: #a092e3;
+            padding: var(--size-fluid-1) var(--size-fluid-2);
+            border: var(--border-size-2) solid black;
+            border-radius: var(--radius-2);
+            box-shadow: 0.35rem 0.45rem black;
+            text-decoration: none;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars"></div>
+
+    <main>
+        <section>
+            <figure class="avatar-figure">
+                <img src="/avatar" alt="{{display_name}} avatar" />
+            </figure>
+
+            <h1>{{title}}</h1>
+
+            {% if markdown %}
+            {{markdown | markdown}}
+            {% endif %}
+        </section>
+    </main>
+</body>
+
+</html>

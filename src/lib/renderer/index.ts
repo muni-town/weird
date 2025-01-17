@@ -84,7 +84,8 @@ export async function render(
 					platform_name: details.name.toLocaleLowerCase(),
 					icon: `<svg ${Object.entries(i.attributes)
 						.map(([k, v]) => `${k}="${v}"`)
-						.join(' ')} >${i.body}</svg>`
+						.join(' ')} >${i.body}</svg>`,
+					icon_name: details.icon
 				};
 			}) || []
 		),

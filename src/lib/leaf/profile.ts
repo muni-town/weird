@@ -16,6 +16,7 @@ export interface Profile {
 	display_name?: string;
 	tags: string[];
 	bio?: string;
+	social_links: { label?: string; url: string }[];
 	links: { label?: string; url: string }[];
 	mastodon_profile?: {
 		username: string;
@@ -142,6 +143,27 @@ Each link has an optional label and a URL, which must be a valid URL`)
 	}
 }
 
+export class SocialLinks extends Component {
+	value: WebLink[];
+	constructor(links: WebLink[]) {
+		super();
+		this.value = links;
+	}
+	static componentName(): string {
+		return 'SocialLinks';
+	}
+	static borshSchema(): BorshSchema {
+		return BorshSchema.Vec(WebLinkSchema);
+	}
+	static specification(): Component[] {
+		return [
+			new CommonMark(`A list of social links associated to the entity.
+
+These links are to social profiles that represent the same identity as this entity.`)
+		];
+	}
+}
+
 export class MastodonProfile extends Component {
 	value: {
 		username: string;
@@ -240,7 +262,8 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		WeirdCustomDomain,
 		MastodonProfile,
 		WeirdPubpageTheme,
-		WebLinks
+		WebLinks,
+		SocialLinks
 	);
 	return (
 		(ent && {
@@ -248,6 +271,7 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 			bio: ent.get(Description)?.value,
 			tags: ent.get(Tags)?.value || [],
 			// custom_domain: ent.get(WeirdCustomDomain)?.value,
+			social_links: ent.get(SocialLinks)?.value || [],
 			links: ent.get(WebLinks)?.value || [],
 			mastodon_profile: ent.get(MastodonProfile)?.value,
 			pubpage_theme: ent.get(WeirdPubpageTheme)?.value
@@ -266,6 +290,7 @@ export async function setRawProfile(link: ExactLink, profile: Profile) {
 		profile.mastodon_profile ? new MastodonProfile(profile.mastodon_profile) : MastodonProfile,
 		profile.pubpage_theme ? new WeirdPubpageTheme(profile.pubpage_theme) : WeirdPubpageTheme,
 		profile.links ? new WebLinks(profile.links) : WebLinks,
+		profile.social_links ? new SocialLinks(profile.social_links) : SocialLinks,
 		profile.tags ? new Tags(profile.tags) : Tags
 	]);
 }
@@ -342,10 +367,9 @@ export async function setProfileById(rauthyId: string, profile: Profile): Promis
 	// Update the user's verified links
 	const username = await usernames.getByRauthyId(rauthyId);
 	if (username) {
-		await verifiedLinks.verify(
-			username,
-			profile.links.map((x) => x.url)
-		);
+		await verifiedLinks.verify(username, [
+			...new Set([...profile.links, ...profile.social_links].map((x) => x.url)).values()
+		]);
 	}
 
 	await setRawProfile(link, profile);

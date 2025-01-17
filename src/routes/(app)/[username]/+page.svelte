@@ -3,14 +3,12 @@
 	import { env } from '$env/dynamic/public';
 	import Avatar from '$lib/components/avatar/view.svelte';
 	import { onNavigate } from '$app/navigation';
-	import { getModalStore, getToastStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 	import type { Profile } from '$lib/leaf/profile';
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import type { ActionData, PageData } from './$types';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
 	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
-	import { checkResponse } from '$lib/utils/http';
 	import Icon from '@iconify/svelte';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
@@ -19,53 +17,22 @@
 	import SocialMediaButton from '$lib/components/social-media/social-media-button.svelte';
 	import FeaturedSocialMediaButton from '$lib/components/social-media/featured-social-media-button.svelte';
 	import PostCard from './post-card.svelte';
-	import { getFeaturedSocialMediaDetails } from '$lib/utils/social-links';
 	import { usernames } from '$lib/usernames/client';
-	import Weird from '$lib/themes/weird.svelte';
+	import SocialLinksEditor from '$lib/components/editors/SocialLinksEditor.svelte';
+	// TODO: Replace PicoCSS in Weird app styling
+	//
+	// This brings into scope some CSS variables from PicoCSS that we use in Weird.
+	//
+	// We want to replace this once we have a more unified styling system in Weird.
+	//
+	// We should probably look into https://open-props.style/ as a part of this.
+	import '$lib/themes/weird.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	const modalStore = getModalStore();
-	const toastStore = getToastStore();
-
-	let normalProfileLinks = $derived(
-		data.profile.links.filter((x) => !getFeaturedSocialMediaDetails(x.url))
-	);
-	let featuredProfileLinks = $derived(
-		data.profile.links.filter((x) => getFeaturedSocialMediaDetails(x.url))
-	);
-
-	const githubImportModal: ModalSettings = {
-		type: 'prompt',
-		// Data
-		title: 'Enter Github Username',
-		body: 'Provide your github username to fetch README.md',
-		// Populates the input value and attributes
-		value: '',
-		valueAttr: { type: 'text', required: true },
-		// Returns the updated response value
-		response: async (r: string) => {
-			if (r && r.trim().length) {
-				const repoResp = await fetch(`https://raw.githubusercontent.com/${r}/${r}/HEAD/README.md`);
-				try {
-					await checkResponse(repoResp);
-					editingState.profile.bio = await repoResp.text();
-				} catch (e) {
-					toastStore.trigger({
-						message: 'Github profile not exists',
-						hideDismiss: true,
-						timeout: 3000,
-						background: 'variant-filled-error'
-					});
-					console.error('Error fetching GitHub README', e);
-				}
-			}
-		}
-	};
-
 	let editingState: { editing: boolean; profile: Profile } = $state({
 		editing: false,
-		profile: { tags: [], links: [], bio: '', display_name: '' }
+		profile: { tags: [], links: [], social_links: [], bio: '', display_name: '' }
 	});
 
 	// Prepare editing state, if this is the logged in user's profile page.
@@ -94,6 +61,11 @@
 	const editingLinksProxy = {
 		get value() {
 			return JSON.stringify(editingState.profile.links);
+		}
+	};
+	const editingSocialLinksProxy = {
+		get value() {
+			return JSON.stringify(editingState.profile.social_links);
 		}
 	};
 
@@ -202,16 +174,14 @@
 				>
 					{pubpageHost}
 				</a>
-				{#if !editingState.editing}
-					<div class="mt-4 flex flex-wrap items-center gap-4">
-						{#each featuredProfileLinks as link}
-							<FeaturedSocialMediaButton
-								url={link.url}
-								verified={data.verifiedLinks.includes(link.url)}
-							/>
-						{/each}
-					</div>
-				{/if}
+				<div class="mt-4 flex flex-wrap items-center gap-4">
+					{#each editingState.editing ? editingState.profile.social_links : profile.social_links as link}
+						<FeaturedSocialMediaButton
+							url={link.url}
+							verified={data.verifiedLinks.includes(link.url)}
+						/>
+					{/each}
+				</div>
 				{#if form?.error}
 					<aside class="alert variant-ghost-error my-2 w-full">
 						<div class="alert-message">
@@ -254,6 +224,7 @@
 							<input type="hidden" name="bio" value={editingState.profile.bio} />
 							<input type="hidden" name="tags" value={editingState.profile.tags} />
 							<input type="hidden" name="links" value={editingLinksProxy.value} />
+							<input type="hidden" name="social_links" value={editingSocialLinksProxy.value} />
 
 							<div class="flex flex-row gap-2">
 								<button class="variant-ghost-success btn-icon" title="Save">
@@ -269,9 +240,16 @@
 			</div>
 		</div>
 
-		<hr class="mb-4" />
+		<hr />
 
-		<div class="flex flex-col gap-8">
+		{#if editingState.editing}
+			<h3 class="ml-3 text-center">Social Links</h3>
+			<div class="px-5 flex flex-col gap-2">
+				<SocialLinksEditor bind:links={editingState.profile.social_links} />
+			</div>
+		{/if}
+
+		<div class="mt-4 flex flex-col gap-8">
 			<div class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert">
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(profile.bio || '')}
@@ -282,12 +260,12 @@
 					/>
 				{/if}
 			</div>
-			{#if normalProfileLinks.length > 0 || editingState.editing}
+			{#if profile.links.length > 0 || editingState.editing}
 				<div>
 					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Links</h2>
 					{#if !editingState.editing}
 						<ul class="flex flex-col items-center gap-4">
-							{#each normalProfileLinks as link (link.url)}
+							{#each profile.links as link (link.url)}
 								<SocialMediaButton
 									url={link.url}
 									label={link.label}

@@ -37,6 +37,17 @@ export const actions = {
 				link.url = 'https://' + link.url;
 			}
 		}
+		let social_links: { label?: string; url: string }[] = JSON.parse(
+			data.get('social_links')?.toString() || '{}'
+		);
+		for (const link of social_links) {
+			try {
+				new URL(link.url);
+			} catch (_) {
+				// If it isn't a valid URL, try just prepending `https://` to it.
+				link.url = 'https://' + link.url;
+			}
+		}
 		let bio = data.get('bio')?.toString() || undefined;
 		if (bio === '') {
 			bio = undefined;
@@ -66,6 +77,7 @@ export const actions = {
 			display_name,
 			tags,
 			links,
+			social_links,
 			bio,
 			mastodon_profile,
 			pubpage_theme

@@ -9,8 +9,6 @@
 	import { Handle } from '@rodrigodagostino/svelte-sortable-list';
 	import { IconHandle } from '@rodrigodagostino/svelte-sortable-list';
 	import SocialMediaButton from '../social-media/social-media-button.svelte';
-	import { getFeaturedSocialMediaDetails } from '$lib/utils/social-links';
-	import FeaturedSocialMediaButton from '../social-media/featured-social-media-button.svelte';
 	import { debounce } from 'underscore';
 
 	let {
@@ -76,8 +74,6 @@
 			return new URL(url).host;
 		} catch (_) {}
 	}
-
-	let featuredLinks = $derived(links.filter((x) => getFeaturedSocialMediaDetails(x.url)));
 </script>
 
 <div class="flex flex-col" {...attrs}>
@@ -124,11 +120,7 @@
 						<Handle>
 							<IconHandle />
 						</Handle>
-						{#if featuredLinks.includes(link)}
-							<FeaturedSocialMediaButton url={link.url} />
-						{:else}
-							<SocialMediaButton url={link.url} label={link.label || host(link.url)} />
-						{/if}
+						<SocialMediaButton url={link.url} label={link.label || host(link.url)} />
 
 						<button
 							class="variant-ghost btn-icon btn-icon-sm"

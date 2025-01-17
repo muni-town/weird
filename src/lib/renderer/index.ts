@@ -57,6 +57,7 @@ export type ProfileData = {
 	display_name?: string;
 	bio?: string;
 	tags?: string[];
+	social_links?: { url: string; label?: string }[];
 	links?: { url: string; label?: string }[];
 	pages?: { slug: string; name?: string }[];
 };

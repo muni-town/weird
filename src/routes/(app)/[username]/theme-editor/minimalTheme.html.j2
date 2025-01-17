@@ -54,6 +54,13 @@
                         Weird
                     </a>
                 </li>
+                {% for link in social_links %}
+                <li>
+                    <a rel="me" href="{{link.url}}" target="_blank" class="link">
+                        {{link.label or link.url}}
+                    </a>
+                </li>
+                {% endfor %}
                 {% for link in links %}
                 <li>
                     <a rel="me" href="{{link.url}}" target="_blank" class="link">

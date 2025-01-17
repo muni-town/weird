@@ -32,6 +32,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		handle: params.username!,
 		bio: profile.bio,
 		display_name: profile.display_name,
+		social_links: profile.social_links,
 		tags: profile.tags,
 		links: profile.links,
 		pages

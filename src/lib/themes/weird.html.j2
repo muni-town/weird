@@ -3030,6 +3030,11 @@
                 Weird
             </a>
             {% if links %}
+            {% for link in social_links %}
+            <a rel="me" href="{{link.url}}" target="_blank" class="link">
+                {{link.label or link.url}}
+            </a>
+            {% endfor %}
             {% for link in links %}
             <a rel="me" href="{{link.url}}" target="_blank" class="link">
                 {{link.label or link.url}}

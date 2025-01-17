@@ -22,13 +22,14 @@
 	});
 
 	$effect(() => {
-		const rendered = renderProfile(
+		renderProfile(
 			{ handle: $page.params.username, ...data.profile, pages: data.pages },
 			encoder.encode(template)
-		);
-		renderMount.contentWindow?.document.open();
-		renderMount.contentWindow?.document.write(rendered);
-		renderMount.contentWindow?.document.close();
+		).then((rendered) => {
+			renderMount.contentWindow?.document.open();
+			renderMount.contentWindow?.document.write(rendered);
+			renderMount.contentWindow?.document.close();
+		});
 	});
 
 	function loadMinimalTheme() {

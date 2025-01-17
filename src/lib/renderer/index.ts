@@ -1,5 +1,7 @@
 import { browser, building, dev } from '$app/environment';
 import { env } from '$env/dynamic/public';
+import { getSocialMediaDetails } from '$lib/utils/social-links';
+import { buildIcon, loadIcon } from '@iconify/svelte';
 
 type RendererExports = {
 	memory: WebAssembly.Memory;
@@ -57,19 +59,39 @@ export type ProfileData = {
 	display_name?: string;
 	bio?: string;
 	tags?: string[];
-	social_links?: { url: string; label?: string }[];
+	social_links?: { url: string; label?: string; platform_name?: string }[];
 	links?: { url: string; label?: string }[];
 	pages?: { slug: string; name?: string }[];
 };
 
-export function render(
-	profileData: Omit<ProfileData, 'instance_info'>,
+export async function render(
+	profile: Omit<ProfileData, 'instance_info'>,
 	themeData: Uint8Array
-): string {
-	const profileDataJson = JSON.stringify({
-		...profileData,
-		...{ instance_info: { url: env.PUBLIC_URL } }
-	} as ProfileData);
+): Promise<string> {
+	const data: ProfileData = {
+		handle: profile.handle,
+		bio: profile.bio,
+		display_name: profile.display_name,
+		links: profile.links,
+		pages: profile.pages,
+		social_links: await Promise.all(
+			profile.social_links?.map(async (x) => {
+				const details = getSocialMediaDetails(x.url);
+				const i = buildIcon(await loadIcon(details.icon));
+				return {
+					url: x.url,
+					label: x.label,
+					platform_name: details.name.toLocaleLowerCase(),
+					icon: `<svg ${Object.entries(i.attributes)
+						.map(([k, v]) => `${k}="${v}"`)
+						.join(' ')} >${i.body}</svg>`
+				};
+			}) || []
+		),
+		tags: profile.tags,
+		instance_info: { url: env.PUBLIC_URL }
+	};
+	const profileDataJson = JSON.stringify(data);
 	const profileDataJsonBinary = encoder.encode(profileDataJson);
 	const profileDataJsonBinaryLen = profileDataJsonBinary.length;
 	const profileDataJsonPtr = wasm.wasm_alloc(profileDataJsonBinaryLen, 1);

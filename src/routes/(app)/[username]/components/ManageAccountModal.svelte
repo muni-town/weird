@@ -33,8 +33,8 @@
 			body: JSON.stringify(data)
 		});
 		await checkResponse(resp);
-		const csrfToken = await resp.text();
-		localStorage.setItem('csrfToken', csrfToken);
+		const providerToken = await resp.text();
+		localStorage.setItem('providerToken', providerToken);
 		window.location.href = resp.headers.get('location')!;
 	}
 	async function linkAccount(providerId: string) {

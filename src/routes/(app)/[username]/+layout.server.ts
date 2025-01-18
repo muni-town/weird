@@ -1,13 +1,14 @@
 import { getProfile, listChildren } from '$lib/leaf/profile';
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from '../$types';
-import { getSession } from '$lib/rauthy/server';
+import { getSession, getUserInfoFromSession } from '$lib/rauthy/server';
 import { leafClient, subspace_link } from '$lib/leaf';
 import { Name } from 'leaf-proto/components';
 import { usernames } from '$lib/usernames/index';
 import { base32Encode } from 'leaf-proto';
 import { billing, type UserSubscriptionInfo } from '$lib/billing';
 import { verifiedLinks } from '$lib/verifiedLinks';
+import { getProviders } from '$lib/rauthy/client';
 
 export const load: LayoutServerLoad = async ({ fetch, params, request, url }) => {
 	const username = usernames.shortNameOrDomain(params.username!);
@@ -57,7 +58,15 @@ export const load: LayoutServerLoad = async ({ fetch, params, request, url }) =>
 			? await usernames.getDomainVerificationJob(sessionInfo.user_id)
 			: undefined;
 
+	let providers = await getProviders(fetch);
+
+	const userInfo = sessionInfo
+		? await getUserInfoFromSession(fetch, request, sessionInfo)
+		: undefined;
+
 	return {
+		userInfo,
+		providers,
 		profile,
 		verifiedLinks: await verifiedLinks.get(fullUsername),
 		profileMatchesUserSession,

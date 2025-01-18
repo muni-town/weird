@@ -7,6 +7,7 @@
 	import SetHandleModal from './components/ChangeHandleModal.svelte';
 	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
 	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
+	import ManageAccountModal from './components/ManageAccountModal.svelte';
 	import { goto } from '$app/navigation';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
@@ -31,6 +32,19 @@
 		type: 'component',
 		component: { ref: ManageSubscriptionModal },
 		subscriptionInfo: data.subscriptionInfo,
+		async response(r) {
+			if ('error' in r) {
+				error = r.error;
+			} else {
+				error = null;
+			}
+		}
+	});
+	const manageAccountModal: ModalSettings = $derived({
+		type: 'component',
+		component: { ref: ManageAccountModal },
+		userInfo: data.userInfo,
+		providers: data.providers,
 		async response(r) {
 			if ('error' in r) {
 				error = r.error;
@@ -93,6 +107,9 @@
 					onclick={() => modalStore.trigger(manageSubscriptionModal)}
 				>
 					Manage Subscription
+				</button>
+				<button class="variant-outline btn" onclick={() => modalStore.trigger(manageAccountModal)}>
+					Manage Account
 				</button>
 				<button class="variant-outline btn" onclick={() => modalStore.trigger(setHandleModal)}>
 					Change Handle

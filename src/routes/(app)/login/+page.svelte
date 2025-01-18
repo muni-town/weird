@@ -11,8 +11,6 @@
 	const { data }: { data: PageData } = $props();
 	const providers = data.providers;
 
-	const PKCE_VERIFIER = 'pkce_verifier';
-
 	let clientId = $state('');
 	let redirectUri = $state('');
 	let nonce = $state('');
@@ -108,7 +106,7 @@
 				clientId = 'rauthy';
 				getPkce(64, async (error, { challenge: c, verifier }) => {
 					if (!error) {
-						localStorage.setItem(PKCE_VERIFIER, verifier);
+						localStorage.setItem('pkce_verifier', verifier);
 						challengeMethod = 'S256';
 						challenge = c;
 						nonce = getKey(24);

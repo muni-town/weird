@@ -155,20 +155,25 @@ export async function getSession(
 	return { sessionInfo /*, userInfo */ };
 }
 
+export async function getUserInfoFromSession(
+	fetch: typeof globalThis.fetch,
+	request: Request,
+	sessionInfo: SessionInfo
+): Promise<UserInfo> {
+	const userInfoResp = await fetch(`/auth/v1/users/${sessionInfo?.user_id}`, {
+		headers: cleanHeaders(request)
+	});
+	await checkResponse(userInfoResp);
+	return await userInfoResp.json();
+}
+
 export async function getUserInfo(
 	fetch: typeof window.fetch,
 	request: Request
 ): Promise<{ sessionInfo?: SessionInfo; userInfo?: UserInfo }> {
 	const { sessionInfo } = await getSession(fetch, request);
-	let userInfo: UserInfo | undefined = undefined;
-
-	try {
-		const userInfoResp = await fetch(`/auth/v1/users/${sessionInfo?.user_id}`, {
-			headers: cleanHeaders(request)
-		});
-		await checkResponse(userInfoResp);
-		userInfo = await userInfoResp.json();
-	} catch (_) {}
+	if (!sessionInfo) return {};
+	let userInfo: UserInfo = await getUserInfoFromSession(fetch, request, sessionInfo);
 
 	return { userInfo };
 }

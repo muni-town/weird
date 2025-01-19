@@ -59,6 +59,32 @@
             font-family: 'Rubik Mono One';
         }
 
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1em;
+            margin-bottom: 1.5em;
+        }
+
+        .social-links .link {
+            border-radius: 100%;
+            font-size: 2em;
+            width: 1.5em;
+            height: 1.5em;
+            display: flex;
+            padding: 0;
+            box-shadow: 0.15rem 0.20rem black;
+            transition: all 0.25s;
+        }
+
+        .social-links .link:hover {
+            box-shadow: 0.35rem 0.35rem black;
+        }
+
+        .social-links .link * {
+            margin: auto;
+        }
+
         section {
             background-color: rgba(255, 255, 255, 0.1);
             padding: var(--size-fluid-5);
@@ -127,6 +153,18 @@
 
             <h1>{{display_name}}</h1>
 
+            <div class="social-links">
+                <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link" title="Weird">
+                    <img src="https://weird.one/favicon.png" style="width: 1em; height: 1em" />
+                </a>
+                {% if links %}
+                {% for link in social_links %}
+                <a rel="me" title="{{link.label}}" href="{{link.url}}" target="_blank" class="link">
+                    {{link.icon}}
+                </a>
+                {% endfor %}
+            </div>
+
             {% if bio %}
             {{bio | markdown}}
             {% endif %}
@@ -145,16 +183,6 @@
 
         <section class="links">
             <h1>Links</h1>
-            <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link">
-                Weird
-            </a>
-            {% if links %}
-            {% for link in social_links %}
-            <a rel="me" href="{{link.url}}" target="_blank" class="link">
-                {{link.icon}}
-                {{link.label or link.url}}
-            </a>
-            {% endfor %}
             {% for link in links %}
             <a rel="me" href="{{link.url}}" target="_blank" class="link">
                 {{link.label or link.url}}

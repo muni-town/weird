@@ -14,6 +14,10 @@
 	} = $props();
 
 	let handle = $state('');
+	$effect(() => {
+		const lowercase = handle.toLowerCase();
+		if (lowercase != handle) handle = lowercase;
+	});
 	let randomNumberSuffix = $state(usernames.genRandomUsernameSuffix());
 	let publicSuffix = $state(usernames.defaultSuffix());
 	let fullHandleSuffix = $derived(

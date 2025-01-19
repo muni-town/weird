@@ -24,6 +24,10 @@
 
 	let selectedTab = $state(0);
 	let handle = $state('');
+	$effect(() => {
+		const lowercase = handle.toLowerCase();
+		if (lowercase != handle) handle = lowercase;
+	});
 	let domain = $state('');
 	let error = $state(null) as null | string;
 	let publicSuffix = $state(usernames.defaultSuffix());

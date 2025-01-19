@@ -69,6 +69,31 @@
             max-width: var(--size-content-3);
         }
 
+        header {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: var(--size-fluid-1);
+            border: var(--border-size-2) solid black;
+            border-radius: var(--radius-3);
+            width: 100%;
+            margin: 0 auto;
+            max-width: var(--size-content-3);
+            display: flex;
+            gap: 2em;
+            align-items: center;
+        }
+
+        header h1 {
+            padding: 0;
+            margin: 0;
+        }
+
+        header .avatar-figure img {
+            width: 75px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 100%;
+        }
+
         .avatar-figure img {
             width: 200px;
             margin-left: auto;
@@ -120,11 +145,17 @@
     <div class="stars"></div>
 
     <main>
+        <a href="/" title="Home" style="display: block; text-decoration: none;">
+            <header>
+                <figure class="avatar-figure">
+                    <img src="/avatar" alt="{{profile.display_name}} avatar" />
+                </figure>
+                <h1>
+                    {{profile.display_name}}
+                </h1>
+            </header>
+        </a>
         <section>
-            <figure class="avatar-figure">
-                <img src="/avatar" alt="{{display_name}} avatar" />
-            </figure>
-
             <h1>{{title}}</h1>
 
             {% if markdown %}

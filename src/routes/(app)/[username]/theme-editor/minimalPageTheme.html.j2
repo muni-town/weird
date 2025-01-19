@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        body {
+            background-color: lightgray
+        }
+
+        img {
+            width: 5em;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <header>
+            <figure class="avatar-figure">
+                <img src="/avatar" alt="{{profile.display_name}} avatar" />
+            </figure>
+
+            <h1><a href="/">{{profile.display_name}}</a></h1>
+
+        </header>
+
+        <section>
+            <h1>{{title}}</h1>
+
+            {{markdown | markdown}}
+        </section>
+    </main>
+</body>
+
+</html>

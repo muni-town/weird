@@ -127,7 +127,7 @@
 
 <main class="mx-4 flex w-full max-w-full flex-col items-center px-2 font-spacemono">
 	<div
-		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
+		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl card p-8 text-xl"
 	>
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
@@ -156,10 +156,6 @@
 						</div>
 					{:else}
 						<div style="grid-area: 1 / 1;">
-							<button
-								class="variant-filled badge absolute right-[-4em] top-[-2em] z-10"
-								onclick={() => displayNameEditorEl.focus()}>Click to Edit!</button
-							>
 							<InlineTextEditor
 								bind:this={displayNameEditorEl}
 								bind:content={editingState.profile.display_name as string}

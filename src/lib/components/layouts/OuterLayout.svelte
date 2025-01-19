@@ -14,7 +14,7 @@
 
 <div class="stars"></div>
 
-<AppBar background="bg-pink-300/20">
+<AppBar background="bg-pink-300/20 backdrop-blur-[2px]">
 	{#snippet lead()}
 		<img src="/logo.webp" alt="Weird Logo" width="40px" />
 	{/snippet}

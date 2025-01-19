@@ -78,7 +78,7 @@
 
 <div class="flex max-w-full flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
 	{#if data.profileMatchesUserSession}
-		<aside class="sidebar">
+		<aside class="sidebar card">
 			<div class="mb-3 flex flex-row items-start justify-between">
 				<h1 class="mb-2 text-xl font-bold">Pages</h1>
 				<a
@@ -164,7 +164,7 @@
 
 <style>
 	.sidebar {
-		@apply sticky top-8 mx-4 my-8 flex w-full flex-shrink flex-col rounded-xl border-[1px] border-black bg-pink-300/10 p-5 sm:h-[85vh] sm:w-auto;
+		@apply sticky top-8 mx-4 my-8 flex w-full flex-shrink flex-col rounded-xl  p-5 sm:h-[85vh] sm:w-auto;
 		flex-basis: 18em;
 		.btn {
 			text-wrap: wrap;

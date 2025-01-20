@@ -14,7 +14,8 @@ const featuredSocialMediaConfig: Record<string, SocialMediaConfigEntry> = {
 	'github.com': { icon: 'mdi:github', class: 'button-github', name: 'GitHub' },
 	'tiktok.com': { icon: 'mdi:tiktok', class: 'button-tiktok', name: 'TikTok' },
 	'reddit.com': { icon: 'mdi:reddit', class: 'button-reddit', name: 'Reddit' },
-	'pinterest.com': { icon: 'mdi:pinterest', class: 'button-pinterest', name: 'Pinterest' }
+	'pinterest.com': { icon: 'mdi:pinterest', class: 'button-pinterest', name: 'Pinterest' },
+	'bsky.app': { icon: 'fa6-brands:bluesky', class: 'button-bluesky', name: 'Bluesky' }
 };
 
 export const socialMediaConfig: Record<string, SocialMediaConfigEntry> = {

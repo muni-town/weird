@@ -259,8 +259,7 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		WeirdCustomDomain,
 		MastodonProfile,
 		WebLinks,
-		SocialLinks,
-		AtprotoDid
+		SocialLinks
 	);
 	return (
 		(ent && {

@@ -12,8 +12,22 @@
             background-color: lightgray
         }
 
-        img {
+        .avatar {
             width: 5em;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 0.5em;
+        }
+
+        .social-icons a {
+            text-decoration: none;
+        }
+
+        .social-icon {
+            width: 25px;
+            height: 25px;
         }
     </style>
 </head>
@@ -22,10 +36,22 @@
     <main>
         <section>
             <figure class="avatar-figure">
-                <img src="/avatar" alt="{{display_name}} avatar" />
+                <img class="avatar" src="/avatar" alt="{{display_name}} avatar" />
             </figure>
 
             <h1>{{display_name}}</h1>
+
+            <div class="social-icons">
+                <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link"
+                    title="Weird">
+                    <img src="https://weird.one/favicon.png" class="social-icon" />
+                </a>
+                {% for link in social_links %}
+                <a rel="me" title="{{link.label}}" href="{{link.url}}" target="_blank" class="link">
+                    <img src="{{link.icon}}" alt="icon" class="social-icon" />
+                </a>
+                {% endfor %}
+            </div>
 
 
             {% if bio %}
@@ -54,13 +80,6 @@
                         Weird
                     </a>
                 </li>
-                {% for link in social_links %}
-                <li>
-                    <a rel="me" href="{{link.url}}" target="_blank" class="link">
-                        {{link.label or link.url}}
-                    </a>
-                </li>
-                {% endfor %}
                 {% for link in links %}
                 <li>
                     <a rel="me" href="{{link.url}}" target="_blank" class="link">

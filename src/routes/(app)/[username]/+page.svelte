@@ -170,7 +170,7 @@
 				<a
 					href={pubpageUrl}
 					rel="me canonical"
-					class="overflow-hidden text-ellipsis text-center text-sm text-surface-100 underline decoration-1 underline-offset-4"
+					class="overflow-hidden text-ellipsis text-sm text-surface-100 underline decoration-1 underline-offset-4"
 				>
 					{pubpageHost}
 				</a>

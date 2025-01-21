@@ -116,6 +116,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
+      base64-js:
+        specifier: ^1.5.1
+        version: 1.5.1
       canvas-confetti:
         specifier: ^1.9.3
         version: 1.9.3

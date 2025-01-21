@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getSocialMediaDetails } from '$lib/utils/social-links';
 	import Icon from '@iconify/svelte';
+	import SocialLinkIcon from './SocialLinkIcon.svelte';
 
 	let {
 		label = '',
@@ -20,8 +21,8 @@
 
 	<a href={url} target="_blank" class="link" {rel}>
 		{#if socialMedia?.icon}
-			<span>
-				<Icon icon={socialMedia.icon} class="h-6 w-6" />
+			<span class="text-black">
+				<SocialLinkIcon {url} />
 			</span>
 		{/if}
 

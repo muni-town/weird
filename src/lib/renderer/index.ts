@@ -1,6 +1,9 @@
 import { browser, building, dev } from '$app/environment';
 import { env } from '$env/dynamic/public';
-import { getSocialMediaDetails } from '$lib/utils/social-links';
+import {
+	getSocialMediaDetails,
+	getSocialMediaDetailsWithFallbackFaviconUrl
+} from '$lib/utils/social-links';
 import { buildIcon, loadIcon } from '@iconify/svelte';
 
 type RendererExports = {
@@ -129,15 +132,22 @@ export async function renderProfile(profile: ProfileData, themeData: Uint8Array)
 		pages: profile.pages,
 		social_links: await Promise.all(
 			profile.social_links?.map(async (x) => {
-				const details = getSocialMediaDetails(x.url);
-				const i = buildIcon(await loadIcon(details.icon));
+				const details = await getSocialMediaDetailsWithFallbackFaviconUrl(x.url);
+				let icon;
+				if (details.fallbackIcon) {
+					icon = details.fallbackIcon;
+				} else {
+					const i = buildIcon(await loadIcon(details.icon));
+					const svg = `<svg xmlns="http://www.w3.org/2000/svg" ${Object.entries(i.attributes)
+						.map(([k, v]) => `${k}="${v}"`)
+						.join(' ')} >${i.body}</svg>`;
+					icon = `data:image/svg+xml;base64,${btoa(svg)}`;
+				}
 				return {
 					url: x.url,
 					label: x.label,
 					platform_name: details.name.toLocaleLowerCase(),
-					icon: `<svg ${Object.entries(i.attributes)
-						.map(([k, v]) => `${k}="${v}"`)
-						.join(' ')} >${i.body}</svg>`,
+					icon,
 					icon_name: details.icon
 				};
 			}) || []

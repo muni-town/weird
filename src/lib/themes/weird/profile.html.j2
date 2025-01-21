@@ -155,12 +155,12 @@
 
             <div class="social-links">
                 <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link" title="Weird">
-                    <img src="https://weird.one/favicon.png" style="width: 1em; height: 1em" />
+                    <img src="https://weird.one/favicon.png" width="25" height="25" />
                 </a>
                 {% if links %}
                 {% for link in social_links %}
                 <a rel="me" title="{{link.label}}" href="{{link.url}}" target="_blank" class="link">
-                    {{link.icon}}
+                    <img src="{{link.icon}}" alt="icon" width="25" height="25" />
                 </a>
                 {% endfor %}
             </div>

@@ -45,6 +45,7 @@
 		component: { ref: ManageAccountModal },
 		userInfo: data.userInfo,
 		providers: data.providers,
+		atprotoDid: data.atprotoDid,
 		async response(r) {
 			if ('error' in r) {
 				error = r.error;

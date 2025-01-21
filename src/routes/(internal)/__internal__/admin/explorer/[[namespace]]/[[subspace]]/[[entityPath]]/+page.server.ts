@@ -7,7 +7,6 @@ import {
 	Tags,
 	WebLinks,
 	WeirdCustomDomain,
-	WeirdPubpageTheme,
 	WeirdWikiPage,
 	WeirdWikiRevisionAuthor
 } from '$lib/leaf/profile';
@@ -125,10 +124,6 @@ export const actions = {
 						)
 					: Tags
 			);
-
-			let pubpageTheme: string | undefined = formData.get('pubpageTheme')?.toString() || '';
-			if (pubpageTheme == '') pubpageTheme = undefined;
-			components.push(pubpageTheme ? new WeirdPubpageTheme(pubpageTheme) : WeirdPubpageTheme);
 
 			let customDomain: string | undefined = formData.get('customDomain')?.toString() || '';
 			if (customDomain == '') customDomain = undefined;

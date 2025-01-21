@@ -16,7 +16,6 @@ import {
 	Tags,
 	WebLinks,
 	WeirdCustomDomain,
-	WeirdPubpageTheme,
 	WeirdWikiPage,
 	WeirdWikiRevisionAuthor
 } from './profile';
@@ -77,7 +76,6 @@ export type KnownComponents = {
 	description?: Description['value'];
 	tags?: Tags['value'];
 	webLinks?: WebLinks['value'];
-	weirdPubpageTheme?: WeirdPubpageTheme['value'];
 	weirdCustomDomain?: WeirdCustomDomain['value'];
 	commonmark?: CommonMark['value'];
 	weirdWikiPage?: WeirdWikiPage['value'];
@@ -91,7 +89,6 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 		Description,
 		Tags,
 		WebLinks,
-		WeirdPubpageTheme,
 		WeirdCustomDomain,
 		CommonMark,
 		WeirdWikiPage,
@@ -104,7 +101,6 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 			description: ent.get(Description)?.value,
 			tags: ent.get(Tags)?.value,
 			webLinks: ent.get(WebLinks)?.value,
-			weirdPubpageTheme: ent.get(WeirdPubpageTheme)?.value,
 			weirdCustomDomain: ent.get(WeirdCustomDomain)?.value,
 			commonmark: ent.get(CommonMark)?.value,
 			weirdWikiPage: ent.get(WeirdWikiPage)?.value,

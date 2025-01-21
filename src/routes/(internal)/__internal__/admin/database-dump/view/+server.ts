@@ -2,13 +2,7 @@ import { leafClient } from '$lib/leaf';
 import { getSession } from '$lib/rauthy/server';
 import { error, type RequestHandler } from '@sveltejs/kit';
 import { CommonMark, Description, Name, RawImage } from 'leaf-proto/components';
-import {
-	MastodonProfile,
-	Tags,
-	WebLinks,
-	WeirdCustomDomain,
-	WeirdPubpageTheme
-} from '$lib/leaf/profile';
+import { MastodonProfile, Tags, WebLinks, WeirdCustomDomain } from '$lib/leaf/profile';
 import _ from 'underscore';
 import { prettyPrintDump } from '$lib/utils/databaseDump';
 
@@ -28,7 +22,6 @@ export const GET: RequestHandler = async ({ fetch, request }) => {
 		WeirdCustomDomain,
 		Description,
 		MastodonProfile,
-		WeirdPubpageTheme,
 		RawImage
 	]);
 

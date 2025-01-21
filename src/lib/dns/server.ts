@@ -16,6 +16,8 @@ import { RCode } from 'dinodns/common/core/utils';
 import { redis } from '$lib/redis';
 import { serverGlobals } from '$lib/server-globals';
 import { usernames } from '$lib/usernames';
+import { getAtProtoDid, profileLinkByUsername } from '$lib/leaf/profile';
+import { isDid } from '@atproto/did';
 
 const REDIS_USER_PREFIX = 'weird:users:names:';
 const REDIS_DNS_RECORD_PREFIX = 'weird:dns:records:';
@@ -311,27 +313,46 @@ export async function startDnsServer() {
 						const suffix = usernames.publicSuffix(name);
 						switch (type) {
 							case 'TXT':
-								if (!name.startsWith('_weird.')) return returnAnswers(null);
 								if (!suffix) return returnAnswers(null);
-								const txtUsername = name.split('_weird.')[1];
-								if (!txtUsername) return returnAnswers(null);
-								const pubkey = await redis.hGet(REDIS_USER_PREFIX + txtUsername, 'subspace');
-								if (!pubkey) return returnAnswers(null);
-								returnAnswers([
-									// TODO: Resolve Iroh ticket / NodeID along with subspace
-									// {
-									// 	name,
-									// 	type,
-									// 	data: `server=${await leafClient.node_id()}`,
-									// 	ttl: DNS_TTL
-									// },
-									{
-										name,
-										type,
-										data: `subspace=${pubkey}`,
-										ttl: DNS_TTL
-									}
-								]);
+								if (name.startsWith('_weird')) {
+									const txtUsername = name.split('_weird.')[1];
+									if (!txtUsername) return returnAnswers(null);
+									const pubkey = await redis.hGet(REDIS_USER_PREFIX + txtUsername, 'subspace');
+									if (!pubkey) return returnAnswers(null);
+									returnAnswers([
+										// TODO: Resolve Iroh ticket / NodeID along with subspace
+										// {
+										// 	name,
+										// 	type,
+										// 	data: `server=${await leafClient.node_id()}`,
+										// 	ttl: DNS_TTL
+										// },
+										{
+											name,
+											type,
+											data: `subspace=${pubkey}`,
+											ttl: DNS_TTL
+										}
+									]);
+								} else if (name.startsWith('_atproto')) {
+									const txtUsername = name.split('atproto.')[1];
+									if (!txtUsername) return returnAnswers(null);
+									const profileLink = await profileLinkByUsername(txtUsername);
+									if (!profileLink) return returnAnswers(null);
+									const atprotoDid = await getAtProtoDid(profileLink);
+									if (!atprotoDid) return returnAnswers(null);
+									if (!isDid(atprotoDid)) return returnAnswers(null);
+									returnAnswers([
+										{
+											name,
+											type,
+											data: `did=${atprotoDid}`,
+											ttl: DNS_TTL
+										}
+									]);
+								} else {
+									return returnAnswers(null);
+								}
 								break;
 							case 'A':
 								if (!suffix) return returnAnswers(null);

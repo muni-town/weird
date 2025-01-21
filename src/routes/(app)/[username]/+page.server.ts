@@ -48,6 +48,7 @@ export const actions = {
 				link.url = 'https://' + link.url;
 			}
 		}
+
 		let bio = data.get('bio')?.toString() || undefined;
 		if (bio === '') {
 			bio = undefined;
@@ -68,19 +69,13 @@ export const actions = {
 				}) ||
 			undefined;
 
-		let pubpage_theme = data.get('subsite_theme')?.toString() || undefined;
-		if (pubpage_theme === '') {
-			pubpage_theme = undefined;
-		}
-
 		const profile: Profile = {
 			display_name,
 			tags,
 			links,
 			social_links,
 			bio,
-			mastodon_profile,
-			pubpage_theme
+			mastodon_profile
 		};
 
 		try {

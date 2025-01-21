@@ -22,7 +22,6 @@ export interface Profile {
 		username: string;
 		server: string;
 	};
-	pubpage_theme?: string;
 }
 
 export class Tags extends Component {
@@ -191,22 +190,20 @@ export class MastodonProfile extends Component {
 	}
 }
 
-export class WeirdPubpageTheme extends Component {
+export class AtprotoDid extends Component {
 	value: string = '';
 	constructor(s: string) {
 		super();
 		this.value = s;
 	}
 	static componentName(): string {
-		return 'WeirdPubpageTheme';
+		return 'AtProtoDid';
 	}
 	static borshSchema(): BorshSchema {
 		return BorshSchema.String;
 	}
 	static specification(): Component[] {
-		return [
-			new CommonMark(`The name of the theme selected by a user for their main Weird pubpage.`)
-		];
+		return [new CommonMark(`The DID associated to the user's AtProto / Bluesky account.`)];
 	}
 }
 
@@ -261,9 +258,9 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 		Tags,
 		WeirdCustomDomain,
 		MastodonProfile,
-		WeirdPubpageTheme,
 		WebLinks,
-		SocialLinks
+		SocialLinks,
+		AtprotoDid
 	);
 	return (
 		(ent && {
@@ -273,8 +270,7 @@ export async function getProfile(link: ExactLink): Promise<Profile | undefined> 
 			// custom_domain: ent.get(WeirdCustomDomain)?.value,
 			social_links: ent.get(SocialLinks)?.value || [],
 			links: ent.get(WebLinks)?.value || [],
-			mastodon_profile: ent.get(MastodonProfile)?.value,
-			pubpage_theme: ent.get(WeirdPubpageTheme)?.value
+			mastodon_profile: ent.get(MastodonProfile)?.value
 		}) ||
 		undefined
 	);
@@ -288,11 +284,18 @@ export async function setRawProfile(link: ExactLink, profile: Profile) {
 		profile.display_name ? new Name(profile.display_name) : Name,
 		profile.bio ? new Description(profile.bio) : Description,
 		profile.mastodon_profile ? new MastodonProfile(profile.mastodon_profile) : MastodonProfile,
-		profile.pubpage_theme ? new WeirdPubpageTheme(profile.pubpage_theme) : WeirdPubpageTheme,
 		profile.links ? new WebLinks(profile.links) : WebLinks,
 		profile.social_links ? new SocialLinks(profile.social_links) : SocialLinks,
 		profile.tags ? new Tags(profile.tags) : Tags
 	]);
+}
+
+export async function setAtprotoDid(link: ExactLink, did?: string): Promise<void> {
+	await leafClient.update_components(link, [did ? new AtprotoDid(did) : AtprotoDid]);
+}
+
+export async function getAtProtoDid(link: ExactLink): Promise<string | undefined> {
+	return (await leafClient.get_components(link, AtprotoDid))?.get(AtprotoDid)?.value;
 }
 
 export async function setCustomDomain(userId: string, domain?: string): Promise<void> {

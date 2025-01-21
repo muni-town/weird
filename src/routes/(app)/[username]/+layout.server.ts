@@ -1,4 +1,4 @@
-import { getProfile, listChildren } from '$lib/leaf/profile';
+import { getAtProtoDid, getProfile, listChildren } from '$lib/leaf/profile';
 import { error, redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from '../$types';
 import { getSession, getUserInfoFromSession } from '$lib/rauthy/server';
@@ -23,7 +23,8 @@ export const load: LayoutServerLoad = async ({ fetch, params, request, url }) =>
 	const subspace = await usernames.getSubspace(fullUsername);
 	if (!subspace) return error(404, `User not found: ${fullUsername}`);
 
-	const profile = (await getProfile(subspace_link(subspace, null))) || {
+	const profileLink = subspace_link(subspace, null);
+	const profile = (await getProfile(profileLink)) || {
 		tags: [],
 		links: [],
 		social_links: []
@@ -64,8 +65,11 @@ export const load: LayoutServerLoad = async ({ fetch, params, request, url }) =>
 		? await getUserInfoFromSession(fetch, request, sessionInfo)
 		: undefined;
 
+	const atprotoDid = await getAtProtoDid(profileLink);
+
 	return {
 		userInfo,
+		atprotoDid,
 		providers,
 		profile,
 		verifiedLinks: await verifiedLinks.get(fullUsername),

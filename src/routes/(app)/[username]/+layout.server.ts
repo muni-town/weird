@@ -67,7 +67,7 @@ export const load: LayoutServerLoad = async ({ fetch, params, request, url }) =>
 	return {
 		userInfo,
 		providers,
-		profile,
+		profile: { ...profile, display_name: profile.display_name || username },
 		verifiedLinks: await verifiedLinks.get(fullUsername),
 		profileMatchesUserSession,
 		pages,

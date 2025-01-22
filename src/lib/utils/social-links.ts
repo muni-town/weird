@@ -1,3 +1,8 @@
+import { limitedFetch } from '$lib/limited-fetch';
+import { parseHTML } from 'linkedom';
+import { fromByteArray as encodeBase64 } from 'base64-js';
+import { browser } from '$app/environment';
+
 type SocialMediaConfigEntry = {
 	icon: string;
 	class: string;
@@ -66,6 +71,92 @@ export function getSocialMediaDetails(url: string): SocialMediaConfigEntry {
 			name: domain
 		}
 	);
+}
+
+export async function getSocialMediaDetailsWithFallbackFaviconUrl(
+	url: string
+): Promise<SocialMediaConfigEntry & { fallbackIcon?: string }> {
+	const details = getSocialMediaDetails(url);
+	let fallbackIcon;
+	// If this is the generic fallback icon
+	if (details.icon == 'mdi:web') {
+		if (browser) {
+			fallbackIcon = await clientGetFaviconDataUri(url);
+		} else {
+			fallbackIcon = await getFaviconDataUri(url);
+		}
+	}
+	return { ...details, fallbackIcon };
+}
+
+const toDataUri = async (blob: Blob): Promise<string> => {
+	return `data:${blob.type};base64,${encodeBase64(await blob.bytes())}`;
+};
+export async function getFaviconDataUri(url: string): Promise<string | undefined> {
+	try {
+		const timeout = { timeout: 3000, maxSize: 1024 * 1024 * 3 };
+		type Link = { href: string; type?: string; size?: [number, number] };
+		const rootUrl = new URL(url);
+		rootUrl.pathname = '/';
+		const resp = await limitedFetch(timeout, rootUrl, { redirect: 'follow' });
+		if (!resp.ok) return;
+		const html = await resp.text();
+		const htmlParsed = parseHTML(html);
+		const icons: Link[] = [];
+		for await (const link of htmlParsed.document.querySelectorAll('link[rel=icon]').values()) {
+			const type = link.attributes.getNamedItem('type')?.value;
+			let href = link.attributes.getNamedItem('href')?.value;
+			const sizes = link.attributes.getNamedItem('sizes')?.value;
+			const parsedSizes = sizes
+				? sizes.split(' ').map((x) => x.split('x').map((x) => parseInt(x)))
+				: undefined;
+			parsedSizes?.sort((a, b) => a[0] - b[0]);
+			if (!href) continue;
+			try {
+				new URL(href);
+			} catch (_) {
+				const hrefUrl = new URL(rootUrl);
+				hrefUrl.pathname = href;
+				href = hrefUrl.href;
+			}
+			icons.push({
+				href,
+				size: parsedSizes?.[0] as [number, number] | undefined,
+				type
+			});
+		}
+		const goodType = (x: Link) => x.type?.includes('svg');
+		const goodSize = (x: Link) => x.size?.[0] && x.size?.[0] < 64;
+		icons.sort((a, b) => {
+			if (goodType(a) && !goodType(b)) {
+				return 1;
+			} else if (goodType(b) && !goodType(a)) {
+				return -1;
+			} else if (goodSize(a) && !goodSize(b)) {
+				return 1;
+			} else if (goodSize(b) && !goodSize(a)) {
+				return -1;
+			} else if (goodSize(a) && goodSize(b)) {
+				return (a.size?.[0] || 0) - (b.size?.[0] || 0);
+			} else {
+				return -1;
+			}
+		});
+		const icon = icons[icons.length - 1];
+		if (!icon) return;
+		const iconResp = await limitedFetch(timeout, icon.href);
+		return toDataUri(await iconResp.blob());
+	} catch (e) {
+		console.log(e);
+	}
+}
+export async function clientGetFaviconDataUri(url: string): Promise<string | undefined> {
+	try {
+		const resp = await fetch(`/__internal__/favicon/${encodeURIComponent(url)}`);
+		return await resp.text();
+	} catch (e) {
+		console.error(e);
+	}
 }
 
 export function getFeaturedSocialMediaDetails(url: string): SocialMediaConfigEntry | null {

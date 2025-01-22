@@ -5,6 +5,7 @@ import https from 'https';
 import http from 'http';
 import { startDnsServer } from '$lib/dns/server';
 import { startCronJobs } from '$lib/cron';
+import { initRedis } from '$lib/redis';
 
 // Configure global http proxy if proxy environment variables are set.
 if (process.env['HTTP_PROXY'] || process.env['HTTPS_PROXY'] || process.env['NO_PROXY']) {
@@ -17,3 +18,4 @@ if (process.env['HTTP_PROXY'] || process.env['HTTPS_PROXY'] || process.env['NO_P
 startCronJobs();
 startDnsServer();
 discord_bot_login();
+initRedis();

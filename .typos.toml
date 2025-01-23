@@ -1,5 +1,10 @@
 [files]
-extend-exclude = ["src/lib/pow/wasm/*", "pnpm-lock.yaml", ".env.local"]
+extend-exclude = [
+  "src/lib/pow/wasm/*",
+  "pnpm-lock.yaml",
+  ".env.local",
+  "src/routes/\\(app\\)/\\[username\\]/theme-editor/examplePage.md",
+]
 
 [default.extend-words]
 ratatui = "ratatui"

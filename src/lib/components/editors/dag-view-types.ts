@@ -1,7 +1,0 @@
-import type { DagNode } from './dag-view.d';
-
-export interface ViewDagNode extends DagNode {
-    message?: string;
-    author?: string;
-    timestamp?: number;
-} 

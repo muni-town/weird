@@ -2,11 +2,11 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getSession } from '$lib/rauthy/server';
 import { ensureUsernameMatchesSessionUserId } from '../utils';
-import { WebLinks, WeirdWikiPage, getProfileById } from '$lib/leaf/profile';
-import { Page } from '../types';
+import { getProfileById } from '$lib/leaf/profile';
 import { leafClient, subspace_link } from '$lib/leaf';
-import { CommonMark, Name } from 'leaf-proto/components';
 import { usernames } from '$lib/usernames/index';
+import { PageSaveReq } from '$lib/pages/types';
+import { pages } from '$lib/pages/server';
 
 export const load: PageServerLoad = async ({ fetch, params, request, url }) => {
 	const { sessionInfo } = await getSession(fetch, request);
@@ -26,11 +26,11 @@ export const actions = {
 		const resp = await ensureUsernameMatchesSessionUserId(params.username!, sessionInfo.user_id);
 		if (resp) return resp;
 
-		let data: Page;
+		let data: PageSaveReq;
 		try {
 			const formData = JSON.parse((await request.formData()).get('data')?.toString() || '');
 			if (!formData) return error(400, 'Missing data field');
-			data = Page.parse(formData);
+			data = PageSaveReq.parse(formData);
 		} catch (e) {
 			return error(400, `Error parsing form data: ${e}`);
 		}
@@ -41,12 +41,7 @@ export const actions = {
 		const ent = await leafClient.get_components(pageLink);
 		if (ent) return fail(400, { error: 'Page with that slug already exists.', data });
 
-		await leafClient.update_components(pageLink, [
-			new Name(data.display_name),
-			data.markdown.length > 0 ? new CommonMark(data.markdown) : CommonMark,
-			data.links.length > 0 ? new WebLinks(data.links) : WebLinks,
-			data.wiki ? new WeirdWikiPage() : WeirdWikiPage
-		]);
+		await pages.save(pageLink, data);
 
 		return redirect(302, `/${params.username}/${data.slug}`);
 	}

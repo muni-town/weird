@@ -2,13 +2,7 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import RichMarkdownEditor from './RichMarkdownEditor.svelte';
 	import MarkdownEditor from './MarkdownEditor.svelte';
-	import DagView from './DagView.svelte';
-	import { LoroDoc } from 'loro-crdt';
-	import { CursorAwareness } from 'loro-prosemirror';
-	import { convertSyncStepsToNodes } from './editor-history';
-	import './CollaborativeEditor.css';
-	import type { ViewDagNode } from './DagView.svelte';
-	import { toByteArray } from 'base64-js';
+	import type { SvelteComponent } from 'svelte';
 
 	let {
 		content = $bindable(''),
@@ -20,44 +14,6 @@
 		maxLength?: number;
 		markdownMode?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
-
-	let showHistory = $state(false);
-	let dagInfo: { nodes: ViewDagNode[]; frontiers: string[] } = $state({
-		nodes: [],
-		frontiers: []
-	});
-
-	let loroDoc = new LoroDoc();
-	let idA = loroDoc.peerIdStr;
-	let awareness = new CursorAwareness(idA);
-	const savedState = localStorage.getItem('loro-editor-state');
-	if (savedState) {
-		try {
-			const blob = toByteArray(savedState);
-			loroDoc.import(blob);
-			console.log("imported saved state")
-			console.log(loroDoc.toJSON())
-			dagInfo = convertSyncStepsToNodes(loroDoc);
-		} catch (e) {
-			console.error('Failed to load saved state:', e);
-		}
-	}
-
-
-	// 初始化时开启时间戳记录
-	loroDoc.setRecordTimestamp(true);
-	loroDoc.setChangeMergeInterval(10);
-
-	// 监听变化更新历史信息
-	loroDoc.subscribe((event) => {
-		if (event.by === "local") {
-			dagInfo = convertSyncStepsToNodes(loroDoc);
-		}
-	});
-
-	function toggleHistory() {
-		showHistory = !showHistory;
-	}
 
 	let shouldWiggle = $state(false);
 
@@ -78,51 +34,33 @@
 			}
 		}
 	};
+
+	// svelte-ignore non_reactive_update
+	let richEditorEl: SvelteComponent;
 </script>
 
-<div class="container">
-	<div class="editors-container">
-		<div class="editor-card">
-			<div class="editor-header">
-				<h3 class="editor-title">Editor</h3>
-				<div class="flex gap-2">
-					{#if maxLength != undefined}
-						<div
-							class="variant-filled badge transition-transform"
-							class:too-long-content-badge={shouldWiggle}
-							onanimationend={() => (shouldWiggle = false)}
-						>
-							Length: {content.length} / {maxLength}
-						</div>
-					{/if}
-					<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}>
-						{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}
-					</button>
-					<button class="status-button" onclick={toggleHistory}>
-						{showHistory ? 'Hide History' : 'Show History'}
-					</button>
-				</div>
+<div {...attrs} class="relative">
+	<div class="absolute -left-4 -top-4 z-10 flex w-full flex-row gap-1">
+		{#if maxLength != undefined}
+			<div
+				class="variant-filled badge transition-transform"
+				class:too-long-content-badge={shouldWiggle}
+				onanimationend={() => (shouldWiggle = false)}
+			>
+				Length: {content.length} / {maxLength}
 			</div>
-			<div class="editor-content">
-				{#if !markdownMode}
-					<RichMarkdownEditor
-						loro={loroDoc}
-						awareness={awareness}
-						containerId={loroDoc.getMap("doc").id}
-						bind:content={contentProxy.value}
-					/>
-				{:else}
-					<MarkdownEditor bind:content={contentProxy.value} />
-				{/if}
-			</div>
-		</div>
-	</div>
+		{/if}
 
-	{#if showHistory}
-		<div class="history-card">
-			<h3 class="history-title">Operation History</h3>
-			<DagView nodes={dagInfo.nodes} frontiers={dagInfo.frontiers} />
-		</div>
+		<div class="flex-grow"></div>
+
+		<button class="variant-filled badge" onclick={() => (markdownMode = !markdownMode)}
+			>{markdownMode ? 'Switch to Rich Text' : 'Switch to Markdown'}</button
+		>
+	</div>
+	{#if !markdownMode}
+		<RichMarkdownEditor bind:this={richEditorEl} bind:content={contentProxy.value} />
+	{:else}
+		<MarkdownEditor bind:content={contentProxy.value} />
 	{/if}
 </div>
 
@@ -144,7 +82,7 @@
 			transform: rotate(10deg);
 		}
 		100% {
-			transform: rotate(0deg);
+			transform: rotate(0deb);
 		}
 	}
 
@@ -152,13 +90,5 @@
 		@apply variant-filled-error;
 		animation: wiggle;
 		animation-duration: 1s;
-	}
-
-	.flex {
-		display: flex;
-	}
-
-	.gap-2 {
-		gap: 0.5rem;
 	}
 </style>

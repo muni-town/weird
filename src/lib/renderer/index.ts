@@ -123,6 +123,23 @@ export function createThemeData(profile: string, page: string): Uint8Array {
 	return out;
 }
 
+async function loadIconForTemplate(
+	url: string
+): Promise<{ icon: string; name: string; icon_name: string }> {
+	const details = await getSocialMediaDetailsWithFallbackFaviconUrl(url);
+	let icon;
+	if (details.fallbackIcon) {
+		icon = `<img src="${details.fallbackIcon}" alt="${details.name}" />`;
+	} else {
+		const i = buildIcon(await loadIcon(details.icon));
+		icon = `<svg xmlns="http://www.w3.org/2000/svg" ${Object.entries(i.attributes)
+			.map(([k, v]) => `${k}="${v}"`)
+			.join(' ')} >${i.body}</svg>`;
+	}
+
+	return { icon, name: details.name, icon_name: details.icon };
+}
+
 export async function renderProfile(profile: ProfileData, themeData: Uint8Array): Promise<string> {
 	const data: ProfileRenderInput = {
 		handle: profile.handle,
@@ -132,23 +149,13 @@ export async function renderProfile(profile: ProfileData, themeData: Uint8Array)
 		pages: profile.pages,
 		social_links: await Promise.all(
 			profile.social_links?.map(async (x) => {
-				const details = await getSocialMediaDetailsWithFallbackFaviconUrl(x.url);
-				let icon;
-				if (details.fallbackIcon) {
-					icon = details.fallbackIcon;
-				} else {
-					const i = buildIcon(await loadIcon(details.icon));
-					const svg = `<svg xmlns="http://www.w3.org/2000/svg" ${Object.entries(i.attributes)
-						.map(([k, v]) => `${k}="${v}"`)
-						.join(' ')} >${i.body}</svg>`;
-					icon = `data:image/svg+xml;base64,${btoa(svg)}`;
-				}
+				const { icon, name, icon_name } = await loadIconForTemplate(x.url);
 				return {
 					url: x.url,
 					label: x.label,
-					platform_name: details.name.toLocaleLowerCase(),
+					platform_name: name.toLocaleLowerCase(),
 					icon,
-					icon_name: details.icon
+					icon_name
 				};
 			}) || []
 		),
@@ -201,16 +208,13 @@ export async function renderPage(
 		pages: profile.pages,
 		social_links: await Promise.all(
 			profile.social_links?.map(async (x) => {
-				const details = getSocialMediaDetails(x.url);
-				const i = buildIcon(await loadIcon(details.icon));
+				const { icon, name, icon_name } = await loadIconForTemplate(x.url);
 				return {
 					url: x.url,
 					label: x.label,
-					platform_name: details.name.toLocaleLowerCase(),
-					icon: `<svg ${Object.entries(i.attributes)
-						.map(([k, v]) => `${k}="${v}"`)
-						.join(' ')} >${i.body}</svg>`,
-					icon_name: details.icon
+					platform_name: name.toLocaleLowerCase(),
+					icon,
+					icon_name
 				};
 			}) || []
 		),

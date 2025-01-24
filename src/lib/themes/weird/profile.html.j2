@@ -118,6 +118,12 @@
             text-decoration: none;
         }
 
+        .social-links img,
+        .social-links svg {
+            width: 25px;
+            height: 25px;
+        }
+
         .links {
             display: flex;
             flex-direction: column;
@@ -154,15 +160,17 @@
             <h1>{{display_name}}</h1>
 
             <div class="social-links">
-                <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link" title="Weird">
+                <a href="{{instance_info.url}}/{{handle}}" rel="me alternate" target="_blank" class="link"
+                    title="Weird">
                     <img src="https://weird.one/favicon.png" width="25" height="25" />
                 </a>
-                {% if links %}
+                {% if social_links %}
                 {% for link in social_links %}
                 <a rel="me" title="{{link.label}}" href="{{link.url}}" target="_blank" class="link">
-                    <img src="{{link.icon}}" alt="icon" width="25" height="25" />
+                    {{link.icon}}
                 </a>
                 {% endfor %}
+                {% endif %}
             </div>
 
             {% if bio %}
@@ -181,6 +189,7 @@
             {% endif %}
         </section>
 
+        {% if links%}
         <section class="links">
             <h1>Links</h1>
             {% for link in links %}
@@ -188,8 +197,8 @@
                 {{link.label or link.url}}
             </a>
             {% endfor %}
-            {% endif %}
         </section>
+        {% endif %}
 
 
         {% if pages %}

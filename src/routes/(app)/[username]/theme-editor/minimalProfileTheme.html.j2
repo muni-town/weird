@@ -25,7 +25,8 @@
             text-decoration: none;
         }
 
-        .social-icon {
+        .social-icons img,
+        .social-icons svg {
             width: 25px;
             height: 25px;
         }
@@ -48,7 +49,7 @@
                 </a>
                 {% for link in social_links %}
                 <a rel="me" title="{{link.label}}" href="{{link.url}}" target="_blank" class="link">
-                    <img src="{{link.icon}}" alt="icon" class="social-icon" />
+                    {{link.icon}}
                 </a>
                 {% endfor %}
             </div>

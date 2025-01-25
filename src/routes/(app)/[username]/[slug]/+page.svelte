@@ -36,9 +36,11 @@
 
 	async function startEdit() {
 		if (data.profileMatchesUserSession || data.page.wiki) {
-			const resp = await fetch(`/${$page.params.username}/${$page.params.slug}/loroSnapshot`);
-			await checkResponse(resp);
-			previousLoroSnapshot = new Uint8Array(await resp.arrayBuffer());
+			try {
+				const resp = await fetch(`/${$page.params.username}/${$page.params.slug}/loroSnapshot`);
+				await checkResponse(resp);
+				previousLoroSnapshot = new Uint8Array(await resp.arrayBuffer());
+			} catch (_) {}
 			editingState.page = data.page;
 			editingState.editing = true;
 		}

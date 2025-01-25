@@ -17,6 +17,7 @@
 	import type { Page, PageSaveReq } from '$lib/pages/types';
 	import { LoroDoc } from 'loro-crdt';
 	import base64 from 'base64-js';
+	import { checkResponse } from '$lib/utils/http';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -24,6 +25,7 @@
 		editing: false,
 		page: data.page
 	});
+	let previousLoroSnapshot = $state(undefined) as Uint8Array | undefined;
 
 	const slugifiedSlug = $derived(
 		slugify(editingState.page.slug || editingState.page.name || 'untitled', {
@@ -32,8 +34,11 @@
 		})
 	);
 
-	function startEdit() {
+	async function startEdit() {
 		if (data.profileMatchesUserSession || data.page.wiki) {
+			const resp = await fetch(`/${$page.params.username}/${$page.params.slug}/loroSnapshot`);
+			await checkResponse(resp);
+			previousLoroSnapshot = new Uint8Array(await resp.arrayBuffer());
 			editingState.page = data.page;
 			editingState.editing = true;
 		}
@@ -55,11 +60,11 @@
 	let formDataInput: HTMLInputElement = $state(undefined) as unknown as HTMLInputElement;
 	async function handleSubmit() {
 		const doc = new LoroDoc();
+		doc.setRecordTimestamp(true);
+		if (previousLoroSnapshot) doc.import(previousLoroSnapshot);
 		const content = doc.getText('content');
-		content.delete(0, 10e30);
+		content.delete(0, content.length);
 		content.insert(0, editingState.page.markdown);
-		console.log('markdown', editingState.page.markdown);
-		console.log('doc', content.toString());
 		const out: PageSaveReq = {
 			name: editingState.page.name,
 			slug: slugifiedSlug,

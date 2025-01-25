@@ -26,6 +26,9 @@ export const load: PageServerLoad = async ({ params }): Promise<{ page: Page }> 
 
 export const actions = {
 	default: async ({ request, params, url, fetch }) => {
+		const { sessionInfo } = await getSession(fetch, request);
+		if (!sessionInfo) return redirect(302, `/login?to=${url}`);
+
 		const fullUsername = usernames.fullDomain(params.username);
 		const subspace = await usernames.getSubspace(fullUsername);
 		if (!subspace) return error(404, `User not found: ${fullUsername}`);
@@ -34,9 +37,6 @@ export const actions = {
 
 		const oldEnt = await leafClient.get_components(oldPageLink, WeirdWikiPage);
 		const isWikiPage = !!oldEnt?.get(WeirdWikiPage);
-
-		const { sessionInfo } = await getSession(fetch, request);
-		if (!sessionInfo) return redirect(302, `/login?to=${url}`);
 
 		const editorIsOwner = sessionInfo.user_id == (await usernames.getRauthyId(fullUsername));
 

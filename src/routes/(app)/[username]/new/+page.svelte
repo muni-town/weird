@@ -38,6 +38,7 @@
 	let formDataInput: HTMLInputElement;
 	function handleSubmit(_e: SubmitEvent) {
 		const doc = new LoroDoc();
+		doc.setRecordTimestamp(true);
 		const content = doc.getText('content');
 		content.delete(0, 10e30);
 		content.insert(0, page.markdown);

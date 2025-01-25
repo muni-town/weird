@@ -43,7 +43,8 @@ async function get(link: ExactLink): Promise<PageData | undefined> {
 
 async function getLoroSnapshot(link: ExactLink): Promise<Uint8Array | undefined> {
 	const ent = await leafClient.get_components(link, LoroCommonMark);
-	return ent?.get(LoroCommonMark)?.value;
+	const v = ent?.get(LoroCommonMark)?.value;
+	return v ? new Uint8Array(v) : undefined;
 }
 
 async function save(

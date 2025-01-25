@@ -4,18 +4,20 @@
 	import { env } from '$env/dynamic/public';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 	import type { SvelteComponent } from 'svelte';
-	import type { Page } from '../types';
 	import type { ActionData, PageData } from './$types';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import { onNavigate } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
-	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
 	import slugify from 'slugify';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
+	import type { Page, PageSaveReq } from '$lib/pages/types';
+	import { LoroDoc } from 'loro-crdt';
+	import base64 from 'base64-js';
+	import { checkResponse } from '$lib/utils/http';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -23,21 +25,20 @@
 		editing: false,
 		page: data.page
 	});
+	let previousLoroSnapshot = $state(undefined) as Uint8Array | undefined;
 
-	const formData = {
-		get value() {
-			return JSON.stringify(editingState.page);
-		}
-	};
 	const slugifiedSlug = $derived(
-		slugify(editingState.page.slug || editingState.page.display_name || 'untitled', {
+		slugify(editingState.page.slug || editingState.page.name || 'untitled', {
 			strict: true,
 			lower: true
 		})
 	);
 
-	function startEdit() {
+	async function startEdit() {
 		if (data.profileMatchesUserSession || data.page.wiki) {
+			const resp = await fetch(`/${$page.params.username}/${$page.params.slug}/loroSnapshot`);
+			await checkResponse(resp);
+			previousLoroSnapshot = new Uint8Array(await resp.arrayBuffer());
 			editingState.page = data.page;
 			editingState.editing = true;
 		}
@@ -56,8 +57,21 @@
 		easing: quintOut
 	});
 
-	function handleSubmit() {
-		editingState.page.slug = slugifiedSlug;
+	let formDataInput: HTMLInputElement = $state(undefined) as unknown as HTMLInputElement;
+	async function handleSubmit() {
+		const doc = new LoroDoc();
+		doc.setRecordTimestamp(true);
+		if (previousLoroSnapshot) doc.import(previousLoroSnapshot);
+		const content = doc.getText('content');
+		content.delete(0, content.length);
+		content.insert(0, editingState.page.markdown);
+		const out: PageSaveReq = {
+			name: editingState.page.name,
+			slug: slugifiedSlug,
+			wiki: false,
+			loroSnapshot: base64.fromByteArray(doc.export({ mode: 'snapshot' }))
+		};
+		formDataInput.value = JSON.stringify(out);
 	}
 
 	// svelte-ignore non_reactive_update
@@ -66,22 +80,22 @@
 
 <svelte:head>
 	<title>
-		{data.page.display_name} | {data.profile.display_name} |
+		{data.page.name} | {data.profile.display_name} |
 		{env.PUBLIC_INSTANCE_NAME}
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full max-w-[800px] flex-col items-center px-2 font-spacemono">
+<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
 	<div
-		class="relative m-4 mt-12 flex w-full flex-col justify-center gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
+		class="card relative m-4 mt-12 flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
 	>
 		<h1 class="relative mx-[2em] mt-2 grow self-center text-center font-rubik text-4xl">
 			{#if !editingState.editing}
-				{data.page.display_name}
+				{data.page.name}
 			{:else}
 				<InlineTextEditor
 					bind:this={displayNameEditorEl}
-					bind:content={editingState.page.display_name as string}
+					bind:content={editingState.page.name as string}
 				/>
 			{/if}
 		</h1>
@@ -141,7 +155,7 @@
 			</form>
 		{/if}
 
-		<div class="absolute right-8 top-8 z-10 flex gap-2">
+		<div class="gap-z absolute right-8 top-8 z-10 flex">
 			{#if data.profileMatchesUserSession || data.page.wiki}
 				{#if !editingState.editing}
 					<button
@@ -161,7 +175,7 @@
 						out:fadeOut={{ key: 'edit-buttons' }}
 						onsubmit={handleSubmit}
 					>
-						<input type="hidden" name="data" value={formData.value} />
+						<input type="hidden" name="data" bind:this={formDataInput} />
 
 						<div class="flex flex-row gap-2">
 							<button class="variant-ghost-success btn-icon" title="Save">
@@ -178,7 +192,7 @@
 
 		<div class="flex flex-col gap-8">
 			<div
-				class="prose relative mx-auto w-full max-w-2xl px-4 pt-4 dark:prose-invert prose-a:text-blue-400"
+				class="prose relative mx-auto w-full max-w-[1000px] pt-4 dark:prose-invert prose-a:text-blue-400"
 			>
 				{#if !editingState.editing}
 					{@html renderMarkdownSanitized(data.page.markdown)}

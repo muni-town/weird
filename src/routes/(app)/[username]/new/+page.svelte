@@ -3,25 +3,25 @@
 	import type { SvelteComponent } from 'svelte';
 	import type { ActionData } from './$types';
 	import _ from 'underscore';
-	import { Page } from '../types';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
-	import LinksEditor from '$lib/components/editors/LinksEditor.svelte';
 	import slugify from 'slugify';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
+	import { Page, PageSaveReq } from '$lib/pages/types';
+	import { LoroDoc } from 'loro-crdt';
+	import base64 from 'base64-js';
 
 	const { form }: { form: ActionData } = $props();
 
 	let page = $state(
 		form?.data || {
 			slug: '',
-			display_name: 'Untitled',
-			markdown: 'Your new page.',
-			links: []
+			name: 'Untitled',
+			markdown: 'Your new page.'
 		}
 	) as Page;
 	const slugifiedSlug = $derived(
-		slugify(page.slug || page.display_name || 'untitled', { strict: true, lower: true })
+		slugify(page.slug || page.name || 'untitled', { strict: true, lower: true })
 	);
 
 	if (form && form.formData) {
@@ -35,21 +35,24 @@
 
 	let displayNameEditorEl: SvelteComponent;
 
-	const pageFormData = {
-		get value() {
-			return JSON.stringify(page);
-		},
-		set value(v) {
-			page = JSON.parse(v);
-		}
-	};
-
-	function handleSubmit(e: SubmitEvent) {
-		page.slug = slugifiedSlug;
+	let formDataInput: HTMLInputElement;
+	function handleSubmit(_e: SubmitEvent) {
+		const doc = new LoroDoc();
+		doc.setRecordTimestamp(true);
+		const content = doc.getText('content');
+		content.delete(0, 10e30);
+		content.insert(0, page.markdown);
+		const data: PageSaveReq = {
+			name: page.name,
+			slug: slugifiedSlug,
+			wiki: false,
+			loroSnapshot: base64.fromByteArray(doc.export({ mode: 'snapshot' }))
+		};
+		formDataInput.value = JSON.stringify(data);
 	}
 
 	$effect(() => {
-		page.slug = slugify(page.display_name || 'untitled', { strict: true, lower: true });
+		page.slug = slugify(page.name || 'untitled', { strict: true, lower: true });
 	});
 </script>
 
@@ -57,13 +60,13 @@
 	<title>New Page | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<main class="mx-4 mt-4 flex w-full flex-col items-center">
+<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
 	<div
-		class="m-4 mt-8 flex w-full max-w-[700px] flex-col gap-4 rounded-xl border-[1px] border-black bg-pink-300/10 p-8 text-xl"
+		class="card relative m-4 mt-12 flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
 	>
 		<h1 class="relative my-3 text-center text-4xl">
 			<div>
-				<InlineTextEditor bind:this={displayNameEditorEl} bind:content={page.display_name} />
+				<InlineTextEditor bind:this={displayNameEditorEl} bind:content={page.name} />
 			</div>
 		</h1>
 
@@ -93,11 +96,8 @@
 			<CompositeMarkdownEditor bind:content={page.markdown} />
 		</div>
 
-		<!-- <h2 class="text-2xl font-bold">Links</h2>
-		<LinksEditor bind:links={page.links} /> -->
-
 		<form class="flex justify-end" method="post" onsubmit={handleSubmit}>
-			<input type="hidden" name="data" bind:value={pageFormData.value} />
+			<input type="hidden" name="data" bind:this={formDataInput} />
 			<button class="variant-ghost-success btn">Create Page</button>
 		</form>
 	</div>

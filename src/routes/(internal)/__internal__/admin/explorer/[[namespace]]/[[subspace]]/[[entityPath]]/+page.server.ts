@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { leafClient, type KnownComponents, loadKnownComponents } from '$lib/leaf';
 import { base32Decode, base32Encode, type EntityPath, type ExactLink } from 'leaf-proto';
+import { createThemeData } from "$lib/renderer"
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import {
@@ -8,7 +9,8 @@ import {
 	WebLinks,
 	WeirdCustomDomain,
 	WeirdWikiPage,
-	WeirdWikiRevisionAuthor
+	WeirdWikiRevisionAuthor,
+	WeirdTheme
 } from '$lib/leaf/profile';
 import { CommonMark, Description, Name } from 'leaf-proto/components';
 import { getSession } from '$lib/rauthy/server';
@@ -96,13 +98,15 @@ export const actions = {
 
 			const formData = await request.formData();
 
-			// let username: string | undefined = formData.get('username')?.toString() || '';
-			// if (username == '') username = undefined;
-			// components.push(username ? new Username(username) : Username);
-
 			let name: string | undefined = formData.get('name')?.toString() || '';
 			if (name == '') name = undefined;
 			components.push(name ? new Name(name) : Name);
+
+			let profileTheme: string | undefined = formData.get('profileTheme')?.toString() || '';
+			if (profileTheme == '') name = undefined;
+			let pageTheme: string | undefined = formData.get('pageTheme')?.toString() || '';
+			if (pageTheme == '') name = undefined;
+			components.push(profileTheme && pageTheme ? new WeirdTheme(createThemeData(profileTheme, pageTheme)) : WeirdTheme);
 
 			let description: string | undefined = formData.get('description')?.toString() || '';
 			if (description == '') description = undefined;
@@ -147,6 +151,7 @@ export const actions = {
 
 			await leafClient.update_components(link, components);
 		} catch (e: any) {
+			console.error(e);
 			return fail(400, { error: JSON.stringify(e) });
 		}
 

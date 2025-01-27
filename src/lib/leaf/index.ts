@@ -16,6 +16,7 @@ import {
 	Tags,
 	WebLinks,
 	WeirdCustomDomain,
+	WeirdTheme,
 	WeirdWikiPage,
 	WeirdWikiRevisionAuthor
 } from './profile';
@@ -80,6 +81,7 @@ export type KnownComponents = {
 	commonmark?: CommonMark['value'];
 	weirdWikiPage?: WeirdWikiPage['value'];
 	weirdWikiRevisionAuthor?: WeirdWikiRevisionAuthor['value'];
+	weirdTheme?: WeirdTheme['value'];
 };
 
 export async function loadKnownComponents(link: ExactLink): Promise<KnownComponents | undefined> {
@@ -92,10 +94,16 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 		WeirdCustomDomain,
 		CommonMark,
 		WeirdWikiPage,
-		WeirdWikiRevisionAuthor
+		WeirdWikiRevisionAuthor,
+		WeirdTheme
 	);
 
 	if (ent) {
+		let weirdTheme = ent.get(WeirdTheme)?.value;
+		if (weirdTheme) {
+			// work around the fact that borsh deserializes Uint8Arrays as number[] 🙁
+			weirdTheme = { data: new Uint8Array(weirdTheme.data) };
+		}
 		return {
 			name: ent.get(Name)?.value,
 			description: ent.get(Description)?.value,
@@ -104,7 +112,8 @@ export async function loadKnownComponents(link: ExactLink): Promise<KnownCompone
 			weirdCustomDomain: ent.get(WeirdCustomDomain)?.value,
 			commonmark: ent.get(CommonMark)?.value,
 			weirdWikiPage: ent.get(WeirdWikiPage)?.value,
-			weirdWikiRevisionAuthor: ent.get(WeirdWikiRevisionAuthor)?.value
+			weirdWikiRevisionAuthor: ent.get(WeirdWikiRevisionAuthor)?.value,
+			weirdTheme
 		};
 	} else {
 		return;

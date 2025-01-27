@@ -3,6 +3,7 @@
 	import { formatEntityPath } from 'leaf-proto';
 	import type { ActionData, PageData } from './$types';
 	import type { KnownComponents } from '$lib/leaf';
+	import { parseThemeData } from '$lib/renderer';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -39,6 +40,9 @@
 	let knownComponents: KnownComponents = $derived(data.components || {});
 	let editingTagsState = $state('');
 	let editingWebLinksState = $state('');
+	let theme: { profile: string; page?: string } | undefined = $derived(
+		knownComponents.weirdTheme && parseThemeData(knownComponents.weirdTheme.data)
+	);
 
 	$effect(() => {
 		editingTagsState = data.components?.tags?.join(', ') || '';
@@ -165,8 +169,12 @@
 			<textarea class="input" name="webLinks" value={editingWebLinksState}></textarea>
 		</label>
 		<label>
-			Pubpage Theme
-			<input class="input" name="pubpageTheme" value={knownComponents.weirdPubpageTheme} />
+			Profile Theme
+			<textarea class="input" name="profileTheme" value={theme?.profile}></textarea>
+		</label>
+		<label>
+			Page Theme
+			<textarea class="input" name="pageTheme" value={theme?.page}></textarea>
 		</label>
 		<label>
 			Custom Domain

@@ -8,7 +8,6 @@
 	} from '@rodrigodagostino/svelte-sortable-list';
 	import { Handle } from '@rodrigodagostino/svelte-sortable-list';
 	import { IconHandle } from '@rodrigodagostino/svelte-sortable-list';
-	import SocialMediaButton from '../social-media/social-media-button.svelte';
 	import { debounce } from 'underscore';
 
 	let {
@@ -85,43 +84,44 @@
 			links = [...links, ...linksFromOPML];
 		}}>Import links from OPML</button
 	>
-	<form
-		class="mb-4 flex items-center gap-2"
-		onsubmit={(e) => {
-			e.preventDefault();
-			newLink = { label: '', url: '' };
-		}}
-	>
-		<div class="flex flex-grow flex-col items-center justify-center gap-2">
-			<label class="flex w-full flex-row items-center gap-2">
-				<span class="w-16">Url</span>
-				<input required class="input" placeholder="Url" bind:value={newLink.url} />
-			</label>
-			<label class="flex w-full flex-row items-center gap-2">
-				<span class="w-16">Label</span>
-				<input
-					class="input"
-					placeholder={fetchingUrl ? 'Label ( auto-filling )' : 'Label'}
-					bind:value={newLink.label}
-				/>
-			</label>
-		</div>
 
-		<div class="flex items-center">
-			<button title="Add Link" class="variant-ghost-surface btn">Add link</button>
-		</div>
-	</form>
-
-	<ul class="mb-4 flex flex-col items-center gap-2">
+	<ul class="mb-4 flex flex-col items-stretch gap-2">
 		<SortableList on:sort={handleSort}>
 			{#each links as link, index (getId(link))}
 				<SortableItem id={getId(link)} {index}>
-					<li class="flex w-full items-center justify-center gap-2">
-						<Handle>
-							<IconHandle />
-						</Handle>
-						<SocialMediaButton url={link.url} label={link.label || host(link.url)} />
+					<li class="flex w-full items-stretch justify-center gap-2">
+						{#if links.length > 1}
+							<Handle>
+								<IconHandle />
+							</Handle>
+						{/if}
+						<form
+							class="mb-4 flex w-full items-center gap-2"
+							onsubmit={(e) => {
+								e.preventDefault();
+								newLink = { label: '', url: '' };
+							}}
+						>
+							<div class="flex w-full flex-grow flex-col items-center justify-center gap-2">
+								<label class="flex w-full flex-row items-center gap-2">
+									<span class="w-16">Url</span>
+									<input required class="input" placeholder="Url" bind:value={newLink.url} />
+								</label>
+								<label class="flex w-full flex-row items-center gap-2">
+									<span class="w-16">Label</span>
+									<input
+										class="input"
+										placeholder={fetchingUrl ? 'Label ( auto-filling )' : 'Label'}
+										bind:value={newLink.label}
+									/>
+								</label>
+							</div>
 
+							<!--
+								<div class="flex items-center">
+									<button title="Add Link" class="variant-ghost-surface btn">Add link</button>
+								</div>
+						</form>
 						<button
 							class="variant-ghost btn-icon btn-icon-sm"
 							title="Delete link"
@@ -132,6 +132,8 @@
 								}
 							}}>x</button
 						>
+-->
+						</form>
 					</li>
 				</SortableItem>
 			{/each}

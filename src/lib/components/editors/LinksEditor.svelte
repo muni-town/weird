@@ -9,13 +9,18 @@
 	import { Handle } from '@rodrigodagostino/svelte-sortable-list';
 	import { IconHandle } from '@rodrigodagostino/svelte-sortable-list';
 	import { debounce } from 'underscore';
+	import { untrack } from 'svelte';
 
 	let {
 		links = $bindable(),
 		...attrs
 	}: { links: { label?: string; url: string }[] } & HTMLAttributes<HTMLDivElement> = $props();
 
-	let newLink = $state({ label: '', url: '' });
+	// Adapted from SocialLinksEditor.svelte
+	let localLinks = $state(links.concat([{ url: '', label: '' }])) as typeof links;
+	$effect(() => {
+		links = localLinks.filter((x) => !!x.url);
+	});
 
 	let ids: Map<object, string> = $state(new Map());
 
@@ -30,41 +35,48 @@
 
 	function handleSort(event: CustomEvent<SortEventDetail>) {
 		const { prevItemIndex: from, nextItemIndex: to } = event.detail;
-		let clone = [...links];
-		clone.splice(to < 0 ? clone.length + to : to, 0, clone.splice(from, 1)[0]);
-		links = clone;
+		localLinks.splice(to < 0 ? localLinks.length + to : to, 0, localLinks.splice(from, 1)[0]);
 	}
 
-	let fetchingUrl = $state(false);
-	const fetchURL = debounce(async () => {
-		const url = new URL(newLink.url);
+	/** index of currently fetching url */
+	let fetchingUrl = $state(-1);
+	const fetchURL = debounce(async (link: (typeof links)[number]) => {
+		const url = new URL(link.url);
 		if (url) {
-			const resp = await fetch(`/api/links?url=${newLink.url}`);
+			const resp = await fetch(`/api/links?url=${link.url}`);
 			if (resp.status == 200) {
 				const htmlData = await resp.text();
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(htmlData, 'text/html');
 				const title = doc.querySelector('title')?.innerText;
 				if (!title || title.startsWith('ERROR')) {
-					newLink.label = '';
+					link.label = '';
 				}
-				newLink.label = title ?? '';
+				link.label = title ?? '';
 			}
 		}
-		fetchingUrl = false;
+
+		fetchingUrl = -1;
 	}, 500);
-	$effect(() => {
-		if (newLink.url && !newLink.label) {
-			fetchingUrl = true;
-			fetchURL();
+
+	const onInput = (link: (typeof links)[number], index: number) => {
+		// TODO: this doesn't currently account for previously autofilled links if the url is changed after an autofill
+		if (link.url && !link.label) {
+			fetchingUrl = index;
+			fetchURL(link);
 		}
-	});
+		// Should label also get checked before deleting?
+		if (link.url === '' && link.label === '') {
+			localLinks = localLinks.filter((_, i) => i !== index);
+		}
+	};
 
 	$effect(() => {
-		if (newLink.url.length > 0 && !links.includes(newLink)) {
-			links = [...links, newLink];
-		} else if (newLink.url.length == 0 && links.includes(newLink)) {
-			links = links.filter((x) => x !== newLink);
+		const lastLink = localLinks[localLinks.length - 1];
+		if (!lastLink || lastLink.url !== '') {
+			untrack(() => {
+				localLinks.push({ url: '', label: '' });
+			});
 		}
 	});
 
@@ -85,61 +97,43 @@
 		}}>Import links from OPML</button
 	>
 
-	<ul class="mb-4 flex flex-col items-stretch gap-2">
-		<SortableList on:sort={handleSort}>
-			{#each links as link, index (getId(link))}
+	<div class="mb-4 flex flex-col">
+		<SortableList direction="vertical" gap={0.5} on:sort={handleSort}>
+			{#each localLinks as link, index (getId(link))}
+				{@const isLast = index === localLinks.length - 1}
+				<!-- would use isLocked but it seems to be disabling input.-->
 				<SortableItem id={getId(link)} {index}>
-					<li class="flex w-full items-stretch justify-center gap-2">
-						{#if links.length > 1}
+					<div class="flex w-full items-center justify-center gap-2">
+						{#if localLinks.length > 2 && !isLast}
 							<Handle>
 								<IconHandle />
 							</Handle>
 						{/if}
-						<form
-							class="mb-4 flex w-full items-center gap-2"
-							onsubmit={(e) => {
-								e.preventDefault();
-								newLink = { label: '', url: '' };
-							}}
+						<div
+							class="mb-4 flex w-full w-full flex-grow flex-col items-center items-center justify-center gap-2 gap-2 gap-2"
 						>
-							<div class="flex w-full flex-grow flex-col items-center justify-center gap-2">
-								<label class="flex w-full flex-row items-center gap-2">
-									<span class="w-16">Url</span>
-									<input required class="input" placeholder="Url" bind:value={newLink.url} />
-								</label>
-								<label class="flex w-full flex-row items-center gap-2">
-									<span class="w-16">Label</span>
-									<input
-										class="input"
-										placeholder={fetchingUrl ? 'Label ( auto-filling )' : 'Label'}
-										bind:value={newLink.label}
-									/>
-								</label>
-							</div>
-
-							<!--
-								<div class="flex items-center">
-									<button title="Add Link" class="variant-ghost-surface btn">Add link</button>
-								</div>
-						</form>
-						<button
-							class="variant-ghost btn-icon btn-icon-sm"
-							title="Delete link"
-							onclick={() => {
-								const l = links.splice(index, 1)[0];
-								if (l == newLink) {
-									newLink = { label: '', url: '' };
-								}
-							}}>x</button
-						>
--->
-						</form>
-					</li>
+							<label class="flex w-full flex-row items-center gap-2">
+								<span class="w-16">Url</span>
+								<input
+									class="input"
+									placeholder="Url"
+									oninput={() => onInput(link, index)}
+									bind:value={link.url}
+								/>
+							</label>
+							<label class="flex w-full flex-row items-center gap-2">
+								<span class="w-16">Label</span>
+								<input
+									class="input"
+									oninput={() => onInput(link, index)}
+									placeholder={fetchingUrl === index ? 'Label ( auto-filling )' : 'Label'}
+									bind:value={link.label}
+								/>
+							</label>
+						</div>
+					</div>
 				</SortableItem>
 			{/each}
-			{#if links.length == 0}
-				<div class="mt-3">No Links</div>
-			{/if}
 		</SortableList>
-	</ul>
+	</div>
 </div>

@@ -120,11 +120,6 @@
 				<!-- would use isLocked but it seems to be disabling input.-->
 				<SortableItem id={getId(link)} {index}>
 					<div class="flex w-full items-center justify-center gap-2">
-						{#if localLinks.length > 2 && !isLast}
-							<Handle>
-								<IconHandle />
-							</Handle>
-						{/if}
 						<div
 							class="mb-4 flex w-full w-full flex-grow flex-col items-center items-center justify-center gap-2 gap-2 gap-2"
 						>
@@ -146,6 +141,11 @@
 								/>
 							</label>
 						</div>
+						{#if localLinks.length > 2 && !isLast}
+							<Handle>
+								<IconHandle />
+							</Handle>
+						{/if}
 					</div>
 				</SortableItem>
 			{/each}

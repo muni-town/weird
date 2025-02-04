@@ -114,10 +114,17 @@
 	>
 
 	<div class="mb-4 flex flex-col">
-		<SortableList direction="vertical" gap={0.5} on:sort={handleSort}>
+		<SortableList
+			direction="vertical"
+			hasBoundaries={true}
+			hasLockedAxis={true}
+			gap={0.5}
+			on:sort={handleSort}
+		>
 			{#each localLinks as link, index (getId(link))}
 				{@const isLast = index === localLinks.length - 1}
 				<!-- would use isLocked but it seems to be disabling input.-->
+				<!-- interactive elements lose values while dragging. fixed in v0.10.11 https://github.com/rodrigodagostino/svelte-sortable-list/issues/11 -->
 				<SortableItem id={getId(link)} {index}>
 					<div class="flex w-full items-center justify-center gap-2">
 						<div

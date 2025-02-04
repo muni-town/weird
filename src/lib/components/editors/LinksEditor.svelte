@@ -16,8 +16,9 @@
 		...attrs
 	}: { links: { label?: string; url: string }[] } & HTMLAttributes<HTMLDivElement> = $props();
 
+	const EMPTY = { url: '', label: '' };
 	// Adapted from SocialLinksEditor.svelte
-	let localLinks = $state(links.concat([{ url: '', label: '' }])) as typeof links;
+	let localLinks = $state(links.concat([EMPTY])) as typeof links;
 	$effect(() => {
 		links = localLinks.filter((x) => !!x.url);
 	});
@@ -74,8 +75,7 @@
 			fetchingUrl = index;
 			fetchURL(link);
 		}
-		// Should label also get checked before deleting?
-		if (link.url === '' && link.label === '') {
+		if (link.url === '') {
 			localLinks = localLinks.filter((_, i) => i !== index);
 		}
 	};
@@ -84,7 +84,14 @@
 		const lastLink = localLinks[localLinks.length - 1];
 		if (!lastLink || lastLink.url !== '') {
 			untrack(() => {
-				localLinks.push({ url: '', label: '' });
+				localLinks.push(EMPTY);
+			});
+		}
+		// can delete this after isLocked stops blocking mouse input
+		if (localLinks.slice(0, -1).some((x) => !x.url)) {
+			untrack(() => {
+				localLinks = localLinks.filter((x) => x.url);
+				localLinks.push(EMPTY);
 			});
 		}
 	});

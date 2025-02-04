@@ -197,7 +197,11 @@
 				class="prose relative mx-auto w-full max-w-[1000px] pt-4 dark:prose-invert prose-a:text-blue-400"
 			>
 				{#if !editingState.editing}
-					{@html renderMarkdownSanitized(data.page.markdown)}
+					<article>
+						{#await renderMarkdownSanitized(data.page.markdown) then html}
+							{@html html}
+						{/await}
+					</article>
 				{:else}
 					<CompositeMarkdownEditor bind:content={editingState.page.markdown} />
 				{/if}

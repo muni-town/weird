@@ -1,22 +1,51 @@
 <script lang="ts">
+	import {
+		SortableItem,
+		SortableList,
+		sortItems,
+		type SortEventDetail
+	} from '@rodrigodagostino/svelte-sortable-list';
+	import { Handle } from '@rodrigodagostino/svelte-sortable-list';
+	import { IconHandle } from '@rodrigodagostino/svelte-sortable-list';
+
 	type Page = {
 		slug: string;
 		name?: string;
 	};
 	let { pages: _pages = $bindable() }: { pages: Page[] } = $props();
 	let pages = $state.raw(_pages);
+
+	function handleSort(event: CustomEvent<SortEventDetail>) {
+		const { prevItemIndex: from, nextItemIndex: to } = event.detail;
+		pages = sortItems(pages, from, to);
+		_pages = pages;
+	}
 </script>
+
 <div>
 	<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
-	<ul class="mt-6 flex items-center gap-10">
+	<div class="mt-6 items-center gap-10">
+		<SortableList
+			direction="vertical"
+			hasBoundaries={true}
+			hasLockedAxis={true}
+			gap={12.75}
+			on:sort={handleSort}
+		>
 			{#each pages as p, index (p.slug)}
-					<li>
-							<a class="link">
-								{p.name || p.slug}
-							</a>
-					</li>
+				<SortableItem id={p.slug} {index}>
+					<div class="flex w-full items-center justify-center gap-2">
+						<div class="link">
+							{p.name || p.slug}
+						</div>
+						<Handle>
+							<IconHandle />
+						</Handle>
+					</div>
+				</SortableItem>
 			{/each}
-	</ul>
+		</SortableList>
+	</div>
 </div>
 
 <style>

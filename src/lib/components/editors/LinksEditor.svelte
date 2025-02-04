@@ -41,25 +41,34 @@
 	/** index of currently fetching url */
 	let fetchingUrl = $state(-1);
 	const fetchURL = debounce(async (link: (typeof links)[number]) => {
-		const url = new URL(link.url);
-		if (url) {
-			const resp = await fetch(`/api/links?url=${link.url}`);
-			if (resp.status == 200) {
-				const htmlData = await resp.text();
-				const parser = new DOMParser();
-				const doc = parser.parseFromString(htmlData, 'text/html');
-				const title = doc.querySelector('title')?.innerText;
-				if (!title || title.startsWith('ERROR')) {
-					link.label = '';
+		try {
+			const url = new URL(link.url);
+			if (url) {
+				const resp = await fetch(`/api/links?url=${url}`);
+				if (resp.status == 200) {
+					const htmlData = await resp.text();
+					const parser = new DOMParser();
+					const doc = parser.parseFromString(htmlData, 'text/html');
+					const title = doc.querySelector('title')?.innerText;
+					if (!title || title.startsWith('ERROR') || !!link.label) {
+						return;
+					}
+					link.label = title;
 				}
-				link.label = title ?? '';
 			}
+		} catch (err) {
+			if (err instanceof TypeError && err.message.includes(`is not a valid URL.`)) {
+				if (!link.url.startsWith('http')) {
+					link.url = 'https://' + link.url;
+				}
+				fetchURL(link);
+			} else throw err;
+		} finally {
+			fetchingUrl = -1;
 		}
-
-		fetchingUrl = -1;
 	}, 500);
 
-	const onInput = (link: (typeof links)[number], index: number) => {
+	const onInput = async (link: (typeof links)[number], index: number) => {
 		// TODO: this doesn't currently account for previously autofilled links if the url is changed after an autofill
 		if (link.url && !link.label) {
 			fetchingUrl = index;
@@ -125,7 +134,6 @@
 								<span class="w-16">Label</span>
 								<input
 									class="input"
-									oninput={() => onInput(link, index)}
 									placeholder={fetchingUrl === index ? 'Label ( auto-filling )' : 'Label'}
 									bind:value={link.label}
 								/>

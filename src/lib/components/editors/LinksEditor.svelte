@@ -123,20 +123,20 @@
 						<div
 							class="mb-4 flex w-full w-full flex-grow flex-col items-center items-center justify-center gap-2 gap-2 gap-2"
 						>
-							<label class="flex w-full flex-row items-center gap-2">
-								<span class="w-16">Url</span>
+							<label class="items-left flex w-full flex-col gap-2">
+								<span class="text-sm font-semibold">Url</span>
 								<input
 									class="input"
-									placeholder="Url"
+									placeholder="https://example.com"
 									oninput={() => onInput(link, index)}
 									bind:value={link.url}
 								/>
 							</label>
-							<label class="flex w-full flex-row items-center gap-2">
-								<span class="w-16">Label</span>
+							<label class="items-left flex w-full flex-col gap-2">
+								<span class="text-sm font-semibold">Label</span>
 								<input
 									class="input"
-									placeholder={fetchingUrl === index ? 'Label ( auto-filling )' : 'Label'}
+									placeholder={fetchingUrl === index ? 'Label ( auto-filling )' : 'My Title'}
 									bind:value={link.label}
 								/>
 							</label>

@@ -15,7 +15,6 @@ input::placeholder {
 
 .card {
 	@apply !rounded-xl !border-[1px] !border-black !bg-pink-300/10;
-	backdrop-filter: blur(2px)
 }
 
 .modal.contents .card {

@@ -8,15 +8,20 @@
 	} from '@rodrigodagostino/svelte-sortable-list';
 	import { Handle } from '@rodrigodagostino/svelte-sortable-list';
 	import { IconHandle } from '@rodrigodagostino/svelte-sortable-list';
-	import SocialMediaButton from '../social-media/social-media-button.svelte';
 	import { debounce } from 'underscore';
+	import { untrack } from 'svelte';
 
 	let {
 		links = $bindable(),
 		...attrs
 	}: { links: { label?: string; url: string }[] } & HTMLAttributes<HTMLDivElement> = $props();
 
-	let newLink = $state({ label: '', url: '' });
+	const EMPTY = { url: '', label: '' };
+	// Adapted from SocialLinksEditor.svelte
+	let localLinks = $state(links.concat([EMPTY])) as typeof links;
+	$effect(() => {
+		links = localLinks.filter((x) => !!x.url);
+	});
 
 	let ids: Map<object, string> = $state(new Map());
 
@@ -31,41 +36,63 @@
 
 	function handleSort(event: CustomEvent<SortEventDetail>) {
 		const { prevItemIndex: from, nextItemIndex: to } = event.detail;
-		let clone = [...links];
-		clone.splice(to < 0 ? clone.length + to : to, 0, clone.splice(from, 1)[0]);
-		links = clone;
+		localLinks.splice(to < 0 ? localLinks.length + to : to, 0, localLinks.splice(from, 1)[0]);
 	}
 
-	let fetchingUrl = $state(false);
-	const fetchURL = debounce(async () => {
-		const url = new URL(newLink.url);
-		if (url) {
-			const resp = await fetch(`/api/links?url=${newLink.url}`);
-			if (resp.status == 200) {
-				const htmlData = await resp.text();
-				const parser = new DOMParser();
-				const doc = parser.parseFromString(htmlData, 'text/html');
-				const title = doc.querySelector('title')?.innerText;
-				if (!title || title.startsWith('ERROR')) {
-					newLink.label = '';
+	/** index of currently fetching url */
+	let fetchingUrl = $state(-1);
+	const fetchURL = debounce(async (link: (typeof links)[number]) => {
+		try {
+			const url = new URL(link.url);
+			if (url) {
+				const resp = await fetch(`/api/links?url=${url}`);
+				if (resp.status == 200) {
+					const htmlData = await resp.text();
+					const parser = new DOMParser();
+					const doc = parser.parseFromString(htmlData, 'text/html');
+					const title = doc.querySelector('title')?.innerText;
+					if (!title || title.startsWith('ERROR') || !!link.label) {
+						return;
+					}
+					link.label = title;
 				}
-				newLink.label = title ?? '';
 			}
+		} catch (err) {
+			if (err instanceof TypeError && err.message.includes(`is not a valid URL.`)) {
+				if (!link.url.startsWith('http')) {
+					link.url = 'https://' + link.url;
+				}
+				fetchURL(link);
+			} else throw err;
+		} finally {
+			fetchingUrl = -1;
 		}
-		fetchingUrl = false;
 	}, 500);
-	$effect(() => {
-		if (newLink.url && !newLink.label) {
-			fetchingUrl = true;
-			fetchURL();
+
+	const onInput = async (link: (typeof links)[number], index: number) => {
+		// TODO: this doesn't currently account for previously autofilled links if the url is changed after an autofill
+		if (link.url && !link.label) {
+			fetchingUrl = index;
+			fetchURL(link);
 		}
-	});
+		if (link.url === '') {
+			localLinks = localLinks.filter((_, i) => i !== index);
+		}
+	};
 
 	$effect(() => {
-		if (newLink.url.length > 0 && !links.includes(newLink)) {
-			links = [...links, newLink];
-		} else if (newLink.url.length == 0 && links.includes(newLink)) {
-			links = links.filter((x) => x !== newLink);
+		const lastLink = localLinks[localLinks.length - 1];
+		if (!lastLink || lastLink.url !== '') {
+			untrack(() => {
+				localLinks.push(EMPTY);
+			});
+		}
+		// can delete this after isLocked stops blocking mouse input
+		if (localLinks.slice(0, -1).some((x) => !x.url)) {
+			untrack(() => {
+				localLinks = localLinks.filter((x) => x.url);
+				localLinks.push(EMPTY);
+			});
 		}
 	});
 
@@ -85,59 +112,50 @@
 			links = [...links, ...linksFromOPML];
 		}}>Import links from OPML</button
 	>
-	<form
-		class="mb-4 flex items-center gap-2"
-		onsubmit={(e) => {
-			e.preventDefault();
-			newLink = { label: '', url: '' };
-		}}
-	>
-		<div class="flex flex-grow flex-col items-center justify-center gap-2">
-			<label class="flex w-full flex-row items-center gap-2">
-				<span class="w-16">Url</span>
-				<input required class="input" placeholder="Url" bind:value={newLink.url} />
-			</label>
-			<label class="flex w-full flex-row items-center gap-2">
-				<span class="w-16">Label</span>
-				<input
-					class="input"
-					placeholder={fetchingUrl ? 'Label ( auto-filling )' : 'Label'}
-					bind:value={newLink.label}
-				/>
-			</label>
-		</div>
 
-		<div class="flex items-center">
-			<button title="Add Link" class="variant-ghost-surface btn">Add link</button>
-		</div>
-	</form>
-
-	<ul class="mb-4 flex flex-col items-center gap-2">
-		<SortableList on:sort={handleSort}>
-			{#each links as link, index (getId(link))}
+	<div class="mb-4 flex flex-col">
+		<SortableList
+			direction="vertical"
+			hasBoundaries={true}
+			hasLockedAxis={true}
+			gap={0.5}
+			on:sort={handleSort}
+		>
+			{#each localLinks as link, index (getId(link))}
+				{@const isLast = index === localLinks.length - 1}
+				<!-- would use isLocked but it seems to be disabling input.-->
+				<!-- interactive elements lose values while dragging. fixed in v0.10.11 https://github.com/rodrigodagostino/svelte-sortable-list/issues/11 -->
 				<SortableItem id={getId(link)} {index}>
-					<li class="flex w-full items-center justify-center gap-2">
-						<Handle>
-							<IconHandle />
-						</Handle>
-						<SocialMediaButton url={link.url} label={link.label || host(link.url)} />
-
-						<button
-							class="variant-ghost btn-icon btn-icon-sm"
-							title="Delete link"
-							onclick={() => {
-								const l = links.splice(index, 1)[0];
-								if (l == newLink) {
-									newLink = { label: '', url: '' };
-								}
-							}}>x</button
+					<div class="flex w-full items-center justify-center gap-2">
+						<div
+							class="mb-4 flex w-full w-full flex-grow flex-col items-center items-center justify-center gap-2 gap-2 gap-2"
 						>
-					</li>
+							<label class="items-left flex w-full flex-col gap-2">
+								<span class="text-sm font-semibold">Url</span>
+								<input
+									class="input"
+									placeholder="https://example.com"
+									oninput={() => onInput(link, index)}
+									bind:value={link.url}
+								/>
+							</label>
+							<label class="items-left flex w-full flex-col gap-2">
+								<span class="text-sm font-semibold">Label</span>
+								<input
+									class="input"
+									placeholder={fetchingUrl === index ? 'Label ( auto-filling )' : 'My Title'}
+									bind:value={link.label}
+								/>
+							</label>
+						</div>
+						{#if localLinks.length > 2 && !isLast}
+							<Handle>
+								<IconHandle />
+							</Handle>
+						{/if}
+					</div>
 				</SortableItem>
 			{/each}
-			{#if links.length == 0}
-				<div class="mt-3">No Links</div>
-			{/if}
 		</SortableList>
-	</ul>
+	</div>
 </div>

@@ -87,13 +87,6 @@
 				localLinks.push(EMPTY);
 			});
 		}
-		// can delete this after isLocked stops blocking mouse input
-		if (localLinks.slice(0, -1).some((x) => !x.url)) {
-			untrack(() => {
-				localLinks = localLinks.filter((x) => x.url);
-				localLinks.push(EMPTY);
-			});
-		}
 	});
 
 	function host(url: string): string | undefined {
@@ -123,9 +116,7 @@
 		>
 			{#each localLinks as link, index (getId(link))}
 				{@const isLast = index === localLinks.length - 1}
-				<!-- would use isLocked but it seems to be disabling input.-->
-				<!-- interactive elements lose values while dragging. fixed in v0.10.11 https://github.com/rodrigodagostino/svelte-sortable-list/issues/11 -->
-				<SortableItem id={getId(link)} {index}>
+				<SortableItem id={getId(link)} {index} isLocked={isLast}>
 					<div class="flex w-full items-center justify-center gap-2">
 						<div
 							class="mb-4 flex w-full w-full flex-grow flex-col items-center items-center justify-center gap-2 gap-2 gap-2"

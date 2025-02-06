@@ -10,7 +10,6 @@
 	import { onNavigate } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
-	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
 	import slugify from 'slugify';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
@@ -198,9 +197,7 @@
 			>
 				{#if !editingState.editing}
 					<article>
-						{#await renderMarkdownSanitized(data.page.markdown) then html}
-							{@html html}
-						{/await}
+						{@html data.page.html}
 					</article>
 				{:else}
 					<CompositeMarkdownEditor bind:content={editingState.page.markdown} />
@@ -228,3 +225,11 @@
 		</div>
 	</div>
 </main>
+
+<style>
+	:global(.unfurl) {
+		& a.title {
+			text-decoration: none;
+		}
+	}
+</style>

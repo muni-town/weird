@@ -48,31 +48,36 @@ const previewLinks = async (html: string) => {
 		}
 	})
 
+	// cache data for identical url within the same request
+	const cache = new Map<string, Data>()
 	return Promise.all(
 		links.map(async (a) => {
-			try {
-				const res = await fetch('https://embed.internal.weird.one?lang=en', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'text/plain',
-					},
-					body: a.href
-				})
-				if (res.ok) {
-					const data = await res.json()
-					const linkCard = document.createElement('div')
-					linkCard.className = "unfurl bg-gray-700 border border-gray-800 border-opacity-40 bg-opacity-40 rounded-xl overflow-hidden"
-					linkCard.innerHTML = linkCardTemplate({ data: data[1], url: a.href })
-					a.replaceWith(linkCard)
-				} else {
-					console.error(`${res.status} ${res.statusText}: for url ${a.href}`)
+			let data = cache.get(a.href)
+			if (!data) {
+				try {
+					const res = await fetch('https://embed.internal.weird.one?lang=en', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'text/plain',
+						},
+						body: a.href
+					})
+					if (!res.ok)
+						console.error(`${res.status} ${res.statusText}: for url ${a.href}`)
+					const json = await res.json()
+					data = cache.set(a.href, json[1]).get(a.href)
+
+				} catch (err) {
+					if (err instanceof TypeError)
+						console.error(`${err.message}. ${err.cause}`)
+					else throw err
 				}
-			} catch (err) {
-				if (err instanceof TypeError && err.message === 'fetch failed') {
-					console.error(err)
-				}
-				console.log(err)
 			}
+			if (!data) return
+			const linkCard = document.createElement('div')
+			linkCard.className = "unfurl bg-gray-700 border border-gray-800 border-opacity-40 bg-opacity-40 rounded-xl overflow-hidden"
+			linkCard.innerHTML = linkCardTemplate({ data, url: a.href })
+			a.replaceWith(linkCard)
 		})
 	).then(() => {
 		const container = document.createElement('div')

@@ -1,8 +1,9 @@
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
+import type { EmbedV1 } from '$lib/types/embed-sdk';
 
 // Embed Service types https://github.com/Lantern-chat/embed-service/blob/master/embed-sdk/index.d.ts
-type Data = object
+type Data = EmbedV1
 
 /** conditional render */
 const cr = (value: string | undefined, seperator = ''): string => value !== undefined ? ` ${seperator} ${value}` : ''

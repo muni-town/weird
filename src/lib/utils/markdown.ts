@@ -4,15 +4,17 @@ import sanitizeHtml from 'sanitize-html';
 // Embed Service types https://github.com/Lantern-chat/embed-service/blob/master/embed-sdk/index.d.ts
 type Data = object
 
+/** conditional render */
+const cr = (value: string | undefined, seperator = ''): string => value ? ` ${seperator} ${value}` : ''
 const linkCardTemplate = ({ data: d, url }: { data: Data, url: string }) => `
 <div class="flex flex-col flex-wrap justify-stretch gap-4 min-[500px]:flex-row">
 	<div class="min-w-0 flex-1 px-3 py-2">
-		<p class="mb-1 mt-0 text-sm leading-none opacity-70">${d.p?.n} - ${d.c} - ${d.au}</p>
+		<p class="mb-1 mt-0 text-sm leading-none opacity-70">${cr(d.p?.n)}${cr(d.c, '-')}${cr(d.au, '-')}</p>
 		<p class="mb-1 mt-1 line-clamp-2 leading-snug text-blue-400"
-			><a href="https://${d.u}" class="title"
+			><a href="https://${url}" class="title"
 				><b class="font-bold text-blue-400">${d.t}</b></a
 		></p>
-		<p class="my-0 line-clamp-4 text-sm leading-tight">${d.d}</p>
+		<p class="my-0 line-clamp-4 text-sm leading-tight">${cr(d.d)}</p>
 	</div>
 	${d.imgs && d.imgs.length && `
 	<div class=" w-full flex-shrink-0 p-2 min-[500px]:max-w-40">

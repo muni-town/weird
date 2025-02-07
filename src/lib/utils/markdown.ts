@@ -5,18 +5,19 @@ import sanitizeHtml from 'sanitize-html';
 type Data = object
 
 const linkCardTemplate = ({ data: d, url }: { data: Data, url: string }) => `
-<div class="flex flex-wrap justify-stretch gap-4">
-	<div class="flex-1 min-w-0 px-3 py-2">
-		<p class="text-sm text-gray-400 leading-none mt-0 mb-1">${d.p?.n} - ${d.ac}</p>
-		<p class="mt-1 mb-2 line-clamp-2 text-blue-400 leading-snug">
-			<a href="https://${url}" class="title"><b class="font-bold text-blue-400 ">${d.t}</b></a>
-		</p>
-		<p class="text-sm line-clamp-4 leading-tight my-0">${d.d}</p>
+<div class="flex flex-col flex-wrap justify-stretch gap-4 min-[500px]:flex-row">
+	<div class="min-w-0 flex-1 px-3 py-2">
+		<p class="mb-1 mt-0 text-sm leading-none opacity-70">${d.p?.n} - ${d.c} - ${d.au}</p>
+		<p class="mb-1 mt-1 line-clamp-2 leading-snug text-blue-400"
+			><a href="https://${d.u}" class="title"
+				><b class="font-bold text-blue-400">${d.t}</b></a
+		></p>
+		<p class="my-0 line-clamp-4 text-sm leading-tight">${d.d}</p>
 	</div>
-	<div class="flex-shrink-0 max-w-40 h-full p-2">
-		${d.imgs && d.imgs.length &&
-	`<img class="object-cover rounded-md w-full my-0 h-full" src="${d.imgs[0].u}" alt="">`}
-	</div>
+	${d.imgs && d.imgs.length && `
+	<div class=" w-full flex-shrink-0 p-2 min-[500px]:max-w-40">
+		<img class="my-0 h-full w-full rounded object-cover" src=${d.imgs[0].u} alt="" />
+	</div>`}
 </div>
 `;
 
@@ -75,7 +76,7 @@ const previewLinks = async (html: string) => {
 			}
 			if (!data) return
 			const linkCard = document.createElement('div')
-			linkCard.className = "unfurl bg-gray-700 border border-gray-800 border-opacity-40 bg-opacity-40 rounded-xl overflow-hidden"
+			linkCard.className = "unfurl overflow-hidden rounded-r border-l-4 border-gray-200 bg-gray-200 bg-opacity-10"
 			linkCard.innerHTML = linkCardTemplate({ data, url: a.href })
 			a.replaceWith(linkCard)
 		})

@@ -21,7 +21,7 @@ const linkCardTemplate = ({ data: d, url }: { data: Data, url: string }) => `
 </div>
 `;
 
-const previewLinks = async (html: string) => {
+export const previewLinks = async (html: string) => {
 	let document: Document
 	if (import.meta.env.SSR) {
 		const { parseHTML } = await import('linkedom')
@@ -89,6 +89,5 @@ const previewLinks = async (html: string) => {
 
 /** Render the markdown string to sanitized HTML, ready for display in the app. */
 export function renderMarkdownSanitized(markdown: string) {
-	const sanitized = sanitizeHtml(marked.parse(markdown) as string)
-	return previewLinks(sanitized)
+	return sanitizeHtml(marked.parse(markdown) as string)
 }

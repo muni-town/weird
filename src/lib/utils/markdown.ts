@@ -33,15 +33,15 @@ export const previewLinks = async (html: string) => {
 	const fragment = document.createDocumentFragment()
 
 	const links: Array<HTMLAnchorElement> = []
-	document.children.forEach((el, i) => {
-		fragment.append(el)
-		if ('tagName' in el && el.tagName === 'P') {
+	document.childNodes.forEach((node, i) => {
+		fragment.append(node)
+		if ('tagName' in node && node.tagName === 'P') {
 			// get a list of all anchor tags in their own paragraph with the href as inner
 			// should be equivalent to \n\n<markdown-link>\n\n
-			const child = el.firstElementChild
+			const child = node.firstChild
 			if (child
-				&& el.childNodes.length === 1
-				&& child.tagName === 'A'
+				&& node.childNodes.length === 1
+				&& child.nodeName === 'A'
 				&& 'href' in child
 				&& child.href === child?.innerHTML) {
 				links.push(child)

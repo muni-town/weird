@@ -3,14 +3,13 @@
 
 	import { env } from '$env/dynamic/public';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
-	import type { SvelteComponent } from 'svelte';
+	import { type SvelteComponent } from 'svelte';
 	import type { ActionData, PageData } from './$types';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
 	import { onNavigate } from '$app/navigation';
 	import Icon from '@iconify/svelte';
 	import CompositeMarkdownEditor from '$lib/components/editors/CompositeMarkdownEditor.svelte';
-	import { renderMarkdownSanitized } from '$lib/utils/markdown';
 	import { page } from '$app/stores';
 	import slugify from 'slugify';
 	import { SlideToggle } from '@skeletonlabs/skeleton';
@@ -197,7 +196,9 @@
 				class="prose relative mx-auto w-full max-w-[1000px] pt-4 dark:prose-invert prose-a:text-blue-400"
 			>
 				{#if !editingState.editing}
-					{@html renderMarkdownSanitized(data.page.markdown)}
+					<article>
+						{@html data.page.html}
+					</article>
 				{:else}
 					<CompositeMarkdownEditor bind:content={editingState.page.markdown} />
 				{/if}
@@ -224,3 +225,11 @@
 		</div>
 	</div>
 </main>
+
+<style>
+	:global(.unfurl) {
+		& a.title {
+			text-decoration: none;
+		}
+	}
+</style>

@@ -3,7 +3,7 @@
 
 	import { env } from '$env/dynamic/public';
 	import InlineTextEditor from '$lib/components/editors/InlineTextEditor.svelte';
-	import { untrack, type SvelteComponent } from 'svelte';
+	import { type SvelteComponent } from 'svelte';
 	import type { ActionData, PageData } from './$types';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
@@ -17,16 +17,8 @@
 	import { LoroDoc } from 'loro-crdt';
 	import base64 from 'base64-js';
 	import { checkResponse } from '$lib/utils/http';
-	import { previewLinks } from '$lib/utils/markdown';
 
 	const { data, form }: { data: PageData; form: ActionData } = $props();
-	let html = $state(data.page.html);
-	$effect(() => {
-		data.page.html;
-		untrack(() => {
-			previewLinks(data.page.html).then((res) => (html = res));
-		});
-	});
 
 	let editingState: { editing: boolean; page: Page } = $state({
 		editing: false,
@@ -205,7 +197,7 @@
 			>
 				{#if !editingState.editing}
 					<article>
-						{@html html}
+						{@html data.page.html}
 					</article>
 				{:else}
 					<CompositeMarkdownEditor bind:content={editingState.page.markdown} />

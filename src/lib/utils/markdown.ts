@@ -41,7 +41,7 @@ export const previewLinks = async (html: string) => {
 	const fragment = document.createDocumentFragment()
 
 	const links: Array<HTMLAnchorElement> = []
-	document.childNodes.forEach((node, i) => {
+	document.childNodes.forEach((node) => {
 		fragment.append(node)
 		if ('tagName' in node && node.tagName === 'P') {
 			// get a list of all anchor tags in their own paragraph with the href as inner
@@ -51,7 +51,7 @@ export const previewLinks = async (html: string) => {
 				&& node.childNodes.length === 1
 				&& child.nodeName === 'A'
 				&& 'href' in child
-				&& child.href === child?.innerHTML) {
+				&& child.href === child.innerHTML) {
 				links.push(child)
 			}
 		}

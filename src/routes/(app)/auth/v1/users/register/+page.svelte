@@ -34,16 +34,12 @@
 			const formData = new FormData(event.target as HTMLFormElement);
 			const email = formData.get('email') as string;
 
-			const home = new URL(window.location.href);
-			home.pathname = '/my-profile';
 			const registerResp = await fetch('/auth/v1/users/register', {
 				method: 'post',
 				body: JSON.stringify({
 					email,
 					given_name: 'Weird',
 					family_name: 'User',
-					// This isn't really used, we do the redirect manually.
-					redirect_uri: home,
 					pow: powResult
 				})
 			});

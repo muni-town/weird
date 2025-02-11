@@ -86,9 +86,9 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
+<main class="flex w-full flex-col items-center font-spacemono">
 	<div
-		class="card relative m-4 mt-12 flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
+		class="card relative flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
 	>
 		<h1 class="relative mx-[2em] mt-2 grow self-center text-center font-rubik text-4xl">
 			{#if !editingState.editing}

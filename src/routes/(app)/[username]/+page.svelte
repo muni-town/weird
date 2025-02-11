@@ -125,9 +125,9 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full max-w-full flex-col items-center px-2 font-spacemono">
+<main class="flex w-full max-w-full flex-col items-center font-spacemono">
 	<div
-		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl card p-8 text-xl"
+		class="mt-2 flex w-full max-w-[700px] flex-col gap-4 rounded-xl card p-8 text-xl"
 	>
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}

@@ -76,56 +76,72 @@
 	}
 </script>
 
-<div class="flex max-w-full flex-row flex-wrap-reverse justify-center sm:flex-nowrap">
+<div
+	class="flex h-full max-w-full flex-row flex-wrap-reverse justify-center gap-2 p-2 sm:flex-nowrap"
+>
 	{#if data.profileMatchesUserSession}
-		<aside class="sidebar card">
-			<div class="mb-3 flex flex-row items-start justify-between">
-				<h1 class="mb-2 text-xl font-bold">Pages</h1>
-				<a
-					title="Add Page"
-					class="variant-ghost btn-icon btn-icon-sm"
-					href={`/${$page.params.username}/new`}
-				>
+		<aside
+			class="sidebar card sticky top-2 flex w-full flex-shrink flex-col  sm:h-[91vh] sm:w-auto"
+		>
+			<div class="pt-4 pb-2 justify-stretch">
+			<a
+				class="w-full inline-flex items-center  p-1 gap-2 rounded-xl font-semibold hover:cursor-pointer hover:bg-slate-100 hover:bg-opacity-15"
+				href={`/${$page.params.username}`}><Icon icon="fluent:person-24-filled" /> Profile</a
+			>
+			</div>
+			<div class="flex flex-row items-start justify-between">
+				<h2 class="font-semibold">Pages</h2>
+				<a title="Add Page" class="btn-icon btn-icon-sm" href={`/${$page.params.username}/new`}>
 					<Icon icon="fluent:add-12-filled" font-size="1.5em" />
 				</a>
 			</div>
 
-			<div class="flex flex-col gap-2">
-				<a class="variant-ghost btn" href={`/${$page.params.username}`}>Profile</a>
+			<ul class="scrollbar-thin flex max-h-full grow flex-col gap-1 overflow-auto justify-start">
 				{#each data.pages as p}
-					<a class="variant-ghost btn" href={`/${$page.params.username}/${p.slug}`}
-						>{p.name || p.slug}</a
-					>
+					<li class="transition:color py-1 text-slate-300 hover:text-slate-100">
+						<a href={`/${$page.params.username}/${p.slug}`}>{p.name || p.slug}</a>
+					</li>
 				{/each}
-			</div>
-
-			<div class="flex-grow"></div>
-
-			<h2 class="mb-2 text-lg font-bold">Settings</h2>
-			<div class="flex flex-col gap-2">
-				<button
-					class="variant-outline btn"
-					onclick={() => modalStore.trigger(manageSubscriptionModal)}
-				>
-					Manage Subscription
-				</button>
-				<button class="variant-outline btn" onclick={() => modalStore.trigger(manageAccountModal)}>
-					Manage Account
-				</button>
-				<button class="variant-outline btn" onclick={() => modalStore.trigger(setHandleModal)}>
-					Change Handle
-				</button>
-				<a class="variant-outline btn" href={`/${$page.params.username}/theme-editor`}>
-					Theme Editor
-				</a>
-				<button class="variant-outline btn" onclick={() => modalStore.trigger(deleteProfileModal)}>
-					Delete Profile
-				</button>
-			</div>
+			</ul>
+			<details class="h-fit flex-col py-4 ">
+				<summary
+					class="mb-2 flex items-center gap-2 rounded-lg p-1 font-semibold hover:cursor-pointer hover:bg-slate-100 hover:bg-opacity-15"
+					><Icon icon="fluent:settings-24-filled" /> Settings
+				</summary>
+				<div class="flex h-fit flex-col gap-2">
+					<button
+						class="text-start text-slate-300"
+						onclick={() => modalStore.trigger(manageSubscriptionModal)}
+					>
+						Manage Subscription
+					</button>
+					<button
+						class="text-start text-slate-300"
+						onclick={() => modalStore.trigger(manageAccountModal)}
+					>
+						Manage Account
+					</button>
+					<button
+						class="text-start text-slate-300"
+						onclick={() => modalStore.trigger(setHandleModal)}
+					>
+						Change Handle
+					</button>
+					<a class="text-start text-slate-300" href={`/${$page.params.username}/theme-editor`}>
+						Theme Editor
+					</a>
+					<button
+						class="text-start text-slate-300"
+						onclick={() => modalStore.trigger(deleteProfileModal)}
+					>
+						Delete Profile
+					</button>
+				</div>
+			</details>
 		</aside>
 	{/if}
 
-	<div class="relative w-full">
+	<div class="relative h-full w-full overflow-auto">
 		<div class="hidden flex-grow sm:block"></div>
 
 		<div class="flex max-w-full grow flex-col items-center">
@@ -164,10 +180,15 @@
 
 <style>
 	.sidebar {
-		@apply sticky top-8 mx-4 my-8 flex w-full flex-shrink flex-col rounded-xl  p-5 sm:h-[85vh] sm:w-auto;
 		flex-basis: 18em;
+		& > * {
+			padding-inline: 0.75rem;
+		}
 		.btn {
 			text-wrap: wrap;
 		}
+	}
+	.scrollbar-thin {
+		scrollbar-width: thin;
 	}
 </style>

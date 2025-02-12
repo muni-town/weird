@@ -126,9 +126,7 @@
 </svelte:head>
 
 <main class="flex w-full max-w-full flex-col items-center font-spacemono">
-	<div
-		class="mt-2 flex w-full max-w-[700px] flex-col gap-4 rounded-xl card p-8 text-xl"
-	>
+	<div class="card flex w-full max-w-[700px] flex-col gap-4 rounded-xl p-8 text-xl">
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
 				<Avatar src={`/${data.username}/avatar`} class="min-w-[40px]" />

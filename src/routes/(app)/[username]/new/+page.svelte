@@ -60,9 +60,9 @@
 	<title>New Page | {env.PUBLIC_INSTANCE_NAME}</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
+<main class="flex h-full w-full flex-col items-start font-spacemono">
 	<div
-		class="card relative m-4 mt-12 flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
+		class="card relative mb-4 flex min-h-fit w-full max-w-[1000px] flex-col justify-start gap-4 rounded-xl p-8 text-xl sm:min-h-full"
 	>
 		<h1 class="relative my-3 text-center text-4xl">
 			<div>

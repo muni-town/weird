@@ -8,7 +8,8 @@
 	import ManageSubscriptionModal from './components/ManageSubscriptionModal.svelte';
 	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
 	import ManageAccountModal from './components/ManageAccountModal.svelte';
-	import { goto } from '$app/navigation';
+	import { goto, onNavigate } from '$app/navigation';
+	import { slide } from 'svelte/transition';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 
@@ -74,11 +75,36 @@
 		await goto(`/${$page.params.username}`, { invalidateAll: true });
 		modalStore.close();
 	}
+
+	let drawerState: 'closed' | 'settings' | 'pages' | 'main' = $state('closed');
+	let settingsOpen = $state(false);
+	const toggleDrawer = (signal: 'open' | 'close' | 'settings' | 'pages') => {
+		switch (signal) {
+			case 'settings':
+				if (drawerState !== 'settings') drawerState = 'settings';
+				else drawerState = 'main';
+				break;
+			case 'open':
+				settingsOpen = false;
+				if (drawerState !== 'closed') drawerState = 'closed';
+				else drawerState = 'main';
+				break;
+			case 'pages':
+				settingsOpen = false;
+				if (drawerState !== 'pages') drawerState = 'pages';
+				else drawerState = 'main';
+				break;
+			case 'close':
+				drawerState = 'closed';
+				settingsOpen = false;
+				break;
+		}
+	};
+	onNavigate(() => toggleDrawer('close'));
 </script>
 
 <div class="flex h-full max-w-full flex-row flex-wrap-reverse justify-center p-2 sm:flex-nowrap">
 	<div class="hidden flex-grow sm:block"></div>
-
 	<div class="flex max-w-full grow flex-col items-center">
 		{#if error}
 			<aside class="alert variant-ghost-error relative mt-8 w-full">
@@ -112,21 +138,21 @@
 		{:else}
 			<div id="conjoin" class="relative mt-6 grid h-full w-full items-start">
 				<aside
-					class=" sticky top-8 hidden w-full min-w-0 flex-shrink flex-col sm:flex sm:w-auto sm:min-w-64"
+					class="sticky top-8 hidden w-full min-w-0 flex-shrink flex-col sm:flex sm:w-auto sm:min-w-64"
 				>
 					<div class="sidebar card flex flex-col sm:max-h-[70vh]">
 						<div class="justify-stretch pb-2 pt-4">
 							<a
-								class="inline-flex w-full items-center gap-2 rounded-xl p-1 font-semibold hover:cursor-pointer hover:bg-slate-100 hover:bg-opacity-15"
+								class="inline-flex w-full items-center gap-2 rounded-xl p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
 								href={`/${$page.params.username}`}
 								><Icon icon="fluent:person-24-filled" /> Profile</a
 							>
 						</div>
-						<div class="flex flex-row items-start justify-between">
-							<h2 class="font-semibold">Pages</h2>
+						<div class="flex flex-row items-center justify-between">
+							<h2 class="px-3 py-1 inline-flex gap-2 items-center font-semibold"><Icon icon="fluent:document-20-filled" />Pages</h2>
 							<a
 								title="Add Page"
-								class="btn-icon btn-icon-sm"
+								class="btn-icon btn-icon-sm hover:bg-slate-100/15"
 								href={`/${$page.params.username}/new`}
 							>
 								<Icon icon="fluent:add-12-filled" font-size="1.5em" />
@@ -137,47 +163,15 @@
 							class="scrollbar-thin flex max-h-full grow flex-col justify-start gap-1 overflow-auto"
 						>
 							{#each data.pages as p}
-								<li class="transition:color py-1 text-slate-300 hover:text-slate-100">
+								<li class="transition:color px-3 py-1 text-slate-300 hover:text-slate-100">
 									<a href={`/${$page.params.username}/${p.slug}`}>{p.name || p.slug}</a>
 								</li>
 							{/each}
 						</ul>
 					</div>
-					<details class="h-fit flex-col py-4">
-						<summary
-							class="mb-2 flex items-center gap-2 rounded-lg p-1 font-semibold hover:cursor-pointer hover:bg-slate-100 hover:bg-opacity-15"
-							><Icon icon="fluent:settings-24-filled" /> Settings
-						</summary>
-						<div class="flex h-fit flex-col gap-2">
-							<button
-								class="text-start text-slate-300"
-								onclick={() => modalStore.trigger(manageSubscriptionModal)}
-							>
-								Manage Subscription
-							</button>
-							<button
-								class="text-start text-slate-300"
-								onclick={() => modalStore.trigger(manageAccountModal)}
-							>
-								Manage Account
-							</button>
-							<button
-								class="text-start text-slate-300"
-								onclick={() => modalStore.trigger(setHandleModal)}
-							>
-								Change Handle
-							</button>
-							<a class="text-start text-slate-300" href={`/${$page.params.username}/theme-editor`}>
-								Theme Editor
-							</a>
-							<button
-								class="text-start text-slate-300"
-								onclick={() => modalStore.trigger(deleteProfileModal)}
-							>
-								Delete Profile
-							</button>
-						</div>
-					</details>
+					<div class="px-2 py-4">
+						{@render settings()}
+					</div>
 				</aside>
 				<div class="h-full w-full overflow-y-auto">
 					{@render children()}
@@ -187,6 +181,98 @@
 	</div>
 	<div class="hidden flex-grow sm:block"></div>
 </div>
+{#if data.profileMatchesUserSession}
+	<aside
+		class="fixed bottom-0 z-10 mx-auto w-full rounded-t-xl border-[1px] border-black bg-pink-300/10 backdrop-blur-xl sm:hidden"
+	>
+		{#if drawerState !== 'closed'}
+			<div class="bg-pink-950/10 px-3 py-3" transition:slide={{ duration: 100 }}>
+				<a
+					class="flex items-center gap-2 rounded-lg p-1 px-3 py-2 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
+					href={`/${$page.params.username}`}><Icon icon="fluent:person-20-filled" />Profile</a
+				>
+				<div class="flex flex-row items-center justify-between">
+					<button
+						onclick={() => toggleDrawer('pages')}
+						class="flex grow items-center gap-2 rounded-lg px-3 py-2 text-start font-semibold hover:cursor-pointer hover:bg-slate-100/15"
+					>
+						<Icon icon="fluent:document-20-filled" />
+						Pages</button
+					>
+					<a
+						title="Add Page"
+						class="btn-icon btn-icon-sm hover:bg-slate-100/15"
+						href={`/${$page.params.username}/new`}
+					>
+						<Icon icon="fluent:add-12-filled" font-size="1.5em" />
+					</a>
+				</div>
+
+				{#if drawerState === 'pages'}
+					<ul
+						class="scrollbar-thin flex max-h-[40vh] grow flex-col items-stretch gap-1 overflow-auto rounded-lg"
+						transition:slide={{ duration: 100 }}
+					>
+						{#each data.pages as p}
+							<li class="transition:color flex px-3 py-1 text-slate-300 hover:text-slate-100">
+								<a href={`/${$page.params.username}/${p.slug}`} class="w-full">{p.name || p.slug}</a
+								>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				{@render settings()}
+			</div>
+		{/if}
+		<div class="flex items-center justify-between px-4 py-4 font-semibold">
+			<div class="px-3">
+				{'slug' in $page.params ? 'Pages' : 'Profile'}
+			</div>
+			<button onclick={() => toggleDrawer('open')} class="cursor-pointer">
+				<Icon icon="fluent:list-rtl-20-filled" font-size="1.5rem" />
+			</button>
+		</div>
+	</aside>
+{/if}
+
+{#snippet settings()}
+	<details class="h-fit flex-col" bind:open={settingsOpen}>
+		<summary
+			onclick={() => toggleDrawer('settings')}
+			class="flex items-center gap-2 rounded-lg p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
+			><Icon icon="fluent:settings-20-filled" /> Settings
+		</summary>
+		<div class="flex h-fit flex-col gap-2">
+			<button
+				class="px-3 text-start text-slate-200"
+				onclick={() => modalStore.trigger(manageSubscriptionModal)}
+			>
+				Manage Subscription
+			</button>
+			<button
+				class="px-3 text-start text-slate-200"
+				onclick={() => modalStore.trigger(manageAccountModal)}
+			>
+				Manage Account
+			</button>
+			<button
+				class="px-3 text-start text-slate-200"
+				onclick={() => modalStore.trigger(setHandleModal)}
+			>
+				Change Handle
+			</button>
+			<a class="px-3 text-start text-slate-200" href={`/${$page.params.username}/theme-editor`}>
+				Theme Editor
+			</a>
+			<button
+				class="px-3 text-start text-slate-200"
+				onclick={() => modalStore.trigger(deleteProfileModal)}
+			>
+				Delete Profile
+			</button>
+		</div>
+	</details>
+{/snippet}
 
 <style>
 	.sidebar {
@@ -216,7 +302,7 @@
 	#conjoin {
 		grid-template-columns: 1fr;
 		@media (min-width: 800px) {
-			grid-template-columns: min-content minmax(300px, max-content);
+			grid-template-columns: min-content minmax(500px, max-content);
 		}
 	}
 	:global(#conjoin main > .card) {

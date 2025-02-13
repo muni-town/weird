@@ -9,7 +9,8 @@
 	import DeleteProfileModal from './components/DeleteProfileModal.svelte';
 	import ManageAccountModal from './components/ManageAccountModal.svelte';
 	import { goto, onNavigate } from '$app/navigation';
-	import { slide } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
+	import Details from '$lib/components/layouts/Details.svelte';
 
 	const { data, children }: { children: Snippet; data: PageData } = $props();
 
@@ -76,31 +77,13 @@
 		modalStore.close();
 	}
 
-	let drawerState: 'closed' | 'settings' | 'pages' | 'main' = $state('closed');
-	let settingsOpen = $state(false);
-	const toggleDrawer = (signal: 'open' | 'close' | 'settings' | 'pages') => {
-		switch (signal) {
-			case 'settings':
-				if (drawerState !== 'settings') drawerState = 'settings';
-				else drawerState = 'main';
-				break;
-			case 'open':
-				settingsOpen = false;
-				if (drawerState !== 'closed') drawerState = 'closed';
-				else drawerState = 'main';
-				break;
-			case 'pages':
-				settingsOpen = false;
-				if (drawerState !== 'pages') drawerState = 'pages';
-				else drawerState = 'main';
-				break;
-			case 'close':
-				drawerState = 'closed';
-				settingsOpen = false;
-				break;
-		}
+	let drawerOpen = $state(false);
+	onNavigate(() => {
+		drawerOpen = false;
+	});
+	const handleEscape = (e: KeyboardEvent) => {
+		if (e.key === 'Escape') drawerOpen = false;
 	};
-	onNavigate(() => toggleDrawer('close'));
 </script>
 
 <div class="flex h-full max-w-full flex-row flex-wrap-reverse justify-center p-2 sm:flex-nowrap">
@@ -184,33 +167,62 @@
 	<div class="hidden flex-grow sm:block"></div>
 </div>
 {#if data.profileMatchesUserSession}
-	<aside
-		class="fixed bottom-0 z-10 mx-auto w-full rounded-t-xl border-[1px] border-black bg-pink-300/10 backdrop-blur-xl sm:hidden"
+	<nav
+		class="fixed bottom-0 z-20 mx-auto w-full rounded-t-xl border-[1px] border-black bg-pink-300/10 backdrop-blur-xl sm:hidden"
 	>
-		{#if drawerState !== 'closed'}
-			<div class="bg-pink-950/20 px-3 py-3" transition:slide={{ duration: 100 }}>
+		<div class="flex items-center justify-between px-4 py-4 font-semibold">
+			<div class="px-3">
+				{'slug' in $page.params ? 'Pages' : 'Profile'}
+			</div>
+			<button
+				onkeydown={handleEscape}
+				onclick={() => (drawerOpen = !drawerOpen)}
+				aria-expanded={drawerOpen}
+				aria-controls="drawer-content"
+				aria-haspopup="menu"
+				class="cursor-pointer"
+			>
+				<Icon icon="fluent:list-rtl-20-filled" font-size="1.5rem" />
+			</button>
+		</div>
+	</nav>
+	{#key drawerOpen}
+		<div class="sm:hidden" hidden={!drawerOpen}>
+			<div
+				onclick={() => {
+					drawerOpen = false;
+				}}
+				role="presentation"
+				aria-hidden={true}
+				onkeydown={handleEscape}
+				class="fixed inset-0 z-10 bg-slate-950/20 backdrop-blur-[1px]"
+				transition:fade={{ duration: 100 }}
+			></div>
+			<div
+				id="drawer-content"
+				class="fixed bottom-10 z-10 w-full rounded-t-xl border-[1px] border-black bg-pink-950/20 p-3 pb-6 backdrop-blur-xl "
+				transition:slide={{ duration: 100 }}
+			>
 				<a
 					class="flex items-center gap-2 rounded-lg p-1 px-3 py-2 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
 					href={`/${$page.params.username}`}><Icon icon="fluent:person-20-filled" />Profile</a
 				>
-				<div class="flex flex-row items-center justify-between">
-					<button
-						onclick={() => toggleDrawer('pages')}
-						class="flex grow items-center gap-2 rounded-lg px-3 py-2 text-start font-semibold hover:cursor-pointer hover:bg-slate-100/15"
-					>
-						<Icon icon="fluent:document-20-filled" />
-						Pages</button
-					>
-					<a
-						title="Add Page"
-						class="btn-icon btn-icon-sm hover:bg-slate-100/15"
-						href={`/${$page.params.username}/new`}
-					>
-						<Icon icon="fluent:add-12-filled" font-size="1.5em" />
-					</a>
-				</div>
-
-				{#if drawerState === 'pages'}
+				<Details name="drawer" sClass="flex flex-row items-center justify-between">
+					{#snippet summary()}
+						<div
+							class="flex grow items-center gap-2 rounded-lg px-3 py-2 text-start font-semibold hover:cursor-pointer hover:bg-slate-100/15"
+						>
+							<Icon icon="fluent:document-20-filled" />
+							Pages
+						</div>
+						<a
+							title="Add Page"
+							class="btn-icon btn-icon-sm hover:bg-slate-100/15"
+							href={`/${$page.params.username}/new`}
+						>
+							<Icon icon="fluent:add-12-filled" font-size="1.5em" />
+						</a>
+					{/snippet}
 					<ul
 						class="scrollbar-thin flex max-h-[40vh] grow flex-col items-stretch gap-1 overflow-auto rounded-lg"
 						transition:slide={{ duration: 100 }}
@@ -222,58 +234,53 @@
 							</li>
 						{/each}
 					</ul>
-				{/if}
+				</Details>
 				{@render settings()}
 			</div>
-		{/if}
-		<div class="flex items-center justify-between px-4 py-4 font-semibold">
-			<div class="px-3">
-				{'slug' in $page.params ? 'Pages' : 'Profile'}
-			</div>
-			<button onclick={() => toggleDrawer('open')} class="cursor-pointer">
-				<Icon icon="fluent:list-rtl-20-filled" font-size="1.5rem" />
-			</button>
 		</div>
-	</aside>
+	{/key}
 {/if}
 
 {#snippet settings()}
-	<details class="h-fit flex-col border-none transition-all" bind:open={settingsOpen} >
-		<summary
-			onclick={() => toggleDrawer('settings')}
-			class="flex items-center gap-2 rounded-lg p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
-			><Icon icon="fluent:settings-20-filled" /> Settings
-		</summary>
-		<div class="flex h-fit flex-col gap-2">
-			<button
-				class="px-3 text-start text-slate-300 hover:text-slate-100"
-				onclick={() => modalStore.trigger(manageSubscriptionModal)}
-			>
-				Manage Subscription
-			</button>
-			<button
-				class="px-3 text-start text-slate-300 hover:text-slate-100"
-				onclick={() => modalStore.trigger(manageAccountModal)}
-			>
-				Manage Account
-			</button>
-			<button
-				class="px-3 text-start text-slate-300 hover:text-slate-100"
-				onclick={() => modalStore.trigger(setHandleModal)}
-			>
-				Change Handle
-			</button>
-			<a class="px-3 text-start text-slate-300 hover:text-slate-100" href={`/${$page.params.username}/theme-editor`}>
-				Theme Editor
-			</a>
-			<button
-				class="px-3 text-start text-slate-200 hover:text-slate-100"
-				onclick={() => modalStore.trigger(deleteProfileModal)}
-			>
-				Delete Profile
-			</button>
-		</div>
-	</details>
+	<Details
+		name="drawer"
+		sClass="flex items-center gap-2 rounded-lg p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
+		cClass="flex flex-col gap-2"
+	>
+		{#snippet summary()}
+			<Icon icon="fluent:settings-20-filled" /> Settings
+		{/snippet}
+		<button
+			class="px-3 text-start text-slate-300 hover:text-slate-100"
+			onclick={() => modalStore.trigger(manageSubscriptionModal)}
+		>
+			Manage Subscription
+		</button>
+		<button
+			class="px-3 text-start text-slate-300 hover:text-slate-100"
+			onclick={() => modalStore.trigger(manageAccountModal)}
+		>
+			Manage Account
+		</button>
+		<button
+			class="px-3 text-start text-slate-300 hover:text-slate-100"
+			onclick={() => modalStore.trigger(setHandleModal)}
+		>
+			Change Handle
+		</button>
+		<a
+			class="px-3 text-start text-slate-300 hover:text-slate-100"
+			href={`/${$page.params.username}/theme-editor`}
+		>
+			Theme Editor
+		</a>
+		<button
+			class="px-3 text-start text-slate-200 hover:text-slate-100"
+			onclick={() => modalStore.trigger(deleteProfileModal)}
+		>
+			Delete Profile
+		</button>
+	</Details>
 {/snippet}
 
 <style>

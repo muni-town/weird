@@ -188,7 +188,7 @@
 		class="fixed bottom-0 z-10 mx-auto w-full rounded-t-xl border-[1px] border-black bg-pink-300/10 backdrop-blur-xl sm:hidden"
 	>
 		{#if drawerState !== 'closed'}
-			<div class="bg-pink-950/10 px-3 py-3" transition:slide={{ duration: 100 }}>
+			<div class="bg-pink-950/20 px-3 py-3" transition:slide={{ duration: 100 }}>
 				<a
 					class="flex items-center gap-2 rounded-lg p-1 px-3 py-2 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
 					href={`/${$page.params.username}`}><Icon icon="fluent:person-20-filled" />Profile</a
@@ -238,7 +238,7 @@
 {/if}
 
 {#snippet settings()}
-	<details class="h-fit flex-col border-none" bind:open={settingsOpen}>
+	<details class="h-fit flex-col border-none transition-all" bind:open={settingsOpen} >
 		<summary
 			onclick={() => toggleDrawer('settings')}
 			class="flex items-center gap-2 rounded-lg p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
@@ -246,28 +246,28 @@
 		</summary>
 		<div class="flex h-fit flex-col gap-2">
 			<button
-				class="px-3 text-start text-slate-200"
+				class="px-3 text-start text-slate-300 hover:text-slate-100"
 				onclick={() => modalStore.trigger(manageSubscriptionModal)}
 			>
 				Manage Subscription
 			</button>
 			<button
-				class="px-3 text-start text-slate-200"
+				class="px-3 text-start text-slate-300 hover:text-slate-100"
 				onclick={() => modalStore.trigger(manageAccountModal)}
 			>
 				Manage Account
 			</button>
 			<button
-				class="px-3 text-start text-slate-200"
+				class="px-3 text-start text-slate-300 hover:text-slate-100"
 				onclick={() => modalStore.trigger(setHandleModal)}
 			>
 				Change Handle
 			</button>
-			<a class="px-3 text-start text-slate-200" href={`/${$page.params.username}/theme-editor`}>
+			<a class="px-3 text-start text-slate-300 hover:text-slate-100" href={`/${$page.params.username}/theme-editor`}>
 				Theme Editor
 			</a>
 			<button
-				class="px-3 text-start text-slate-200"
+				class="px-3 text-start text-slate-200 hover:text-slate-100"
 				onclick={() => modalStore.trigger(deleteProfileModal)}
 			>
 				Delete Profile

@@ -140,7 +140,7 @@
 				<aside
 					class="sticky top-8 hidden w-full min-w-0 flex-shrink flex-col sm:flex sm:w-auto sm:min-w-64"
 				>
-					<div class="sidebar card flex flex-col sm:max-h-[70vh]">
+					<div class="sidebar card flex h-min flex-col pb-3 sm:max-h-[70vh]">
 						<div class="justify-stretch pb-2 pt-4">
 							<a
 								class="inline-flex w-full items-center gap-2 rounded-xl p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
@@ -149,7 +149,9 @@
 							>
 						</div>
 						<div class="flex flex-row items-center justify-between">
-							<h2 class="px-3 py-1 inline-flex gap-2 items-center font-semibold"><Icon icon="fluent:document-20-filled" />Pages</h2>
+							<h2 class="inline-flex items-center gap-2 px-3 py-1 font-semibold">
+								<Icon icon="fluent:document-20-filled" />Pages
+							</h2>
 							<a
 								title="Add Page"
 								class="btn-icon btn-icon-sm hover:bg-slate-100/15"
@@ -236,7 +238,7 @@
 {/if}
 
 {#snippet settings()}
-	<details class="h-fit flex-col" bind:open={settingsOpen}>
+	<details class="h-fit flex-col border-none" bind:open={settingsOpen}>
 		<summary
 			onclick={() => toggleDrawer('settings')}
 			class="flex items-center gap-2 rounded-lg p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
@@ -279,25 +281,15 @@
 		flex-basis: 18em;
 		border-bottom-right-radius: 0rem !important;
 		border-top-right-radius: 0rem !important;
-		border-right: none;
 		border: none;
 		box-shadow: -2px 0 0 -10px red;
-		height: min-content;
 		align-self: start;
-		/* var(--tw-ring-color); */
 		& > * {
 			padding-inline: 0.75rem;
 		}
 	}
 	.scrollbar-thin {
 		scrollbar-width: thin;
-	}
-	details {
-		border-top-right-radius: 1rem;
-		border-right: 1px solid black;
-		/* border-top: 1px solid black; */
-		/* @apply rounded-xl border-[1px] border-black bg-pink-300/10; */
-		border: none;
 	}
 	#conjoin {
 		grid-template-columns: 1fr;
@@ -306,10 +298,8 @@
 		}
 	}
 	:global(#conjoin main > .card) {
-		/* border-bottom-left-radius: 0rem !important; */
 		@media (min-width: 800px) {
 			border-top-left-radius: 0rem !important;
-			border-left: none;
 			box-shadow: 1px 0 0 1px var(--tw-ring-color);
 			border: none;
 		}

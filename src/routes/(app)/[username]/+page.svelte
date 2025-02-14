@@ -277,7 +277,7 @@
 				</div>
 			{/if}
 			{#if data.pages.length > 0}
-				{#if editingState.editing&&import.meta.env.PUBLIC_ENABLE_EXPERIMENTS}
+				{#if editingState.editing && env.PUBLIC_ENABLE_EXPERIMENTS}
 					<PagesListEditor pages={data.pages} />
 				{:else}
 					<div>

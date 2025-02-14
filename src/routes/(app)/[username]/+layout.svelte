@@ -154,7 +154,7 @@
 							{/each}
 						</ul>
 					</div>
-					<div class="px-2 py-4">
+					<div id="settings-panel" class="px-2 py-4">
 						{@render settings()}
 					</div>
 				</aside>
@@ -297,6 +297,22 @@
 	}
 	.scrollbar-thin {
 		scrollbar-width: thin;
+	}
+	#settings-panel {
+		position: relative;
+		--radius: 1rem;
+		--bg-col: #f9a8d4;
+		--bg-opacity: 10%;
+		&::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			right: 0;
+			height: var(--radius);
+			width: var(--radius);
+			background: radial-gradient(circle at 0% 100%, transparent var(--radius), var(--bg-col) var(--radius));
+			opacity: var(--bg-opacity);
+		}
 	}
 	#conjoin {
 		grid-template-columns: 1fr;

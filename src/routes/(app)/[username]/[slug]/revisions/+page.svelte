@@ -66,10 +66,10 @@
 	});
 </script>
 
-<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
+<main class="flex w-full h-full flex-col items-start font-spacemono">
 	<div
-		class="card relative m-4 mt-12 flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
-	>
+		class="card relative flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl min-h-fit sm:min-h-full"
+		>
 		<h1 class="text-center text-2xl font-bold">
 			Revisions for <a
 				class="underline underline-offset-4"
@@ -87,7 +87,7 @@
 				ticked
 			></RangeSlider>
 
-			<div class="flex flex-col gap-8">
+			<div class="flex grow flex-col gap-8">
 				<div
 					class="prose relative mx-auto w-full max-w-[1000px] pt-4 dark:prose-invert prose-a:text-blue-400"
 				>

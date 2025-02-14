@@ -85,12 +85,11 @@
 		{env.PUBLIC_INSTANCE_NAME}
 	</title>
 </svelte:head>
-
-<main class="mx-4 flex w-full flex-col items-center px-2 font-spacemono">
+<main class="flex h-full w-full flex-col items-start font-spacemono">
 	<div
-		class="card relative m-4 mt-12 flex w-full max-w-[1000px] flex-col justify-center gap-4 rounded-xl p-8 text-xl"
+		class="card relative flex min-h-fit w-full max-w-[1000px] flex-col justify-start gap-4 rounded-xl p-8 text-xl sm:min-h-full"
 	>
-		<h1 class="relative mx-[2em] mt-2 grow self-center text-center font-rubik text-4xl">
+		<h1 class="relative mx-[2em] mt-2 self-center text-center font-rubik text-4xl">
 			{#if !editingState.editing}
 				{data.page.name}
 			{:else}
@@ -193,7 +192,7 @@
 
 		<div class="flex flex-col gap-8">
 			<div
-				class="prose relative mx-auto w-full max-w-[1000px] pt-4 dark:prose-invert prose-a:text-blue-400"
+				class="prose relative mx-auto w-full max-w-[1000px] break-words pt-4 dark:prose-invert prose-a:text-blue-400"
 			>
 				{#if !editingState.editing}
 					<article>

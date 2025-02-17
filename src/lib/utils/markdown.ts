@@ -9,14 +9,18 @@ type Data = EmbedV1
 const cr = (value: string | undefined, seperator = ''): string => value !== undefined ? ` ${seperator} ${value}` : ''
 const linkCardTemplate = ({ data: d, url }: { data: Data, url: string }) => `
 <div class="flex flex-col flex-wrap justify-stretch gap-4 min-[500px]:flex-row">
-	<div class="min-w-0 flex-1 px-3 py-2">
+	<div class="min-w-0 flex-1 px-3 py-2 flex flex-col">
 		<p class="mb-1 mt-0 text-sm leading-none opacity-70">${cr(d.p?.n)} ${cr(d.au?.n, '-')}</p>
-		<p class="mb-1 mt-1 line-clamp-2 leading-snug text-blue-400"
-			><a href="https://${url}" class="title"
-				><b class="font-bold text-blue-400">${d.t}</b></a
-		></p>
+		<p class="mb-1 mt-1 line-clamp-2 leading-snug"
+			>
+				<b class="font-bold">${d.t}</b>
+				</p>
 		<p class="my-0 line-clamp-4 text-sm leading-tight">${cr(d.d)}</p>
+		<div class="grow py-2"></div>
 		${d.footer ? `<p class="mt-2 mb-0 text-sm">${d.footer.t}</p>` : ''}
+	<a href="${url}" class="title" >
+<div class="text-sm leading-tight underline text-blue-400">${url}</div>
+		</a >
 	</div>
 	${d.imgs && d.imgs.length ? `
 	<div class=" w-full flex-shrink-0 p-2 min-[500px]:max-w-40">

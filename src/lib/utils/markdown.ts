@@ -12,7 +12,7 @@ const linkCardTemplate = ({ data: d, url }: { data: Data, url: string }) => `
 	<div class="min-w-0 flex-1 px-3 py-2">
 		<p class="mb-1 mt-0 text-sm leading-none opacity-70">${cr(d.p?.n)} ${cr(d.au?.n, '-')}</p>
 		<p class="mb-1 mt-1 line-clamp-2 leading-snug text-blue-400"
-			><a href="https://${url}" class="title"
+			><a href="${url}" class="title"
 				><b class="font-bold text-blue-400">${d.t}</b></a
 		></p>
 		<p class="my-0 line-clamp-4 text-sm leading-tight">${cr(d.d)}</p>

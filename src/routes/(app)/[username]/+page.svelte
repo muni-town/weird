@@ -27,6 +27,7 @@
 	//
 	// We should probably look into https://open-props.style/ as a part of this.
 	import '$lib/themes/weird.svelte';
+	import PagesListEditor from '$lib/components/editors/PagesListEditor.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -274,18 +275,22 @@
 				</div>
 			{/if}
 			{#if data.pages.length > 0}
-				<div>
-					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
-					<ul class="mt-6 flex flex-col items-center gap-10">
-						{#each data.pages as p}
-							<li>
-								<a class="link" href={`/${$page.params.username}/${p.slug}`}>
-									{p.name || p.slug}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</div>
+				{#if editingState.editing && env.PUBLIC_ENABLE_EXPERIMENTS}
+					<PagesListEditor pages={data.pages} />
+				{:else}
+					<div>
+						<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
+						<ul class="mt-6 flex flex-col items-center gap-10">
+							{#each data.pages as p}
+								<li>
+									<a class="link" href={`/${$page.params.username}/${p.slug}`}>
+										{p.name || p.slug}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
 			{/if}
 			{#if profile.tags.length > 0 || editingState.editing}
 				<div class="mt-4 flex flex-wrap items-baseline gap-2">

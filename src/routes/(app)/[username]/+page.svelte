@@ -27,6 +27,7 @@
 	//
 	// We should probably look into https://open-props.style/ as a part of this.
 	import '$lib/themes/weird.svelte';
+	import PagesListEditor from '$lib/components/editors/PagesListEditor.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -125,10 +126,8 @@
 	</title>
 </svelte:head>
 
-<main class="mx-4 flex w-full max-w-full flex-col items-center px-2 font-spacemono">
-	<div
-		class="m-4 mt-12 flex w-full max-w-[700px] flex-col gap-4 rounded-xl card p-8 text-xl"
-	>
+<main class="flex w-full max-w-full flex-col items-center font-spacemono">
+	<div class="card flex w-full max-w-[700px] flex-col gap-4 rounded-xl p-8 text-xl">
 		<div class="relative flex items-center gap-4">
 			{#if !editingState.editing}
 				<Avatar src={`/${data.username}/avatar`} class="min-w-[40px]" />
@@ -276,18 +275,22 @@
 				</div>
 			{/if}
 			{#if data.pages.length > 0}
-				<div>
-					<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
-					<ul class="mt-6 flex flex-col items-center gap-10">
-						{#each data.pages as p}
-							<li>
-								<a class="link" href={`/${$page.params.username}/${p.slug}`}>
-									{p.name || p.slug}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</div>
+				{#if editingState.editing && env.PUBLIC_ENABLE_EXPERIMENTS}
+					<PagesListEditor pages={data.pages} />
+				{:else}
+					<div>
+						<h2 class="mb-4 text-center font-rubik text-2xl font-bold">Pages</h2>
+						<ul class="mt-6 flex flex-col items-center gap-10">
+							{#each data.pages as p}
+								<li>
+									<a class="link" href={`/${$page.params.username}/${p.slug}`}>
+										{p.name || p.slug}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
 			{/if}
 			{#if profile.tags.length > 0 || editingState.editing}
 				<div class="mt-4 flex flex-wrap items-baseline gap-2">

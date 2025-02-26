@@ -317,7 +317,12 @@
 	#conjoin {
 		grid-template-columns: 1fr;
 		@media (min-width: 800px) {
-			grid-template-columns: min-content minmax(500px, max-content);
+			grid-template-columns: min-content 1fr;
+		}
+	}
+	:global(#conjoin main) {
+		@media (min-width: 800px) {
+			align-items: start;
 		}
 	}
 	:global(#conjoin main > .card) {

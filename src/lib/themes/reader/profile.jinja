@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{profile.display_name}}</title>
+    <link rel="canonical" href="{{handle}}" />
+
+    <style>
+        /* Comment out Google Fonts from Google CDN to prevent tracking. */
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Lora:ital@0;1&display=swap');
+
+    body {
+      --body: Lora, Cambria, Cochin, Times, sans-serif;
+      --head: 'Libre Caslon Display', Georgia, 'Times New Roman' Times, serif;
+      color-scheme: dark light;
+      background-color: black white;
+      text-rendering: optimizeLegibility;
+    }
+      
+    * { margin: 0;}
+    main {
+      height: 100%;
+      min-height: 100dvh;
+      padding-inline: 2rem;
+      font-weight: normal;
+      font-family: var(--body);
+    }
+    h1,h2 {
+      font-family: var(--head);
+      font-size: 1.125em;
+      font-weight: 400;
+    }
+    ul {padding:0;}
+    section { padding-block-end: 1rem;}
+    li {
+      list-style-type: none;
+      display:flex;
+    }
+    a, p {
+      max-width: 45ch;
+      hypens: auto;
+      text-wrap: pretty;
+    }
+    a {
+      color: inherit; 
+      text-decoration: none;
+      flex-grow: 2;
+       transition: text-decoration 200ms ease-in-out;
+      &:hover {
+      text-decoration: underline;
+      }}
+    section:first-child {
+      padding-block-start: 4rem;
+      div{
+        display: flex;
+        align-items: stretch;
+        gap: .25rem;
+      }
+      figure {
+        display:flex;
+        align-items: end;
+        margin: 0;
+        }
+      figure, img {
+        width: 100%;
+        max-width: 1.125rem;
+      }
+      h1 {
+        line-height: 100%;
+      }
+    }
+    .prof {
+      text-align: center;
+      p, a {margin-inline: auto;}
+      section>div{
+        justify-content: center;
+      }
+    }
+    .cozy {
+      background-color: #E4DFD2;
+      color: #32281B;
+      }
+    .oled {
+      background-color: oklch(0 0 0);
+      color: oklch(.9 0 0);
+    }
+    .dark {
+      background-color: oklch(.26 0 0);
+      color: oklch(.85 0 0);
+    }
+    .brut {  
+      --body: Inter, "San Francisco", Calibri, "Gill Sans",
+        Oxygen, Ubuntu, system-ui, -apple-system, Roboto, 
+        sans-serif;
+      --head: var(--body);
+      section {
+        h1, h2 {
+          font-size: 1rem;
+          font-weight: 400;
+          opcaticy: .9;
+        }
+        p, a {
+          color: oklch(.4 0 0);
+          font-weight: 360;
+          transition: opacity 300ms ease-in;
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  
+    </style>
+</head>
+
+<!-- Add a class to change the style [cozy, prof, brut, oled, dark] -->
+<body class="cozy brut">
+    <main>
+        <section>
+            <div>
+            <figure class="avatar-figure">
+                <img class="avatar" src="/avatar" alt="{{display_name}} avatar" />
+            </figure>
+            <h1>{{display_name}}</h1>
+            </div>
+            {% if bio %}
+            <div> {{bio | markdown}} </div>
+            {% endif %}
+        </section>
+
+        {% if social_links %}
+        <section>
+          <h2>Contact</h2>
+          <ul class="contact">
+              {% for link in social_links %}
+              <li><a rel="me" title="{{link.label}}" href="{{link.url}}" target="_blank" class="link">
+                  {{link.platform_name}}
+              </a></li>
+              {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
+
+
+        {% if tags %}
+        <section>
+          <h2>Tags</h2>
+          <ul class="tags">
+              {% for tag in tags %}
+              <li><a href="{{instance_info.url}}/people#{{tag}}" target="_blank" class="tag">
+                  {{tag}}
+              </a></li>
+              {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
+        {% if links %}
+        <section class="links">
+            <h2>Links</h2>
+            <ul>
+                {% for link in links %}
+                <li><a rel="me" href="{{link.url}}" target="_blank" class="link">
+                    {{link.label or link.url}}
+                </a></li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+
+        {% if pages %}
+        <section class="links">
+            <h2>Pages</h2>
+            <ul>
+                {% for page in pages %}
+                <li><a href="/{{page.slug}}" class="link">
+                    {{page.name or page.slug}}
+                </a></li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+    </main>
+</body>
+
+</html>

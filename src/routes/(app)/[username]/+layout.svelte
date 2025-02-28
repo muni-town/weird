@@ -123,7 +123,7 @@
 				<aside
 					class="sticky top-8 hidden w-full min-w-0 flex-shrink flex-col sm:flex sm:w-auto sm:min-w-64"
 				>
-					<div class="sidebar card flex h-min flex-col pb-3 sm:max-h-[70vh]">
+					<div class="sidebar card flex w-full h-min flex-col pb-3 sm:max-h-[70vh]">
 						<div class="justify-stretch pb-2 pt-4">
 							<a
 								class="inline-flex w-full items-center gap-2 rounded-xl p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
@@ -317,7 +317,12 @@
 	#conjoin {
 		grid-template-columns: 1fr;
 		@media (min-width: 800px) {
-			grid-template-columns: min-content minmax(500px, max-content);
+			grid-template-columns: min-content 1fr;
+		}
+	}
+	:global(#conjoin main) {
+		@media (min-width: 800px) {
+			align-items: start;
 		}
 	}
 	:global(#conjoin main > .card) {

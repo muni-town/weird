@@ -12,11 +12,7 @@
 	import { keymap } from 'prosemirror-keymap';
 	import { baseKeymap } from 'prosemirror-commands';
 	import { LoroDoc } from 'loro-crdt';
-	import {
-		CursorAwareness,
-		LoroSyncPlugin,
-		LoroUndoPlugin
-	} from 'loro-prosemirror';
+	import { CursorAwareness, LoroSyncPlugin, LoroUndoPlugin } from 'loro-prosemirror';
 	import { fromByteArray, toByteArray } from 'base64-js';
 
 	import 'prosemirror-view/style/prosemirror.css';
@@ -28,7 +24,13 @@
 		containerId: string;
 	}
 
-	let { content = $bindable(''), loro: loroDoc, awareness: cursorAwareness, containerId, ...attrs }: Props = $props();
+	let {
+		content = $bindable(''),
+		loro: loroDoc,
+		awareness: cursorAwareness,
+		containerId,
+		...attrs
+	}: Props = $props();
 	let initialized = false;
 	let editor: EditorView = $state() as any;
 	let saveTimeout: number | undefined = $state();
@@ -36,8 +38,8 @@
 
 	// 初始化或从localStorage加载LoroDoc
 	function initLoroDoc() {
-		initialized= true;
-		console.log("initLoroDoc")
+		initialized = true;
+		console.log('initLoroDoc');
 		const savedState = localStorage.getItem('loro-editor-state');
 		if (savedState) {
 			try {
@@ -49,11 +51,11 @@
 		}
 
 		cursorAwareness = new CursorAwareness(loroDoc.peerIdStr);
-		
+
 		// 监听文档变化并保存
 		unsubscribe = loroDoc.subscribe(() => {
-			console.log("currentDoc",loroDoc.toJSON())
-			console.log("currenthistory",loroDoc.exportJsonUpdates(undefined, undefined, false))
+			console.log('currentDoc', loroDoc.toJSON());
+			console.log('currenthistory', loroDoc.exportJsonUpdates(undefined, undefined, false));
 			if (saveTimeout) {
 				clearTimeout(saveTimeout);
 			}
@@ -98,7 +100,7 @@
 				keymap(buildKeymap(markdownSchema)),
 				keymap(baseKeymap),
 				LoroSyncPlugin({ doc: loroDoc as any }),
-				LoroUndoPlugin({ doc: loroDoc as any }),
+				LoroUndoPlugin({ doc: loroDoc as any })
 			]
 		});
 

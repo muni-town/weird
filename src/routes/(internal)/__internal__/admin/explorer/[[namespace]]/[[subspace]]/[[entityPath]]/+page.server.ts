@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { leafClient, type KnownComponents, loadKnownComponents } from '$lib/leaf';
 import { base32Decode, base32Encode, type EntityPath, type ExactLink } from 'leaf-proto';
-import { createThemeData } from "$lib/renderer"
+import { createThemeData } from '$lib/renderer';
 import type { Actions, PageServerLoad } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import {
@@ -106,7 +106,11 @@ export const actions = {
 			if (profileTheme == '') name = undefined;
 			let pageTheme: string | undefined = formData.get('pageTheme')?.toString() || '';
 			if (pageTheme == '') name = undefined;
-			components.push(profileTheme && pageTheme ? new WeirdTheme(createThemeData(profileTheme, pageTheme)) : WeirdTheme);
+			components.push(
+				profileTheme && pageTheme
+					? new WeirdTheme(createThemeData(profileTheme, pageTheme))
+					: WeirdTheme
+			);
 
 			let description: string | undefined = formData.get('description')?.toString() || '';
 			if (description == '') description = undefined;

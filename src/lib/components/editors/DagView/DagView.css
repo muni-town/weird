@@ -1,40 +1,39 @@
 .dag-view-message:hover {
-    background-color: rgba(139, 92, 246, 0.2);
-    cursor: pointer;
-    border-radius: 8px;
-    padding: 4px 8px;
+	background-color: rgba(139, 92, 246, 0.2);
+	cursor: pointer;
+	border-radius: 8px;
+	padding: 4px 8px;
 }
 
 .dag-view-message {
-    color: rgba(255, 255, 255, 0.9);
-    padding: 4px 8px;
-    transition: all 0.2s ease;
+	color: rgba(255, 255, 255, 0.9);
+	padding: 4px 8px;
+	transition: all 0.2s ease;
 }
 
 .dag-view-message .author {
-    color: rgba(255, 255, 255, 0.6);
-    margin-left: 0.8em;
+	color: rgba(255, 255, 255, 0.6);
+	margin-left: 0.8em;
 }
 
 .dag-view-message:hover .author {
-    color: rgba(255, 255, 255, 0.8);
+	color: rgba(255, 255, 255, 0.8);
 }
 
 .dag-view-message .operationType {
-    color: rgba(255, 255, 255, 0.6);
-    margin-left: 0.8em;
+	color: rgba(255, 255, 255, 0.6);
+	margin-left: 0.8em;
 }
 
 .dag-view-message:hover .operationType {
-    color: rgba(255, 255, 255, 0.8);
+	color: rgba(255, 255, 255, 0.8);
 }
 
 .dag-view-message .timestamp {
-    color: rgba(255, 255, 255, 0.6);
-    margin-left: 0.8em;
+	color: rgba(255, 255, 255, 0.6);
+	margin-left: 0.8em;
 }
 
 .dag-view-message:hover .timestamp {
-    color: rgba(255, 255, 255, 0.8);
+	color: rgba(255, 255, 255, 0.8);
 }
-

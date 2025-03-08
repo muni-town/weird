@@ -82,11 +82,11 @@
 			<div
 				class="card relative flex max-w-sm flex-col items-center rounded-lg border-2 border-surface-400 !bg-surface-50/20 px-5 py-8 transition-transform duration-200 hover:scale-105"
 			>
-				<div class="flex flex-col items-center gap-6 text-center max-w-full">
-					<div class="flex flex-col flex-wrap items-center gap-7 max-w-full">
+				<div class="flex max-w-full flex-col items-center gap-6 text-center">
+					<div class="flex max-w-full flex-col flex-wrap items-center gap-7">
 						<Avatar width="w-[8em]" src={`/${profile.username}/avatar`} />
-						<a href={`/${profile.username}`} class="card-link flex flex-col gap-2 max-w-full">
-							<h2 class="font-rubik text-2xl font-semibold break-words max-w-full">
+						<a href={`/${profile.username}`} class="card-link flex max-w-full flex-col gap-2">
+							<h2 class="max-w-full break-words font-rubik text-2xl font-semibold">
 								{profile.display_name}
 							</h2>
 							<h2 class="font-uncut font-semibold">

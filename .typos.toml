@@ -10,3 +10,4 @@ extend-exclude = [
 ratatui = "ratatui"
 additionals = "additionals"
 datas = "datas"
+hypens = "hypens"

@@ -6,8 +6,8 @@ import type { EmbedV1 } from '$lib/types/embed-sdk';
 type Data = EmbedV1;
 
 /** conditional render */
-const cr = (value: string | undefined, seperator = ''): string =>
-	value !== undefined ? ` ${seperator} ${value}` : '';
+const cr = (value: string | undefined, separator = ''): string =>
+	value !== undefined ? ` ${separator} ${value}` : '';
 const linkCardTemplate = ({ data: d, url }: { data: Data; url: string }) => `
 <div class="flex flex-col flex-wrap justify-stretch gap-4 min-[500px]:flex-row">
 	<div class="min-w-0 flex-1 px-3 py-2 flex flex-col">

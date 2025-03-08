@@ -123,7 +123,7 @@
 				<aside
 					class="sticky top-8 hidden w-full min-w-0 flex-shrink flex-col sm:flex sm:w-auto sm:min-w-64"
 				>
-					<div class="sidebar card flex w-full h-min flex-col pb-3 sm:max-h-[70vh]">
+					<div class="sidebar card flex h-min w-full flex-col pb-3 sm:max-h-[70vh]">
 						<div class="justify-stretch pb-2 pt-4">
 							<a
 								class="inline-flex w-full items-center gap-2 rounded-xl p-2 px-3 font-semibold hover:cursor-pointer hover:bg-slate-100/15"
@@ -200,7 +200,7 @@
 			></div>
 			<div
 				id="drawer-content"
-				class="fixed bottom-10 z-10 w-full rounded-t-xl border-[1px] border-black bg-pink-950/20 p-3 pb-6 backdrop-blur-xl "
+				class="fixed bottom-10 z-10 w-full rounded-t-xl border-[1px] border-black bg-pink-950/20 p-3 pb-6 backdrop-blur-xl"
 				transition:slide={{ duration: 100 }}
 			>
 				<a
@@ -310,7 +310,11 @@
 			right: 0;
 			height: var(--radius);
 			width: var(--radius);
-			background: radial-gradient(circle at 0% 100%, transparent var(--radius), var(--bg-col) var(--radius));
+			background: radial-gradient(
+				circle at 0% 100%,
+				transparent var(--radius),
+				var(--bg-col) var(--radius)
+			);
 			opacity: var(--bg-opacity);
 		}
 	}

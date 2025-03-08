@@ -1,6 +1,6 @@
 # Weird
 
-*A digital garden for personal web-spaces.*
+_A digital garden for personal web-spaces._
 
 Weird is a brand new thing, but if prior art helps: Think of it as if [WordPress](https://wordpress.org/) and [Notion](https://www.notion.com/) had a [Linktree](https://linktr.ee/)-shaped baby. That is to say, a WordPress-type website engine with the editing experience of Notion and the simplicity of Linktree.
 
@@ -9,8 +9,8 @@ Weird is a brand new thing, but if prior art helps: Think of it as if [WordPress
 - **2-minute site creation:** Escape the [content-creation imperative](https://blog.muni.town/p/c69e4984-67d7-4dd7-8f4a-c7d1ef85915b/) by grabbing whatever self-links you’ve got and re-consolidate your digital identity.
 - **Reclaim your captured content:** Automated pipelines for [PESOS & POSSE posting strategies](https://blog.muni.town/data-defragmentation/).
 - **Grow web gardens:** Forget about chronological web logs, we're doing [digital gardening](https://maggieappleton.com/garden-history/) now. Casually plop your tiny blurb-seeds down and cultivate them at your leisure.
-- **Enter the indieverse:** Connect to the [wildly weird web of indie apps](https://github.com/muni-town/weird/discussions/283), outside the dreary confines of big tech. 🚧*Coming soon*
-- **Find the others:** Participate in [federated webrings](https://blog.muni.town/federated-webrings/). 🚧*Coming soon*
+- **Enter the indieverse:** Connect to the [wildly weird web of indie apps](https://github.com/muni-town/weird/discussions/283), outside the dreary confines of big tech. 🚧_Coming soon_
+- **Find the others:** Participate in [federated webrings](https://blog.muni.town/federated-webrings/). 🚧_Coming soon_
 
 More technically put, Weird is a _distributed_ (optionally peer-to-peer and federated) Content Management System (CMS), designed to enable an [agentic web](https://github.com/muni-town/agentic-fediverse).
 

@@ -35,14 +35,13 @@
 		try {
 			const blob = toByteArray(savedState);
 			loroDoc.import(blob);
-			console.log("imported saved state")
-			console.log(loroDoc.toJSON())
+			console.log('imported saved state');
+			console.log(loroDoc.toJSON());
 			dagInfo = convertSyncStepsToNodes(loroDoc);
 		} catch (e) {
 			console.error('Failed to load saved state:', e);
 		}
 	}
-
 
 	// 初始化时开启时间戳记录
 	loroDoc.setRecordTimestamp(true);
@@ -50,7 +49,7 @@
 
 	// 监听变化更新历史信息
 	loroDoc.subscribe((event) => {
-		if (event.by === "local") {
+		if (event.by === 'local') {
 			dagInfo = convertSyncStepsToNodes(loroDoc);
 		}
 	});
@@ -107,8 +106,8 @@
 				{#if !markdownMode}
 					<RichMarkdownEditor
 						loro={loroDoc}
-						awareness={awareness}
-						containerId={loroDoc.getMap("doc").id}
+						{awareness}
+						containerId={loroDoc.getMap('doc').id}
 						bind:content={contentProxy.value}
 					/>
 				{:else}

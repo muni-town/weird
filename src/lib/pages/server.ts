@@ -65,7 +65,7 @@ async function save(
 	const doc = new LoroDoc();
 	doc.importBatch(snapshots);
 
-	console.log('changes', doc.changeCount())
+	console.log('changes', doc.changeCount());
 	const content = doc.getText('content');
 	console.log(content.toString());
 	const markdown = content.toString();

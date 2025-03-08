@@ -10,8 +10,8 @@ The following is a detailed guide on setting up the development environment for 
 
 - [Docker & Docker Compose](https://docs.docker.com/engine/install/)
 - [dprint](https://dprint.dev/install/)
-- [Justfile](https://github.com/casey/just) (Optional but Recommended)
-- [pnpm](https://pnpm.io/installation)
+- [Just](https://github.com/casey/just) (Optional but Recommended)
+- [pNPM](https://pnpm.io/installation)
 - [Rust](https://rustup.rs)
 
 ### Setup
@@ -39,7 +39,7 @@ cd ./weird
 - Rauthy is a OIDC Server written in Rust, different to most OIDC solutions out there Rauthy comes with a Admin UI to allow you manage accounts
 - SMTP4Dev is a SMTP Relay for development purposes. Any emails sent in the development phase will be reaching to this inbox.
 
-If you have Justfile installed, you can use the following just recipe
+If you have Just installed, you can use the following just recipe
 
 ```bash
 just setup

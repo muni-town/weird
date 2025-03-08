@@ -7,7 +7,9 @@ import { usernames } from '$lib/usernames/index';
 import { Page, PageSaveReq, pages } from '$lib/pages/server';
 import { previewLinks, renderMarkdownSanitized } from '$lib/utils/markdown';
 
-export const load: PageServerLoad = async ({ params }): Promise<{ page: Page & { html: string } }> => {
+export const load: PageServerLoad = async ({
+	params
+}): Promise<{ page: Page & { html: string } }> => {
 	const username = usernames.shortNameOrDomain(params.username);
 	if (username != params.username) {
 		return redirect(302, `/${username}/${params.slug}`);
@@ -19,7 +21,7 @@ export const load: PageServerLoad = async ({ params }): Promise<{ page: Page & {
 	const pageLink = subspace_link(subspace, params.slug);
 	const page = await pages.get(pageLink);
 	if (!page) return error(404, 'Page not found');
-	const html = await previewLinks(renderMarkdownSanitized(page.markdown))
+	const html = await previewLinks(renderMarkdownSanitized(page.markdown));
 
 	return {
 		page: { ...page, html, slug: params.slug }

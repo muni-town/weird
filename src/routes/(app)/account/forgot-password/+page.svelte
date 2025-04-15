@@ -24,7 +24,10 @@
 			const resp = await fetch(`/auth/v1/users/request_reset`, {
 				method: 'post',
 				body: JSON.stringify({ email }),
-				headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+				headers: [
+					['csrf-token', localStorage.getItem('csrfToken')!],
+					['content-type', 'application/json']
+				]
 			});
 			await checkResponse(resp);
 			localStorage.setItem('justResetPassword', 'true');

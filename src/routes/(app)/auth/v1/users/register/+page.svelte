@@ -41,7 +41,8 @@
 					given_name: 'Weird',
 					family_name: 'User',
 					pow: powResult
-				})
+				}),
+				headers: [['content-type', 'application/json']]
 			});
 			await checkResponse(registerResp);
 

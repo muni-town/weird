@@ -20,7 +20,10 @@
 		let res = await fetch('/auth/v1/providers/callback', {
 			method: 'post',
 			body: JSON.stringify(data),
-			headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+			headers: [
+				['csrf-token', localStorage.getItem('csrfToken')!],
+				['content-type', 'application/json']
+			]
 		});
 
 		if (res.status === 202) {

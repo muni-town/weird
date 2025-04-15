@@ -75,7 +75,10 @@
 			let res = await fetch('/auth/v1/providers/login', {
 				method: 'post',
 				body: JSON.stringify(data),
-				headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+				headers: [
+					['csrf-token', localStorage.getItem('csrfToken')!],
+					['content-type', 'application/json']
+				]
 			});
 			await checkResponse(res);
 			const xsrfToken = await res.text();
@@ -135,7 +138,10 @@
 					nonce: nonce,
 					scopes
 				}),
-				headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+				headers: [
+					['csrf-token', localStorage.getItem('csrfToken')!],
+					['content-type', 'application/json']
+				]
 			});
 			await handleAuthResp(authResp, true);
 			return;
@@ -176,7 +182,10 @@
 		const authResp = await fetch('/auth/v1/oidc/authorize', {
 			method: 'post',
 			body: JSON.stringify(req),
-			headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+			headers: [
+				['csrf-token', localStorage.getItem('csrfToken')!],
+				['content-type', 'application/json']
+			]
 		});
 		await handleAuthResp(authResp);
 	}

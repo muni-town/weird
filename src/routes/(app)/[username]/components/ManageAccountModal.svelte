@@ -38,7 +38,7 @@
 		};
 		const resp = await fetch(`/auth/v1/providers/${provider_id}/link`, {
 			method: 'POST',
-			headers: [['csrf-token', localStorage.getItem('csrfToken')!]],
+			headers: [['x-csrf-token', localStorage.getItem('csrfToken')!]],
 			body: JSON.stringify(data)
 		});
 		await checkResponse(resp);
@@ -58,7 +58,7 @@
 	async function unlinkAccount() {
 		await fetch(`/auth/v1/providers/link`, {
 			method: 'delete',
-			headers: [['csrf-token', localStorage.getItem('csrfToken')!]]
+			headers: [['x-csrf-token', localStorage.getItem('csrfToken')!]]
 		});
 		window.location.reload();
 	}

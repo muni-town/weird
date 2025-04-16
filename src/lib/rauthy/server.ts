@@ -67,7 +67,7 @@ export async function reset(opts: {
 		method: 'put',
 		headers: {
 			Cookie: cookie.serialize('rauthy-pwd-reset', opts.cookie),
-			'pwd-csrf-token': opts.csrfToken
+			'x-pwd-csrf-token': opts.csrfToken
 		},
 		body: JSON.stringify({
 			magic_link_id: opts.token,

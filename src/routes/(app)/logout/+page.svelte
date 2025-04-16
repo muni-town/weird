@@ -22,7 +22,7 @@
 			const resp = await fetch('/auth/v1/oidc/logout', {
 				method: 'post',
 				headers: [
-					['csrf-token', csrf!],
+					['x-csrf-token', csrf!],
 					['content-type', 'application/json']
 				],
 				body: JSON.stringify(req)

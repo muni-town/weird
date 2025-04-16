@@ -21,7 +21,7 @@
 			method: 'post',
 			body: JSON.stringify(data),
 			headers: [
-				['csrf-token', localStorage.getItem('csrfToken')!],
+				['x-csrf-token', localStorage.getItem('csrfToken')!],
 				['content-type', 'application/json']
 			]
 		});

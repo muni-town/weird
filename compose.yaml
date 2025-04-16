@@ -33,11 +33,12 @@ services:
       - rauthy:/app/data
 
   rauthy:
-    image: ghcr.io/sebadob/rauthy:0.27.3
+    image: ghcr.io/sebadob/rauthy:0.28.3
     depends_on:
       - set-rauthy-volume-owner
       - smtp4dev
     environment:
+      LOCAL_TEST: 'true'
       PUB_URL: localhost:9523
       DATABASE_URL: 'sqlite:/app/data/rauthy.db'
       BOOTSTRAP_ADMIN_EMAIL: admin@localhost.de

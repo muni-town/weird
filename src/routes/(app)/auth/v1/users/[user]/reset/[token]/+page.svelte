@@ -11,7 +11,7 @@
 	const passwordValidityLabels: { [K in PolicyKey]: string } = {
 		include_digits: 'Include %s numbers',
 		include_lower_case: 'Include %s lowercase',
-		include_upper_case: 'Include &s uppercase',
+		include_upper_case: 'Include %s uppercase',
 		include_special: 'Include %s special characters',
 		length_max: 'Shorter than %s',
 		length_min: 'At least %s long',
@@ -23,14 +23,18 @@
 	let passwordValidity: { [K in PolicyKey]?: { label: string; valid?: boolean } } = $state(
 		Object.fromEntries(
 			Object.entries(data.passwordPolicy)
+				.filter(([key, _]) => !!passwordValidityLabels[key as PolicyKey])
 				.filter(([_, value]) => !!value)
-				.map(([key, value]) => [
-					key,
-					{
-						label: passwordValidityLabels[key as PolicyKey].replace('%s', value.toString()),
-						valid: false
-					}
-				])
+				.map(([key, value]) => {
+					console.log(key, value);
+					return [
+						key,
+						{
+							label: passwordValidityLabels[key as PolicyKey].replace('%s', value.toString()),
+							valid: false
+						}
+					];
+				})
 		)
 	);
 	let passwordValid = $derived(Object.values(passwordValidity).every((x) => x.valid !== false));
@@ -75,7 +79,10 @@
 		try {
 			const resp = await fetch(`/auth/v1/users/${data.user}/reset`, {
 				method: 'put',
-				headers: [['pwd-csrf-token', data.csrfToken!]],
+				headers: [
+					['x-pwd-csrf-token', data.csrfToken!],
+					['content-type', 'application/json']
+				],
 				body: JSON.stringify({ magic_link_id: data.token, password })
 			});
 			await checkResponse(resp);

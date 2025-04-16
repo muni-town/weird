@@ -76,7 +76,7 @@
 				method: 'post',
 				body: JSON.stringify(data),
 				headers: [
-					['csrf-token', localStorage.getItem('csrfToken')!],
+					['x-csrf-token', localStorage.getItem('csrfToken')!],
 					['content-type', 'application/json']
 				]
 			});
@@ -139,7 +139,7 @@
 					scopes
 				}),
 				headers: [
-					['csrf-token', localStorage.getItem('csrfToken')!],
+					['x-csrf-token', localStorage.getItem('csrfToken')!],
 					['content-type', 'application/json']
 				]
 			});
@@ -183,7 +183,7 @@
 			method: 'post',
 			body: JSON.stringify(req),
 			headers: [
-				['csrf-token', localStorage.getItem('csrfToken')!],
+				['x-csrf-token', localStorage.getItem('csrfToken')!],
 				['content-type', 'application/json']
 			]
 		});

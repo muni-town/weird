@@ -12,26 +12,26 @@
 
 		const csrf = localStorage.getItem('csrfToken');
 
-		const req = {
-			id_token_hint: token || undefined,
-			post_logout_redirect_uri: postLogoutUri,
-			state: state || undefined
-		};
+		const params = new URLSearchParams();
+		token && params.set('id_token_hint', token);
+		params.set('post_logout_redirect_uri', postLogoutUri);
+		state && params.set('state', state);
 
 		try {
 			const resp = await fetch('/auth/v1/oidc/logout', {
 				method: 'post',
 				headers: [
+					['accept', 'application/json'],
 					['x-csrf-token', csrf!],
-					['content-type', 'application/json']
+					['content-type', 'application/x-www-form-urlencoded']
 				],
-				body: JSON.stringify(req)
+				body: params
 			});
 			await checkResponse(resp);
+			localStorage.removeItem('csrfToken');
 		} catch (e) {
 			console.log(e);
 		} finally {
-			localStorage.removeItem('csrfToken');
 			window.location.href = postLogoutUri;
 		}
 	});

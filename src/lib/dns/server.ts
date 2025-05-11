@@ -89,8 +89,8 @@ export async function startDnsServer() {
 
 	serverGlobals.dnsServer = new server.DefaultServer({
 		networks: [
-			new network.DNSOverTCP('0.0.0.0', DNS_PORT),
-			new network.DNSOverUDP('0.0.0.0', DNS_PORT)
+			new network.DNSOverTCP({ address: '0.0.0.0', port: DNS_PORT }),
+			new network.DNSOverUDP({ address: '0.0.0.0', port: DNS_PORT })
 		]
 	});
 

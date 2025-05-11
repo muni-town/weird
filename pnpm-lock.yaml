@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@discordjs/util':
-    hash: 5gsvf6b6zyc7z6d3ui3y75mu6u
+    hash: 79eb46c425b9e47fe0c5b2a926819bfde9b43fcceb4b7e7ad73a0bea28bd9cec
     path: patches/@discordjs__util.patch
 
 importers:
@@ -144,8 +144,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dinodns:
-        specifier: ^0.0.9
-        version: 0.0.9
+        specifier: npm:@zicklag/dinodns@^0.0.16-preview.2
+        version: '@zicklag/dinodns@0.0.16-preview.2'
       discord.js:
         specifier: ^14.16.3
         version: 14.16.3
@@ -1442,6 +1442,9 @@ packages:
     resolution: {integrity: sha512-RaI5qZo6D2CVS6sTHFKg1v5Ohq/+Bo2LZ5gzUEwZ/WkHhwtGTCB/sVLw8ijOkAUxasZ+WshN/Rzj4ywsABJ5ZA==, tarball: https://registry.npmmirror.com/@vladfrangu/async_event_emitter/-/async_event_emitter-2.4.6.tgz}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
 
+  '@zicklag/dinodns@0.0.16-preview.2':
+    resolution: {integrity: sha512-5r0A8RyiP5T1kGW60+Q3XyZW5UkZ3U8VVASCLqrvQd1o85G56yzCXN+2ilEBZsansf8qBhE/NtI08uI+vIfOnQ==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==, tarball: https://registry.npmmirror.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz}
     peerDependencies:
@@ -1473,7 +1476,7 @@ packages:
     engines: {node: '>=12'}
 
   ansi-styles@4.3.0:
-    resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==, tarball: https://registry.npmmirror.com/ansi-styles/-/ansi-styles-4.3.0.tgz}
+    resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
     engines: {node: '>=8'}
 
   ansi-styles@6.2.1:
@@ -1760,9 +1763,6 @@ packages:
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==, tarball: https://registry.npmmirror.com/didyoumean/-/didyoumean-1.2.2.tgz}
-
-  dinodns@0.0.9:
-    resolution: {integrity: sha512-77PU2AW2jRj7uzj7sdiojZvTkK+Ge/tuWwBQtb6euM9gJQuQ0RwXUGLHAjrymfnKEUVpPbNGXYJ47LrItvFdDw==, tarball: https://registry.npmmirror.com/dinodns/-/dinodns-0.0.9.tgz}
 
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==, tarball: https://registry.npmmirror.com/dir-glob/-/dir-glob-3.0.1.tgz}
@@ -2271,7 +2271,7 @@ packages:
     resolution: {integrity: sha512-QZ1d4xoBHYUeuouhEq3lk3Uq7ldgyFXGBhg04+oRLnIz8o9T65Eh+8YdroUwn846zchkA9yDsDl5CVVaV2nqYw==, tarball: https://registry.npmmirror.com/lodash.snakecase/-/lodash.snakecase-4.1.1.tgz}
 
   lodash@4.17.21:
-    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==, tarball: https://registry.npmmirror.com/lodash/-/lodash-4.17.21.tgz}
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
   loro-crdt@1.3.0:
     resolution: {integrity: sha512-CblHl06B9yDpOiHhst1FqQPvjPdWIOCgNmlxEq0wUWKhy4/ftTq+ABLjmMzmBizDOogpg3ne6XlHk0Wb8AobJg==, tarball: https://registry.npmmirror.com/loro-crdt/-/loro-crdt-1.3.0.tgz}
@@ -3642,7 +3642,7 @@ snapshots:
   '@discordjs/builders@1.9.0':
     dependencies:
       '@discordjs/formatters': 0.5.0
-      '@discordjs/util': 1.1.1(patch_hash=5gsvf6b6zyc7z6d3ui3y75mu6u)
+      '@discordjs/util': 1.1.1(patch_hash=79eb46c425b9e47fe0c5b2a926819bfde9b43fcceb4b7e7ad73a0bea28bd9cec)
       '@sapphire/shapeshift': 4.0.0
       discord-api-types: 0.37.97
       fast-deep-equal: 3.1.3
@@ -3660,7 +3660,7 @@ snapshots:
   '@discordjs/rest@2.4.0':
     dependencies:
       '@discordjs/collection': 2.1.1
-      '@discordjs/util': 1.1.1(patch_hash=5gsvf6b6zyc7z6d3ui3y75mu6u)
+      '@discordjs/util': 1.1.1(patch_hash=79eb46c425b9e47fe0c5b2a926819bfde9b43fcceb4b7e7ad73a0bea28bd9cec)
       '@sapphire/async-queue': 1.5.5
       '@sapphire/snowflake': 3.5.3
       '@vladfrangu/async_event_emitter': 2.4.6
@@ -3669,13 +3669,13 @@ snapshots:
       tslib: 2.8.1
       undici: 6.19.8
 
-  '@discordjs/util@1.1.1(patch_hash=5gsvf6b6zyc7z6d3ui3y75mu6u)': {}
+  '@discordjs/util@1.1.1(patch_hash=79eb46c425b9e47fe0c5b2a926819bfde9b43fcceb4b7e7ad73a0bea28bd9cec)': {}
 
   '@discordjs/ws@1.1.1':
     dependencies:
       '@discordjs/collection': 2.1.1
       '@discordjs/rest': 2.4.0
-      '@discordjs/util': 1.1.1(patch_hash=5gsvf6b6zyc7z6d3ui3y75mu6u)
+      '@discordjs/util': 1.1.1(patch_hash=79eb46c425b9e47fe0c5b2a926819bfde9b43fcceb4b7e7ad73a0bea28bd9cec)
       '@sapphire/async-queue': 1.5.5
       '@types/ws': 8.5.13
       '@vladfrangu/async_event_emitter': 2.4.6
@@ -4454,6 +4454,12 @@ snapshots:
 
   '@vladfrangu/async_event_emitter@2.4.6': {}
 
+  '@zicklag/dinodns@0.0.16-preview.2':
+    dependencies:
+      '@types/dns-packet': 5.6.5
+      dns-packet: 5.6.1
+      lodash: 4.17.21
+
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:
       acorn: 8.14.0
@@ -4764,11 +4770,6 @@ snapshots:
 
   didyoumean@1.2.2: {}
 
-  dinodns@0.0.9:
-    dependencies:
-      dns-packet: 5.6.1
-      lodash: 4.17.21
-
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
@@ -4785,7 +4786,7 @@ snapshots:
       '@discordjs/collection': 1.5.3
       '@discordjs/formatters': 0.5.0
       '@discordjs/rest': 2.4.0
-      '@discordjs/util': 1.1.1(patch_hash=5gsvf6b6zyc7z6d3ui3y75mu6u)
+      '@discordjs/util': 1.1.1(patch_hash=79eb46c425b9e47fe0c5b2a926819bfde9b43fcceb4b7e7ad73a0bea28bd9cec)
       '@discordjs/ws': 1.1.1
       '@sapphire/snowflake': 3.5.3
       discord-api-types: 0.37.100
